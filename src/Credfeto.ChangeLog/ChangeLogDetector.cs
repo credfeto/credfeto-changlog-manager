@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using Credfeto.ChangeLog.Helpers;
 using LibGit2Sharp;
 

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using ZLinq;
 
 namespace Credfeto.ChangeLog.Helpers;
 
