@@ -20,10 +20,13 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeMethodOrOperatorBody/@EntryIndexedValue">WARNING</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeMissingParentheses/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeObjectCreationWhenTypeEvident/@EntryIndexedValue">ERROR</s:String>
+<!--
+	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeObjectCreationWhenTypeNotEvident/@EntryIndexedValue">ERROR</s:String>
+-->
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeThisQualifier/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ArrangeVarKeywordsInDeconstructingDeclaration/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AssignmentIsFullyDiscarded/@EntryIndexedValue">ERROR</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AssignNullToNotNullAttribute/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AssignNullToNotNullAttribute/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AsyncIteratorInvocationWithoutAwaitForeach/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AutoPropertyCanBeMadeGetOnly_002EGlobal/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=AutoPropertyCanBeMadeGetOnly_002ELocal/@EntryIndexedValue">ERROR</s:String>
@@ -33,7 +36,7 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantTypeDeclarationBody/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantVerbatimStringPrefix/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=TooManyChainedReferences/@EntryIndexedValue">ERROR</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseAwaitUsing/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseAwaitUsing/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=BaseObjectEqualsIsObjectEquals/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=BaseObjectGetHashCodeCallInGetHashCode/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=CheckNamespace/@EntryIndexedValue">ERROR</s:String>
@@ -110,7 +113,7 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=PropertyCanBeMadeInitOnly_002EGlobal/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=PropertyCanBeMadeInitOnly_002ELocal/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=PublicMembersMustHaveComments/@EntryIndexedValue">WARNING</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RCS1118/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RCS1118/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RCS1146/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantArrayCreationExpression/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantAssignment/@EntryIndexedValue">ERROR</s:String>
@@ -126,13 +129,13 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantNameQualifier/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantStringFormatCall/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantStringToCharArrayCall/@EntryIndexedValue">ERROR</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantSuppressNullableWarningExpression/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantSuppressNullableWarningExpression/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantToStringCall/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantTypeArgumentsOfMethod/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RedundantUsingDirective/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ReferenceEqualsWithValueType/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RemoveRedundantBraces/@EntryIndexedValue">WARNING</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RemoveToList_002E1/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RemoveToList_002E1/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RemoveToList_002E2/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ReplaceWithFirstOrDefault_002E1/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=ReplaceWithFirstOrDefault_002E2/@EntryIndexedValue">ERROR</s:String>
@@ -233,7 +236,7 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UnusedVariable_002ECompiler/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseCancellationTokenForIAsyncEnumerable/@EntryIndexedValue">WARNING</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseCollectionCountProperty/@EntryIndexedValue">ERROR</s:String>
-	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseDeconstruction/@EntryIndexedValue">ERROR</s:String>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseDeconstruction/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseIsOperator_002E1/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseIsOperator_002E2/@EntryIndexedValue">ERROR</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UseMethodAny_002E0/@EntryIndexedValue">ERROR</s:String>
@@ -436,31 +439,31 @@
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=etherscan/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=authorised/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Rewriter/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Trulioo/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Yoti/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Blockchain/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mainnet/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Novichok/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Rinkeby/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Kovan/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Bracknell/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Ropsten/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Morden/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Goerli/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Maxmind/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Changelly/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=xDai/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=testnet/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=nonces/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=nonce/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Authoriser/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Nethermind/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Geth/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Upsert/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=upgrader/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=twilio/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=retrier/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=Shufti/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Trulioo/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Yoti/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Blockchain/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Mainnet/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Novichok/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Rinkeby/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Kovan/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Bracknell/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Ropsten/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Morden/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Goerli/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Maxmind/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Changelly/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=xDai/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=testnet/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=nonces/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=nonce/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Authoriser/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Nethermind/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Geth/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Upsert/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=upgrader/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=twilio/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=retrier/@EntryIndexedValue">True</s:Boolean>
+        <s:Boolean x:Key="/Default/UserDictionary/Words/=Shufti/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Dapp/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=openable/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=unopenable/@EntryIndexedValue">True</s:Boolean>
@@ -474,4 +477,8 @@
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=MediatR/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Meziantou/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Sepolia/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/UserDictionary/Words/=codecracker/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=codecracker/@EntryIndexedValue">True</s:Boolean>
+
+
+	codecracker
+</wpf:ResourceDictionary>
