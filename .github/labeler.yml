@@ -16,12 +16,18 @@
  - any: [ 'src/$Credfeto.ChangeLog.Cmd/**/*' ]
 "credfeto-changelog-tests":
  - any: [ 'src/$Credfeto.ChangeLog.Tests/**/*' ]
+"dotnet":
+ - any: [ 'src/**/*.csproj' ]
+"Editorconfig":
+ - any: [ '.editorconfig' ]
 "github-actions":
- - any: [ '.github/workflows/*.yml' ]
+ - any: [ '.github/actions/*.yml', '.github/workflows/*.yml' ]
 "Markdown":
  - any: [ './**/*.md' ]
 "Migration Script":
  - any: [ 'tools/MigrationScripts/**/*' ]
+"npm":
+ - any: [ './**/package-lock.json', './**/package.json' ]
 "Powershell":
  - any: [ './**/*.ps1', './**/*.psm1' ]
 "Read Me":
@@ -33,6 +39,6 @@
 "SQL":
  - any: [ './**/*.sql', 'db/**/*' ]
 "Static Code Analysis Rules":
- - any: [ 'src/CodeAnalysis.ruleset' ]
+ - any: [ '.globalconfig', 'src/CodeAnalysis.ruleset' ]
 "Unit Tests":
  - any: [ 'src/*.Tests.*/**/*', 'src/*.Tests.Integration.*/**/*', 'src/*.Tests.Integration/**/*', 'src/*.Tests/**/*' ]
