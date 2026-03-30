@@ -29,13 +29,13 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
 
 ## [Unreleased]
+### Security
 ### Added
 - Added a new entry
 ### Fixed
 ### Changed
 ### Deprecated
 ### Removed
-### Security
 ### Deployment Changes
 
 <!--
