@@ -26,6 +26,12 @@ internal static class Throws
     }
 
     [DoesNotReturn]
+    public static string CouldNotFindUnreleasedSectionString()
+    {
+        throw new InvalidChangeLogException("Could not find [" + Constants.Unreleased + "] section of file");
+    }
+
+    [DoesNotReturn]
     public static List<string> NoChangesForTheRelease()
     {
         throw new EmptyChangeLogException("No changes for the release");
