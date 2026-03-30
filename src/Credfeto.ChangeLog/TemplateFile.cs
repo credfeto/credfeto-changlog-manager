@@ -22,12 +22,12 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ## ["
         + Constants.Unreleased
         + @"]
+### Security
 ### Added
 ### Fixed
 ### Changed
 ### Deprecated
 ### Removed
-### Security
 ### Deployment Changes
 
 <!--
