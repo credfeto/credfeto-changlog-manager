@@ -15,6 +15,7 @@ namespace Credfeto.ChangeLog;
 public static class ChangeLogUpdater
 {
     private const string SubHeadingPrefix = "### ";
+
     public static async Task AddEntryAsync(
         string changeLogFileName,
         string type,
@@ -728,7 +729,7 @@ public static class ChangeLogUpdater
 
             if (IsSubHeading(line))
             {
-                string sectionName = line[SubHeadingPrefix.Length..]; // Remove "### "
+                string sectionName = line[SubHeadingPrefix.Length..];
                 currentSection = sectionName;
 
                 if (!sections.ContainsKey(sectionName))
