@@ -1,0 +1,22 @@
+# AI Instructions
+
+Create AI instructions in markdown files in the [Local AI Memory](ai/local) folder. This file maintains an index of the instruction files in that folder — keep it up-to-date when adding or removing them.
+
+Before performing any work, read this file and all files in the [Global AI Memory](ai/global) and [Local AI Memory](ai/local) folder to make sure memory is correct. If there are any inconsistencies between local memory and this file, stop and ask for clarification.
+
+* [Global](ai/global/index.md) is the master list of all global instructions that should be maintained in the git@github.com:credfeto/cs-template.git repo.
+* [Local](ai/local/index.md) is the master list of all local instructions that should be maintained in repo other than the git@github.com:credfeto/cs-template.git repo.
+
+Precedence is given to local instructions over global instructions.
+
+## Management Rules
+
+- Whenever an instruction to remember to do something is given, update the appropriate memory file and this index.
+- Whenever adding a new rule, check all existing instruction files and the index for consistency — update anything that conflicts with, duplicates, or is made stale by the new rule.
+- Whenever these files change, re-evaluate memory against it.
+- If there is a massive difference between memory and these files, stop and ask for clarification.
+- If a memory file's description diverges from the source code, update it to reflect the changes.
+- Re-organise the sections in the memory file whenever the current file set no longer works.
+- Whenever rebasing from main, take the the current branch's changes, but merge the changes in from main into the current fileset.
+- Whenever starting work - re-read all these files and use this as a basis for how the work is performed.
+- This file (.ai-instructions) should only be edited in git@github.com:credfeto/cs-template.git.
