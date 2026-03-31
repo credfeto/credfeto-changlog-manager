@@ -14,6 +14,8 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogUpdater
 {
+    private const string SubHeadingPrefix = "### ";
+
     public static async Task AddEntryAsync(
         string changeLogFileName,
         string type,
@@ -238,7 +240,7 @@ public static class ChangeLogUpdater
 
     private static string BuildSubHeaderSection(string type)
     {
-        return "### " + type;
+        return SubHeadingPrefix + type;
     }
 
     public static async Task CreateReleaseAsync(
@@ -488,7 +490,7 @@ public static class ChangeLogUpdater
 
     private static bool IsSubHeading(string line)
     {
-        return line.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal);
+        return line.StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal);
     }
 
     [SuppressMessage(
@@ -626,5 +628,187 @@ public static class ChangeLogUpdater
             encoding: Encoding.UTF8,
             cancellationToken: cancellationToken
         );
+    }
+
+    public static async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        string textBlock = await ReadChangeLogAsync(changeLogFileName: changeLogFileName, cancellationToken: cancellationToken);
+
+        string content = EnsureUnreleasedSectionsCommon(textBlock);
+
+        await File.WriteAllTextAsync(
+            path: changeLogFileName,
+            contents: content,
+            encoding: Encoding.UTF8,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public static string EnsureUnreleasedSections(string changeLog)
+    {
+        return EnsureUnreleasedSectionsCommon(changeLog);
+    }
+
+    private static string EnsureUnreleasedSectionsCommon(string changeLog)
+    {
+        List<string> text = ChangeLogAsLines(changeLog);
+
+        int unreleasedStart = FindUnreleasedStart(text);
+
+        if (unreleasedStart == -1)
+        {
+            return Throws.CouldNotFindUnreleasedSectionString();
+        }
+
+        int unreleasedEnd = FindUnreleasedEnd(text: text, unreleasedStart: unreleasedStart);
+
+        (List<string> sectionOrder, Dictionary<string, List<string>> sections, List<string> trailer) =
+            ParseUnreleasedSections(text: text, unreleasedStart: unreleasedStart, unreleasedEnd: unreleasedEnd);
+
+        List<string> newContent = BuildNewUnreleasedContent(
+            sectionOrder: sectionOrder,
+            sections: sections,
+            trailer: trailer
+        );
+
+        text.RemoveRange(index: unreleasedStart + 1, count: unreleasedEnd - unreleasedStart - 1);
+        text.InsertRange(index: unreleasedStart + 1, collection: newContent);
+
+        return string.Join(separator: Environment.NewLine, values: text).Trim();
+    }
+
+    private static int FindUnreleasedStart(IReadOnlyList<string> text)
+    {
+        for (int i = 0; i < text.Count; i++)
+        {
+            if (Unreleased.IsUnreleasedHeader(text[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int FindUnreleasedEnd(IReadOnlyList<string> text, int unreleasedStart)
+    {
+        for (int i = unreleasedStart + 1; i < text.Count; i++)
+        {
+            if (IsRelease(text[i]))
+            {
+                return i;
+            }
+        }
+
+        return text.Count;
+    }
+
+    private static (List<string> sectionOrder, Dictionary<string, List<string>> sections, List<string> trailer)
+        ParseUnreleasedSections(IReadOnlyList<string> text, int unreleasedStart, int unreleasedEnd)
+    {
+        List<string> sectionOrder = [];
+        Dictionary<string, List<string>> sections = new(StringComparer.Ordinal);
+        string? currentSection = null;
+        List<string> trailer = [];
+
+        for (int i = unreleasedStart + 1; i < unreleasedEnd; i++)
+        {
+            string line = text[i];
+
+            if (line.StartsWith(value: "<!--", comparisonType: StringComparison.Ordinal))
+            {
+                ExtractTrailingBlanksIntoTrailer(sections: sections, currentSection: currentSection, trailer: trailer);
+
+                for (int j = i; j < unreleasedEnd; j++)
+                {
+                    trailer.Add(text[j]);
+                }
+
+                break;
+            }
+
+            if (IsSubHeading(line))
+            {
+                string sectionName = line[SubHeadingPrefix.Length..];
+                currentSection = sectionName;
+
+                if (!sections.ContainsKey(sectionName))
+                {
+                    sectionOrder.Add(sectionName);
+                    sections[sectionName] = [];
+                }
+            }
+            else if (currentSection is not null)
+            {
+                sections[currentSection].Add(line);
+            }
+        }
+
+        return (sectionOrder, sections, trailer);
+    }
+
+    private static void ExtractTrailingBlanksIntoTrailer(
+        Dictionary<string, List<string>> sections,
+        string? currentSection,
+        List<string> trailer
+    )
+    {
+        if (currentSection is null)
+        {
+            return;
+        }
+
+        List<string> content = sections[currentSection];
+        List<string> extracted = [];
+
+        while (content.Count > 0 && string.IsNullOrWhiteSpace(content[^1]))
+        {
+            extracted.Insert(index: 0, item: content[^1]);
+            content.RemoveAt(content.Count - 1);
+        }
+
+        trailer.AddRange(extracted);
+    }
+
+    private static List<string> BuildNewUnreleasedContent(
+        IReadOnlyList<string> sectionOrder,
+        Dictionary<string, List<string>> sections,
+        IReadOnlyList<string> trailer
+    )
+    {
+        List<string> newContent = [];
+        HashSet<string> processedSections = new(StringComparer.Ordinal);
+
+        foreach (string sectionName in ChangeLogSections.Order)
+        {
+            newContent.Add(SubHeadingPrefix + sectionName);
+
+            if (sections.TryGetValue(sectionName, out List<string>? content))
+            {
+                newContent.AddRange(content);
+            }
+
+            processedSections.Add(sectionName);
+        }
+
+        foreach (string sectionName in sectionOrder.Where(s => !processedSections.Contains(s)))
+        {
+            newContent.Add(SubHeadingPrefix + sectionName);
+            newContent.AddRange(sections[sectionName]);
+        }
+
+        newContent.AddRange(trailer);
+
+        RemoveTrailingBlankLines(newContent);
+
+        return newContent;
+    }
+
+    private static void RemoveTrailingBlankLines(List<string> lines)
+    {
+        while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1]))
+        {
+            lines.RemoveAt(lines.Count - 1);
+        }
     }
 }
