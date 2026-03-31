@@ -18,14 +18,41 @@
 
 - Maintain `CHANGELOG.md` in [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format to track changes and updates to the project.
 - Purely documentation changes should not be added to the changelog.
-- Use the `Credfeto.Changelog.Cmd` dotnet tool to update the changelog, regardless of the project's primary language — this ensures consistency:
-  ```
-  dotnet changelog -f CHANGELOG.md -a <ChangeType> -m "<reason for change>"
-  ```
+- The `Credfeto.Changelog.Cmd` dotnet tool is the **only** permitted way to modify `CHANGELOG.md`, regardless of the project's primary language — never edit the file manually, whether adding or removing entries.
+- Changelog entries must be written so they are easily understandable by someone who has not read the code — describe what changed and why it matters, not how it was implemented.
 - Each task should be updated in `CHANGELOG.md`, **unless**:
   - This is the `git@github.com:credfeto/cs-template.git` repository — the `CHANGELOG.md` there is expected to be kept blank, ready for new repositories using the template.
   - It is purely a documentation change and does not affect any production code.
   - It is an AI instructions change.
+
+### Adding a changelog entry
+
+Use the `-a` flag with one of the standard [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) change types:
+
+```
+dotnet changelog -f CHANGELOG.md -a Added    -m "Brief description of what was added"
+dotnet changelog -f CHANGELOG.md -a Changed  -m "Brief description of what changed and why"
+dotnet changelog -f CHANGELOG.md -a Deprecated -m "Brief description of what is now deprecated"
+dotnet changelog -f CHANGELOG.md -a Removed  -m "Brief description of what was removed"
+dotnet changelog -f CHANGELOG.md -a Fixed    -m "Brief description of what was fixed"
+dotnet changelog -f CHANGELOG.md -a Security -m "Brief description of the security fix"
+```
+
+### Removing a changelog entry
+
+Use the `-r` flag with the change type and the exact message to remove:
+
+```
+dotnet changelog -f CHANGELOG.md -r <ChangeType> -m "<exact message to remove>"
+```
+
+### All other operations
+
+For any other changelog operations, consult:
+
+```
+dotnet changelog --help
+```
 
 ## Additional Documentation
 

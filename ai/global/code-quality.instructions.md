@@ -16,6 +16,12 @@
 
 - If code cannot be reached by any code path (dead code), remove it rather than writing tests around it.
 
+## Asynchronous Code
+
+- Prefer asynchronous code over synchronous code wherever the language and framework support it.
+- Never block on asynchronous operations synchronously — always await or use the appropriate async continuation mechanism.
+- Propagate asynchrony through the call stack — do not introduce synchronous wrappers around async operations.
+
 ## Immutability
 
 - Code should prefer immutable objects wherever possible.

@@ -1,0 +1,26 @@
+#! /bin/sh
+
+die() {
+    echo
+    echo "$@"
+    exit 1
+}
+
+BASEDIR=$(dirname "$(readlink -f "$0")")
+
+TEMPLATE="$BASEDIR/../cs-template"
+
+[ -d "$TEMPLATE" ] || die "Template not found at $TEMPLATE"
+
+[ -f "$TEMPLATE/.ai-instructions" ] || die "AI instructions not found at $TEMPLATE/.ai-instructions"
+cp "$TEMPLATE/.ai-instructions" "$BASEDIR/.ai-instructions"
+
+[ -d "$BASEDIR/ai" ] || mkdir "$BASEDIR/ai"
+[ -d "$BASEDIR/ai/global" ] || mkdir "$BASEDIR/ai/global"
+[ -d "$BASEDIR/ai/local" ] || mkdir "$BASEDIR/ai/local"
+
+rsync -a --delete "$TEMPLATE/ai/global/" "$BASEDIR/ai/global/"
+
+[ -f "$BASEDIR/ai/local/index.md" ] || cp "$TEMPLATE/ai/local/index.md" "$BASEDIR/ai/local/index.md"
+
+
