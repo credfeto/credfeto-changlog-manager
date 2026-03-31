@@ -14,4 +14,15 @@ public static class ChangeLogSections
         "Removed",
         "Deployment Changes",
     ];
+
+    public static readonly ImmutableArray<string> Headings =
+    [
+        "### Security",
+        "### Added",
+        "### Fixed",
+        "### Changed",
+        "### Deprecated",
+        "### Removed",
+        "### Deployment Changes",
+    ];
 }

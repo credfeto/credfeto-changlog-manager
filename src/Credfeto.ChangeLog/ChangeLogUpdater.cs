@@ -779,9 +779,10 @@ public static class ChangeLogUpdater
         List<string> newContent = [];
         HashSet<string> processedSections = new(StringComparer.Ordinal);
 
-        foreach (string sectionName in ChangeLogSections.Order)
+        for (int i = 0; i < ChangeLogSections.Order.Length; i++)
         {
-            newContent.Add(SubHeadingPrefix + sectionName);
+            string sectionName = ChangeLogSections.Order[i];
+            newContent.Add(ChangeLogSections.Headings[i]);
 
             if (sections.TryGetValue(sectionName, out List<string>? content))
             {

@@ -14,6 +14,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Dependencies - Updated Meziantou.Analyzer to 2.0.219
 - Dotnet 10
 - SDK - Updated DotNet SDK to 10.0.200
+- Reduced heap allocations in EnsureUnreleasedSections by pre-computing section heading strings in ChangeLogSections rather than concatenating them on every call
 ### Removed
 ### Deployment Changes
 
