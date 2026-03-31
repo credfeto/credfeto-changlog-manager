@@ -8,6 +8,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ## [Unreleased]
 ### Added
 - Automatically fixes changelogs that have missing or out-of-order sections in [Unreleased], ensuring all standard sections are present and in the correct order
+- Benchmarks for EnsureUnreleasedSections to measure allocations per operation and enforce regression baselines
 ### Fixed
 ### Changed
 - Dependencies - Updated Meziantou.Analyzer to 2.0.219
