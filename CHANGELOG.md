@@ -7,6 +7,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 
 ## [Unreleased]
 ### Added
+- `EnsureUnreleasedSections` to add any missing sections and reorder the `[Unreleased]` block into the canonical section order
 ### Fixed
 ### Changed
 - Dependencies - Updated Meziantou.Analyzer to 2.0.219
