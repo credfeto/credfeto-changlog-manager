@@ -12,11 +12,11 @@ namespace Credfeto.ChangeLog.Tests;
 )]
 public sealed class ChangeLogUpdaterEnsureUnreleasedSectionsTests : TestBase
 {
-    [Fact]
-    public void AllSectionsAlreadyPresentInCorrectOrderProducesNoChange()
-    {
-        const string existing =
-            @"# Changelog
+    public static TheoryData<string, string> EnsureUnreleasedSectionsCases =>
+        new()
+        {
+            {
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -35,40 +35,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
-
-        Assert.Equal(existing.ToLocalEndLine(), actual: result);
-    }
-
-    [Fact]
-    public void MissingSectionsAreAddedInCorrectOrder()
-    {
-        const string existing =
-            @"# Changelog
-All notable changes to this project will be documented in this file.
-
-<!--
-Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
--->
-
-## [Unreleased]
-### Added
-### Fixed
-### Changed
-### Removed
-### Deployment Changes
-
-<!--
-Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
--->
-## [0.0.0] - Project created";
-
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
-
-        const string expected =
-            @"# Changelog
+## [0.0.0] - Project created",
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -87,16 +55,10 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        Assert.Equal(expected.ToLocalEndLine(), actual: result);
-    }
-
-    [Fact]
-    public void OutOfOrderSectionsAreReordered()
-    {
-        const string existing =
-            @"# Changelog
+## [0.0.0] - Project created"
+            },
+            {
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -104,23 +66,17 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
 
 ## [Unreleased]
-### Deployment Changes
-### Removed
-### Deprecated
-### Changed
-### Fixed
 ### Added
-### Security
+### Fixed
+### Changed
+### Removed
+### Deployment Changes
 
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
-
-        const string expected =
-            @"# Changelog
+## [0.0.0] - Project created",
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -139,16 +95,52 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
+## [0.0.0] - Project created"
+            },
+            {
+                @"# Changelog
+All notable changes to this project will be documented in this file.
 
-        Assert.Equal(expected.ToLocalEndLine(), actual: result);
-    }
+<!--
+Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
+-->
 
-    [Fact]
-    public void SectionContentIsPreservedWhenReordering()
-    {
-        const string existing =
-            @"# Changelog
+## [Unreleased]
+### Deployment Changes
+### Removed
+### Deprecated
+### Changed
+### Fixed
+### Added
+### Security
+
+<!--
+Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
+-->
+## [0.0.0] - Project created",
+                @"# Changelog
+All notable changes to this project will be documented in this file.
+
+<!--
+Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
+-->
+
+## [Unreleased]
+### Security
+### Added
+### Fixed
+### Changed
+### Deprecated
+### Removed
+### Deployment Changes
+
+<!--
+Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
+-->
+## [0.0.0] - Project created"
+            },
+            {
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -167,12 +159,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
-
-        const string expected =
-            @"# Changelog
+## [0.0.0] - Project created",
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -194,18 +182,11 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        Assert.Equal(expected.ToLocalEndLine(), actual: result);
-    }
-
-    [Fact]
-    public void EmptyChangelogProducesTemplateWithAllSectionsInCorrectOrder()
-    {
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(string.Empty);
-
-        const string expected =
-            @"# Changelog
+## [0.0.0] - Project created"
+            },
+            {
+                string.Empty,
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
@@ -227,16 +208,10 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        Assert.Equal(expected.ToLocalEndLine(), actual: result);
-    }
-
-    [Fact]
-    public void UnknownSectionIsPreservedAtEnd()
-    {
-        const string existing =
-            @"# Changelog
+## [0.0.0] - Project created"
+            },
+            {
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -253,12 +228,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
-
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
-
-        const string expected =
-            @"# Changelog
+## [0.0.0] - Project created",
+                @"# Changelog
 All notable changes to this project will be documented in this file.
 
 <!--
@@ -280,7 +251,15 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
-## [0.0.0] - Project created";
+## [0.0.0] - Project created"
+            },
+        };
+
+    [Theory]
+    [MemberData(nameof(EnsureUnreleasedSectionsCases))]
+    public void EnsureUnreleasedSectionsProducesCorrectResult(string existing, string expected)
+    {
+        string result = ChangeLogUpdater.EnsureUnreleasedSections(existing);
 
         Assert.Equal(expected.ToLocalEndLine(), actual: result);
     }

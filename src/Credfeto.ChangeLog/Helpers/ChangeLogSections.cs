@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Credfeto.ChangeLog.Helpers;
 
 public static class ChangeLogSections
 {
-    public static readonly IReadOnlyList<string> Order =
+    public static readonly ImmutableArray<string> Order =
     [
         "Security",
         "Added",
