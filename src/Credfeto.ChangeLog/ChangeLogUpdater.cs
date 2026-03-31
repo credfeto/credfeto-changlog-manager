@@ -630,7 +630,7 @@ public static class ChangeLogUpdater
         );
     }
 
-    public static async Task EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
+    public static async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
     {
         string textBlock = await ReadChangeLogAsync(changeLogFileName: changeLogFileName, cancellationToken: cancellationToken);
 
