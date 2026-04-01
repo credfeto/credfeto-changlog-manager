@@ -12,6 +12,8 @@
  - any: [ 'src/**/*.json', '!src/global.json' ]
 "credfeto-changelog":
  - any: [ 'src/$Credfeto.ChangeLog/**/*' ]
+"credfeto-changelog-benchmark-tests":
+ - any: [ 'src/$Credfeto.ChangeLog.BenchMark.Tests/**/*' ]
 "credfeto-changelog-cmd":
  - any: [ 'src/$Credfeto.ChangeLog.Cmd/**/*' ]
 "credfeto-changelog-tests":
