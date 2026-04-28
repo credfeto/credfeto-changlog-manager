@@ -12,11 +12,10 @@ Precedence is given to local instructions over global instructions.
 ## Management Rules
 
 - Whenever an instruction to remember to do something is given, update the appropriate memory file and this index.
-- Whenever adding a new rule, check all existing instruction files and the index for consistency — update anything that conflicts with, duplicates, or is made stale by the new rule.
+- Whenever adding a new rule, read every existing instruction file and the index and check for consistency — update anything that conflicts with, duplicates, or is made stale by the new rule. Take that as an opportunity to re-organise how rules are categorised: split files that have grown too broad, merge files that cover the same topic, and rename files whose category label no longer fits. Apply this in whichever of `ai/global` or `ai/local` is relevant to the current work.
 - Whenever these files change, re-evaluate memory against it.
 - If there is a massive difference between memory and these files, stop and ask for clarification.
 - If a memory file's description diverges from the source code, update it to reflect the changes.
-- Re-organise the sections in the memory file whenever the current file set no longer works.
 - Whenever rebasing from main, take the the current branch's changes, but merge the changes in from main into the current fileset.
 - Whenever starting work - re-read all these files and use this as a basis for how the work is performed.
 - This file (.ai-instructions) should only be edited in git@github.com:credfeto/cs-template.git.
