@@ -94,10 +94,11 @@ internal static class Program
         Console.WriteLine($"Using Changelog {changeLog}");
 
         IReadOnlyList<string> additionalSections = [.. options.AdditionalSections];
+        IReadOnlyCollection<string>? additionalSectionsArg = additionalSections.Count > 0 ? additionalSections : null;
 
         IReadOnlyList<LintError> errors = await ChangeLogLinter.LintFileAsync(
             changeLogFileName: changeLog,
-            additionalSections: additionalSections.Count > 0 ? additionalSections : null,
+            additionalSections: additionalSectionsArg,
             cancellationToken: cancellationToken
         );
 
@@ -111,6 +112,39 @@ internal static class Program
         foreach (LintError error in errors)
         {
             Console.WriteLine($"Line {error.LineNumber}: {error.Message}");
+        }
+
+        if (options.Fix)
+        {
+            Console.WriteLine("Applying fixes...");
+
+            await ChangeLogFixer.FixFileAsync(
+                changeLogFileName: changeLog,
+                additionalSections: additionalSectionsArg,
+                cancellationToken: cancellationToken
+            );
+
+            Console.WriteLine("Fixed. Re-linting...");
+
+            IReadOnlyList<LintError> remainingErrors = await ChangeLogLinter.LintFileAsync(
+                changeLogFileName: changeLog,
+                additionalSections: additionalSectionsArg,
+                cancellationToken: cancellationToken
+            );
+
+            if (remainingErrors.Count == 0)
+            {
+                Console.WriteLine("Changelog is valid after fix");
+
+                return;
+            }
+
+            Console.WriteLine("Remaining errors after fix:");
+
+            foreach (LintError error in remainingErrors)
+            {
+                Console.WriteLine($"Line {error.LineNumber}: {error.Message}");
+            }
         }
 
         throw new ChangeLogInvalidFailedException("Changelog has lint errors");

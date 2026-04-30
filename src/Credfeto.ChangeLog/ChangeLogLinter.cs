@@ -20,6 +20,8 @@ public static class ChangeLogLinter
         "Deployment Changes",
     ];
 
+    private static readonly string[] KnownOptionalSections = ["Deprecated"];
+
     private const string UnreleasedHeader = "## [Unreleased]";
     private const string SubHeadingPrefix = "### ";
     private const string VersionHeaderPrefix = "## [";
@@ -246,6 +248,11 @@ public static class ChangeLogLinter
     private static bool IsKnownSection(string name, IReadOnlyCollection<string>? additionalSections)
     {
         if (IsRequiredSection(name))
+        {
+            return true;
+        }
+
+        if (KnownOptionalSections.Any(optional => StringComparer.Ordinal.Equals(x: optional, y: name)))
         {
             return true;
         }

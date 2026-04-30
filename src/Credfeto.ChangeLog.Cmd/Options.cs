@@ -93,4 +93,7 @@ public sealed class Options
 
     [Option(longName: "additional-sections", Required = false, Separator = ',', HelpText = "Additional change type sections allowed in unreleased")]
     public IEnumerable<string> AdditionalSections { get; init; } = [];
+
+    [Option(longName: "fix", Required = false, HelpText = "When used with --lint, rewrite the file to fix formatting issues")]
+    public bool Fix { get; init; }
 }
