@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
@@ -80,4 +81,16 @@ public sealed class Options
         HelpText = "Prints the unreleased section to the console."
     )]
     public bool DisplayUnreleased { get; init; }
+
+    [Option(
+        shortName: 'l',
+        longName: "lint",
+        Group = "Commands",
+        Required = false,
+        HelpText = "Lint the changelog for correctness"
+    )]
+    public bool Lint { get; init; }
+
+    [Option(longName: "additional-sections", Required = false, Separator = ',', HelpText = "Additional change type sections allowed in unreleased")]
+    public IEnumerable<string> AdditionalSections { get; init; } = [];
 }

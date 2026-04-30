@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
+using Credfeto.ChangeLog;
 using Credfeto.ChangeLog.Cmd.Exceptions;
 
 namespace Credfeto.ChangeLog.Cmd;
@@ -77,7 +78,42 @@ internal static class Program
             return;
         }
 
+        if (options.Lint)
+        {
+            await LintChangeLogAsync(options: options, cancellationToken: cancellationToken);
+
+            return;
+        }
+
         throw new InvalidOptionsException();
+    }
+
+    private static async Task LintChangeLogAsync(Options options, CancellationToken cancellationToken)
+    {
+        string changeLog = FindChangeLog(options);
+        Console.WriteLine($"Using Changelog {changeLog}");
+
+        IReadOnlyList<string> additionalSections = [.. options.AdditionalSections];
+
+        IReadOnlyList<LintError> errors = await ChangeLogLinter.LintFileAsync(
+            changeLogFileName: changeLog,
+            additionalSections: additionalSections.Count > 0 ? additionalSections : null,
+            cancellationToken: cancellationToken
+        );
+
+        if (errors.Count == 0)
+        {
+            Console.WriteLine("Changelog is valid");
+
+            return;
+        }
+
+        foreach (LintError error in errors)
+        {
+            Console.WriteLine($"Line {error.LineNumber}: {error.Message}");
+        }
+
+        throw new ChangeLogInvalidFailedException("Changelog has lint errors");
     }
 
     private static async Task OutputUnreleasedContentAsync(Options options, CancellationToken cancellationToken)
