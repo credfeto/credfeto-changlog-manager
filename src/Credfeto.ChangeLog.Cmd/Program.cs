@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
-using Credfeto.ChangeLog;
 using Credfeto.ChangeLog.Cmd.Exceptions;
 
 namespace Credfeto.ChangeLog.Cmd;
@@ -29,6 +29,12 @@ internal static class Program
             return changeLog;
         }
 
+        return ThrowMissingChangelogException();
+    }
+
+    [DoesNotReturn]
+    private static string ThrowMissingChangelogException()
+    {
         throw new MissingChangelogException("Could not find changelog");
     }
 
