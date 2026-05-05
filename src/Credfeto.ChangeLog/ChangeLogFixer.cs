@@ -10,6 +10,7 @@ namespace Credfeto.ChangeLog;
 public static class ChangeLogFixer
 {
     private const string SUB_HEADING_PREFIX = "### ";
+    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
 
     public static async ValueTask FixFileAsync(
         string changeLogFileName,
@@ -17,11 +18,7 @@ public static class ChangeLogFixer
         CancellationToken cancellationToken
     )
     {
-        string content = await File.ReadAllTextAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        string content = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
 
         string @fixed = Fix(content: content, additionalSections: additionalSections);
 

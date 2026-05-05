@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Helpers;
@@ -10,6 +8,8 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogLinter
 {
+    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
+
     private static readonly string[] RequiredSections =
     [
         "Security",
@@ -31,11 +31,7 @@ public static class ChangeLogLinter
         CancellationToken cancellationToken
     )
     {
-        string content = await File.ReadAllTextAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        string content = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
 
         return Lint(content: content, additionalSections: additionalSections);
     }

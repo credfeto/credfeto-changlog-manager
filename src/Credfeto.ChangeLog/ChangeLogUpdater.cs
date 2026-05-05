@@ -15,6 +15,7 @@ namespace Credfeto.ChangeLog;
 public static class ChangeLogUpdater
 {
     private const string SUB_HEADING_PREFIX = "### ";
+    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
 
     public static async Task AddEntryAsync(
         string changeLogFileName,
@@ -62,13 +63,9 @@ public static class ChangeLogUpdater
 
     private static async Task<string> ReadChangeLogAsync(string changeLogFileName, CancellationToken cancellationToken)
     {
-        if (File.Exists(changeLogFileName))
+        if (ChangeLogLoader.Exists(changeLogFileName))
         {
-            return await File.ReadAllTextAsync(
-                path: changeLogFileName,
-                encoding: Encoding.UTF8,
-                cancellationToken: cancellationToken
-            );
+            return await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
         }
 
         await CreateEmptyAsync(changeLogFileName: changeLogFileName, cancellationToken: cancellationToken);
@@ -250,11 +247,7 @@ public static class ChangeLogUpdater
         CancellationToken cancellationToken
     )
     {
-        string originalChangeLog = await File.ReadAllTextAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        string originalChangeLog = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
 
         string newChangeLog = CreateReleaseCommon(changeLog: originalChangeLog, version: version, pending: pending);
 

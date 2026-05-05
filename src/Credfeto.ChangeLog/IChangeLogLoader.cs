@@ -1,0 +1,14 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Credfeto.ChangeLog;
+
+internal interface IChangeLogLoader
+{
+    bool Exists(string changeLogFileName);
+
+    ValueTask<string> LoadTextAsync(string changeLogFileName, CancellationToken cancellationToken);
+
+    ValueTask<IReadOnlyList<string>> LoadLinesAsync(string changeLogFileName, CancellationToken cancellationToken);
+}
