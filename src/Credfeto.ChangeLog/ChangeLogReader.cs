@@ -55,8 +55,8 @@ public static class ChangeLogReader
             }
 
             if (
-                text[i].StartsWith(value: "### ", comparisonType: StringComparison.Ordinal)
-                && previousLine.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal)
+                text[i].IsChangeTypeHeading()
+                && previousLine.IsChangeTypeHeading()
             )
             {
                 previousLine = text[i];
@@ -64,14 +64,14 @@ public static class ChangeLogReader
                 continue;
             }
 
-            if (text[i].StartsWith(value: "### ", comparisonType: StringComparison.Ordinal))
+            if (text[i].IsChangeTypeHeading())
             {
                 previousLine = text[i];
 
                 continue;
             }
 
-            if (previousLine.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal))
+            if (previousLine.IsChangeTypeHeading())
             {
                 releaseNotes = releaseNotes.AppendLine(previousLine);
             }
@@ -134,7 +134,7 @@ public static class ChangeLogReader
                 continue;
             }
 
-            if (foundStart != -1 && line.StartsWith(value: "## [", comparisonType: StringComparison.Ordinal))
+            if (foundStart != -1 && line.IsVersionHeader())
             {
                 foundEnd = i;
 

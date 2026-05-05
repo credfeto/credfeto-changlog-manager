@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog;
 
@@ -264,7 +265,7 @@ public static class ChangeLogLinter
 
         for (int i = start; i < end; i++)
         {
-            if (lines[i].StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal))
+            if (lines[i].IsChangeTypeHeading())
             {
                 string name = lines[i][SUB_HEADING_PREFIX.Length..];
                 result.Add((name, i + 1)); // 1-based line number
@@ -279,7 +280,7 @@ public static class ChangeLogLinter
         for (int i = unreleasedStart + 1; i < lines.Length; i++)
         {
             if (
-                lines[i].StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal)
+                lines[i].IsVersionHeader()
                 && !StringComparer.Ordinal.Equals(x: lines[i], y: UNRELEASED_HEADER)
             )
             {
@@ -341,12 +342,12 @@ public static class ChangeLogLinter
 
     private static bool IsVersionHeader(string line)
     {
-        return line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal);
+        return line.IsVersionHeader();
     }
 
     private static bool IsChangeTypeHeading(string line)
     {
-        return line.StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal);
+        return line.IsChangeTypeHeading();
     }
 
     private static void CheckVersionHeaders(string[] lines, List<LintError> errors)
@@ -358,7 +359,7 @@ public static class ChangeLogLinter
             string line = lines[i];
 
             if (
-                !line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal)
+                !line.IsVersionHeader()
                 || StringComparer.Ordinal.Equals(x: line, y: UNRELEASED_HEADER)
             )
             {
