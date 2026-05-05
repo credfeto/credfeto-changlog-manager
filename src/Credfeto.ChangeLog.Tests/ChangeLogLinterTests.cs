@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -7,6 +9,9 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
+[SuppressMessage(category: "Meziantou.Analyzer", checkId: "MA0045:Use async overload", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
+[SuppressMessage(category: "Microsoft.VisualStudio.Threading.Analyzers", checkId: "VSTHRD002", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
+[SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
 public sealed class ChangeLogLinterTests : TestBase
 {
     private const string VALID_CHANGE_LOG =
@@ -18,6 +23,7 @@ public sealed class ChangeLogLinterTests : TestBase
         ### Added
         ### Fixed
         ### Changed
+        ### Deprecated
         ### Removed
         ### Deployment Changes
 
@@ -31,7 +37,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void ValidChangelog_ReturnsNoErrors()
     {
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(VALID_CHANGE_LOG);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(VALID_CHANGE_LOG), null, Language);
 
         Assert.Empty(errors);
     }
@@ -48,7 +54,7 @@ public sealed class ChangeLogLinterTests : TestBase
             - Initial release
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(errors, e => e.Message.Contains(value: "[Unreleased]", comparisonType: StringComparison.Ordinal));
     }
@@ -74,7 +80,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,
@@ -105,7 +111,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,
@@ -134,7 +140,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,
@@ -163,7 +169,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(content: changeLog, additionalSections: ["Custom"]);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), ["Custom"], Language);
 
         Assert.DoesNotContain(
             errors,
@@ -193,7 +199,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,
@@ -220,7 +226,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.DoesNotContain(
             errors,
@@ -250,7 +256,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,
@@ -286,12 +292,20 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.DoesNotContain(
             errors,
             e => e.Message.Contains(value: "descending order", comparisonType: StringComparison.Ordinal)
         );
+    }
+
+    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+
+    private static ChangeLogDocument Parse(string content)
+    {
+        ChangeLogParser parser = new();
+        return parser.ParseAsync(content, default).GetAwaiter().GetResult();
     }
 
     [Fact]
@@ -320,7 +334,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), null, Language);
 
         Assert.Contains(
             errors,

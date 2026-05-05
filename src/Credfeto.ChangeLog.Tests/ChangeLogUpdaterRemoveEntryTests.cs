@@ -1,19 +1,34 @@
+using System.Diagnostics.CodeAnalysis;
+using Credfeto.ChangeLog.Constants;
+using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
+[SuppressMessage(category: "Meziantou.Analyzer", checkId: "MA0045:Use async overload", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
+[SuppressMessage(category: "Microsoft.VisualStudio.Threading.Analyzers", checkId: "VSTHRD002", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
+[SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
 public sealed class ChangeLogUpdaterRemoveEntryTests : TestBase
 {
+    private static ChangeLogDocument ParseOrCreate(string content)
+    {
+        ChangeLogParser parser = new();
+        return parser.ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Initial : content, default).GetAwaiter().GetResult();
+    }
+
+    private static string Serialise(ChangeLogDocument document)
+    {
+        ChangeLogSerialiser serialiser = new();
+        return serialiser.SerialiseAsync(document, default).GetAwaiter().GetResult();
+    }
+
+
     [Fact]
     public void RemoveFromEmptyChangelog()
     {
-        string result = ChangeLogUpdater.RemoveEntry(
-            changeLog: string.Empty,
-            type: "Added",
-            message: "Added a new entry"
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(string.Empty), "Added", "Added a new entry"));
 
         const string expected =
             @"# Changelog
@@ -73,7 +88,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = ChangeLogUpdater.RemoveEntry(changeLog: existing, type: "Added", message: "Remove Me");
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -129,7 +144,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = ChangeLogUpdater.RemoveEntry(changeLog: existing, type: "Added", message: "Remove Me");
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -180,7 +195,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = ChangeLogUpdater.RemoveEntry(changeLog: existing, type: "Added", message: "Remove Me");
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -234,7 +249,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 
 ## [0.0.0] - Project created";
 
-        string result = ChangeLogUpdater.RemoveEntry(changeLog: existing, type: "Added", message: "Remove Me");
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -290,7 +305,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = ChangeLogUpdater.RemoveEntry(changeLog: existing, type: "Added", message: "Remove Me");
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
