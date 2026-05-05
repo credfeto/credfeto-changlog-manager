@@ -6,13 +6,36 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
 
 ## [Unreleased]
+### Security
 ### Added
+- add DI registration extension AddChangeLog to configure IChangeLogLoader
+- add service interfaces IChangeLogReader, IChangeLogLinter, IChangeLogFixer, IChangeLogUpdater with file-backed implementations injectable via DI
+- Mock-based unit tests for ChangeLogReader, ChangeLogFixer, ChangeLogLinter, ChangeLogUpdater services using NSubstitute
+- DI registration tests in ChangeLogSetupTests verifying all services are resolvable via AddChangeLog
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
+- Refined changelog section linting and related updater/fixer command behaviour.
+- Extracted shared changelog heading extension methods and reused them in reader/linter.
+- Dependencies - Updated Meziantou.Analyzer to 2.0.219
+- Dotnet 10
+- SDK - Updated DotNet SDK to 10.0.200
+- Reduced heap allocations in EnsureUnreleasedSections by pre-computing section heading strings in ChangeLogSections rather than concatenating them on every call
+- Refined changelog section linting and related updater/fixer command behaviour.
+- Extracted shared changelog heading extension methods and reused them in reader/linter.
+- Centralised changelog file loading behind a shared loader abstraction and added file-operation coverage tests.
+- remove IsSubHeading wrapper and inline IsChangeTypeHeading extension calls
+- remove IsChangeTypeHeadingOrVersionHeading wrapper and inline extension calls
+- replace string.Join with LinesToText extension and Split with SplitToLines
+- update CLI and tests to resolve changelog operations through DI
+- Reorganised Credfeto.ChangeLog into Extensions, Models, and Services sub-folders with matching namespaces
+- Renamed IChangeLogLoader to IChangeLogStorage and FileSystemChangeLogLoader to FileSystemChangeLogStorage to reflect load and save responsibilities
+- Extracted common string comparison, HTML comment detection, and unreleased-section helpers into ChangeLogHeadingExtensions
+- Split ChangeLogUpdater and ChangeLogLinter into focused partial class files by responsibility
+- Extracted FindUnreleasedStart as a shared extension method; replaced duplicated IsRelease private method with IsVersionHeader extension
+### Deprecated
 ### Removed
 ### Deployment Changes
-
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->

@@ -1,6 +1,4 @@
-﻿using Credfeto.ChangeLog.Helpers;
-
-namespace Credfeto.ChangeLog;
+﻿namespace Credfeto.ChangeLog.Constants;
 
 internal static class TemplateFile
 {
@@ -20,7 +18,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
 
 ## ["
-        + Constants.Unreleased
+        + FileConstants.Unreleased
         + @"]
 ### Security
 ### Added

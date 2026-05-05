@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Exceptions;
 using LibGit2Sharp;
 
@@ -10,25 +11,25 @@ internal static class Throws
     [DoesNotReturn]
     public static string EmptyChangeLogNoUnreleasedSection()
     {
-        throw new EmptyChangeLogException("Could not find [" + Constants.Unreleased + "] section of file");
+        throw new EmptyChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
     }
 
     [DoesNotReturn]
-    public static Dictionary<string, int> CouldNotFindUnreleasedSectionDictioonary()
+    public static Dictionary<string, int> CouldNotFindUnreleasedSectionDictionary()
     {
-        throw new EmptyChangeLogException("Could not find [" + Constants.Unreleased + "] section of file");
+        throw new EmptyChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
     }
 
     [DoesNotReturn]
     public static int CouldNotFindUnreleasedSectionInt()
     {
-        throw new InvalidChangeLogException("Could not find [" + Constants.Unreleased + "] section of file");
+        throw new InvalidChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
     }
 
     [DoesNotReturn]
     public static string CouldNotFindUnreleasedSectionString()
     {
-        throw new InvalidChangeLogException("Could not find [" + Constants.Unreleased + "] section of file");
+        throw new InvalidChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
     }
 
     [DoesNotReturn]

@@ -1,6 +1,6 @@
-﻿namespace Credfeto.ChangeLog.Helpers;
+﻿namespace Credfeto.ChangeLog.Constants;
 
-internal static class Constants
+internal static class FileConstants
 {
     public const string Unreleased = "Unreleased";
 

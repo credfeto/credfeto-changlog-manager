@@ -1,6 +1,6 @@
 using LibGit2Sharp;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Constants;
 
 internal static class CompareSettings
 {

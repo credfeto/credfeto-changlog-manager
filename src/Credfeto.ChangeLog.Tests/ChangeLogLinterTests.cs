@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Credfeto.ChangeLog.Models;
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 
@@ -7,7 +9,7 @@ namespace Credfeto.ChangeLog.Tests;
 
 public sealed class ChangeLogLinterTests : TestBase
 {
-    private const string ValidChangeLog =
+    private const string VALID_CHANGE_LOG =
         """
         # Changelog
 
@@ -29,7 +31,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void ValidChangelog_ReturnsNoErrors()
     {
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(ValidChangeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(VALID_CHANGE_LOG);
 
         Assert.Empty(errors);
     }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Credfeto.ChangeLog.Models;
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 
@@ -6,7 +8,7 @@ namespace Credfeto.ChangeLog.Tests;
 
 public sealed class ChangeLogFixerTests : TestBase
 {
-    private const string ValidChangeLog =
+    private const string VALID_CHANGE_LOG =
         """
         # Changelog
 
@@ -28,7 +30,7 @@ public sealed class ChangeLogFixerTests : TestBase
     [Fact]
     public void AlreadyValidChangelog_RemainsValid()
     {
-        string result = ChangeLogFixer.Fix(ValidChangeLog);
+        string result = ChangeLogFixer.Fix(VALID_CHANGE_LOG);
 
         IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(result);
         Assert.Empty(errors);

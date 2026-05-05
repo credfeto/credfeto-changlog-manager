@@ -1,27 +1,39 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 using LibGit2Sharp;
 using ZLinq;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogChecker
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogChecker : IChangeLogChecker
 {
-    public static async Task<bool> ChangeLogModifiedInReleaseSectionAsync(
+    private readonly IChangeLogStorage _loader;
+
+    public ChangeLogChecker(IChangeLogStorage loader)
+    {
+        this._loader = loader;
+    }
+
+    public async Task<bool> ChangeLogModifiedInReleaseSectionAsync(
         string changeLogFileName,
         string originBranchName,
         CancellationToken cancellationToken
     )
     {
         changeLogFileName = GetFullChangeLogFilePath(changeLogFileName);
-        int? position = await ChangeLogReader.FindFirstReleaseVersionPositionAsync(
+        int? position = await FindFirstReleaseVersionPositionAsync(
             changeLogFileName: changeLogFileName,
+            loader: this._loader,
             cancellationToken: cancellationToken
         );
 
@@ -39,9 +51,8 @@ public static class ChangeLogChecker
 
             Branch originBranch = FindOriginBranch(repo: repo, originBranchName: originBranchName);
 
-            if (StringComparer.Ordinal.Equals(x: originBranch.Tip.Sha, y: sha))
+            if (originBranch.Tip.Sha.EqualsOrdinal(sha))
             {
-                // same branch/commit
                 return false;
             }
 
@@ -57,7 +68,7 @@ public static class ChangeLogChecker
             );
 
             PatchEntryChanges? change = changes.FirstOrDefault(candidate =>
-                StringComparer.Ordinal.Equals(x: candidate.Path, y: changeLogInRepoPath)
+                candidate.Path.EqualsOrdinal(changeLogInRepoPath)
             );
 
             if (change is not null)
@@ -74,9 +85,24 @@ public static class ChangeLogChecker
         return true;
     }
 
+    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, IChangeLogStorage loader, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<string> changelog = await loader.LoadLinesAsync(changeLogFileName, cancellationToken);
+
+        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
+        {
+            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
+            {
+                return lineIndex + 1;
+            }
+        }
+
+        return null;
+    }
+
     private static Branch FindOriginBranch(Repository repo, string originBranchName)
     {
-        return repo.Branches.FirstOrDefault(b => StringComparer.Ordinal.Equals(x: b.FriendlyName, y: originBranchName))
+        return repo.Branches.FirstOrDefault(b => b.FriendlyName.EqualsOrdinal(originBranchName))
             ?? Throws.CouldNotFindBranch(originBranchName);
     }
 
@@ -146,7 +172,7 @@ public static class ChangeLogChecker
     private static string ExtractPatchDetails(string patch)
     {
         Console.WriteLine(patch);
-        List<string> lines = [.. patch.Split('\n')];
+        List<string> lines = [.. patch.SplitToLines()];
 
         RemoveLastLineIfBlank(lines);
 
@@ -185,7 +211,7 @@ public static class ChangeLogChecker
                     break;
 
                 case '\\':
-                    if (StringComparer.Ordinal.Equals(x: line, y: @"\ No newline at end of file"))
+                    if (line.EqualsOrdinal(@"\ No newline at end of file"))
                     {
                         break;
                     }

@@ -1,31 +1,48 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogReader
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogReader : IChangeLogReader
 {
-    public static async Task<string> ExtractReleaseNotesFromFileAsync(
-        string changeLogFileName,
-        string version,
-        CancellationToken cancellationToken
-    )
+    private readonly IChangeLogStorage _loader;
+
+    public ChangeLogReader(IChangeLogStorage loader)
     {
-        string textBlock = await File.ReadAllTextAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        this._loader = loader;
+    }
+
+    public async ValueTask<string> ExtractReleaseNotesFromFileAsync(string changeLogFileName, string version, CancellationToken cancellationToken)
+    {
+        string textBlock = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
 
         return ExtractReleaseNotes(changeLog: textBlock, version: version);
     }
 
-    public static string ExtractReleaseNotes(string changeLog, string version)
+    public async ValueTask<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<string> changelog = await this._loader.LoadLinesAsync(changeLogFileName, cancellationToken);
+
+        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
+        {
+            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
+            {
+                return lineIndex + 1;
+            }
+        }
+
+        return null;
+    }
+
+    internal static string ExtractReleaseNotes(string changeLog, string version)
     {
         Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
 
@@ -55,8 +72,8 @@ public static class ChangeLogReader
             }
 
             if (
-                text[i].StartsWith(value: "### ", comparisonType: StringComparison.Ordinal)
-                && previousLine.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal)
+                text[i].IsChangeTypeHeading()
+                && previousLine.IsChangeTypeHeading()
             )
             {
                 previousLine = text[i];
@@ -64,16 +81,16 @@ public static class ChangeLogReader
                 continue;
             }
 
-            if (text[i].StartsWith(value: "### ", comparisonType: StringComparison.Ordinal))
+            if (text[i].IsChangeTypeHeading())
             {
                 previousLine = text[i];
 
                 continue;
             }
 
-            if (previousLine.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal))
+            if (previousLine.IsChangeTypeHeading())
             {
-                releaseNotes.AppendLine(previousLine);
+                releaseNotes = releaseNotes.AppendLine(previousLine);
             }
 
             releaseNotes = releaseNotes.AppendLine(text[i]);
@@ -86,31 +103,6 @@ public static class ChangeLogReader
     private static IReadOnlyList<string> RemoveComments(string changeLog)
     {
         return CommonRegex.RemoveComments.Replace(input: changeLog, replacement: string.Empty).Trim().SplitToLines();
-    }
-
-    public static async Task<int?> FindFirstReleaseVersionPositionAsync(
-        string changeLogFileName,
-        CancellationToken cancellationToken
-    )
-    {
-        IReadOnlyList<string> changelog = await File.ReadAllLinesAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
-
-        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
-        {
-            string line = changelog[lineIndex];
-
-            if (CommonRegex.VersionHeader.IsMatch(line))
-            {
-                // Line indexes start from 1
-                return lineIndex + 1;
-            }
-        }
-
-        return null;
     }
 
     private static void FindSectionForBuild(
@@ -134,7 +126,7 @@ public static class ChangeLogReader
                 continue;
             }
 
-            if (foundStart != -1 && line.StartsWith(value: "## [", comparisonType: StringComparison.Ordinal))
+            if (foundStart != -1 && line.IsVersionHeader())
             {
                 foundEnd = i;
 

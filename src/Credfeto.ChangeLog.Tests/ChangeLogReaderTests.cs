@@ -1,3 +1,4 @@
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 
