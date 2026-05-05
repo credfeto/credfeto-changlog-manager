@@ -14,7 +14,7 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogUpdater
 {
-    private const string SubHeadingPrefix = "### ";
+    private const string SUB_HEADING_PREFIX = "### ";
 
     public static async Task AddEntryAsync(
         string changeLogFileName,
@@ -240,7 +240,7 @@ public static class ChangeLogUpdater
 
     private static string BuildSubHeaderSection(string type)
     {
-        return SubHeadingPrefix + type;
+        return SUB_HEADING_PREFIX + type;
     }
 
     public static async Task CreateReleaseAsync(
@@ -490,7 +490,7 @@ public static class ChangeLogUpdater
 
     private static bool IsSubHeading(string line)
     {
-        return line.StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal);
+        return line.StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal);
     }
 
     [SuppressMessage(
@@ -729,7 +729,7 @@ public static class ChangeLogUpdater
 
             if (IsSubHeading(line))
             {
-                string sectionName = line[SubHeadingPrefix.Length..];
+                string sectionName = line[SUB_HEADING_PREFIX.Length..];
                 currentSection = sectionName;
 
                 if (!sections.ContainsKey(sectionName))
@@ -794,7 +794,7 @@ public static class ChangeLogUpdater
 
         foreach (string sectionName in sectionOrder.Where(s => !processedSections.Contains(s)))
         {
-            newContent.Add(SubHeadingPrefix + sectionName);
+            newContent.Add(SUB_HEADING_PREFIX + sectionName);
             newContent.AddRange(sections[sectionName]);
         }
 

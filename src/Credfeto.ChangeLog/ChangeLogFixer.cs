@@ -9,7 +9,7 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogFixer
 {
-    private const string SubHeadingPrefix = "### ";
+    private const string SUB_HEADING_PREFIX = "### ";
 
     public static async ValueTask FixFileAsync(
         string changeLogFileName,
@@ -23,11 +23,11 @@ public static class ChangeLogFixer
             cancellationToken: cancellationToken
         );
 
-        string fixed_ = Fix(content: content, additionalSections: additionalSections);
+        string @fixed = Fix(content: content, additionalSections: additionalSections);
 
         await File.WriteAllTextAsync(
             path: changeLogFileName,
-            contents: fixed_,
+            contents: @fixed,
             encoding: Encoding.UTF8,
             cancellationToken: cancellationToken
         );
@@ -53,7 +53,7 @@ public static class ChangeLogFixer
             i++;
 
             if (
-                line.StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal)
+                line.StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal)
                 && i < lines.Length
                 && string.IsNullOrWhiteSpace(lines[i])
             )

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,15 +15,14 @@ public static class ChangeLogLinter
         "Added",
         "Fixed",
         "Changed",
-        "Removed",
-        "Deployment Changes",
+        "Removed"
     ];
 
-    private static readonly string[] KnownOptionalSections = ["Deprecated"];
+    private static readonly string[] KnownOptionalSections = ["Deprecated", "Deployment Changes"];
 
-    private const string UnreleasedHeader = "## [Unreleased]";
-    private const string SubHeadingPrefix = "### ";
-    private const string VersionHeaderPrefix = "## [";
+    private const string UNRELEASED_HEADER = "## [Unreleased]";
+    private const string SUB_HEADING_PREFIX = "### ";
+    private const string VERSION_HEADER_PREFIX = "## [";
 
     public static async ValueTask<IReadOnlyList<LintError>> LintFileAsync(
         string changeLogFileName,
@@ -78,7 +76,7 @@ public static class ChangeLogLinter
 
         if (unreleasedLineIndex == -1)
         {
-            errors.Add(new LintError(LineNumber: 1, Message: "Missing [Unreleased] section"));
+            errors.Add(new(LineNumber: 1, Message: "Missing [Unreleased] section"));
 
             return;
         }
@@ -95,7 +93,7 @@ public static class ChangeLogLinter
     {
         for (int i = 0; i < lines.Length; i++)
         {
-            if (StringComparer.Ordinal.Equals(x: lines[i], y: UnreleasedHeader))
+            if (StringComparer.Ordinal.Equals(x: lines[i], y: UNRELEASED_HEADER))
             {
                 return i;
             }
@@ -142,7 +140,7 @@ public static class ChangeLogLinter
             if (!seenSections.Add(name))
             {
                 errors.Add(
-                    new LintError(
+                    new(
                         LineNumber: lineNumber,
                         Message: $"Section '### {name}' is duplicated in [Unreleased]"
                     )
@@ -162,7 +160,7 @@ public static class ChangeLogLinter
             if (!IsKnownSection(name: name, additionalSections: additionalSections))
             {
                 errors.Add(
-                    new LintError(
+                    item: new(
                         LineNumber: lineNumber,
                         Message: $"Unknown section '### {name}' in [Unreleased]"
                     )
@@ -187,7 +185,7 @@ public static class ChangeLogLinter
             if (foundPos == -1)
             {
                 errors.Add(
-                    new LintError(
+                    new(
                         LineNumber: unreleasedLineNumber,
                         Message: $"Missing required section '### {requiredSection}' in [Unreleased]"
                     )
@@ -196,7 +194,7 @@ public static class ChangeLogLinter
             else if (foundPos < lastFoundIndex)
             {
                 errors.Add(
-                    new LintError(
+                    new(
                         LineNumber: foundRequired[foundPos].LineNumber,
                         Message: $"Section '### {requiredSection}' is out of order in [Unreleased]"
                     )
@@ -257,8 +255,7 @@ public static class ChangeLogLinter
             return true;
         }
 
-        return additionalSections is not null
-            && additionalSections.Any(additional => StringComparer.Ordinal.Equals(x: additional, y: name));
+        return additionalSections?.Any(additional => StringComparer.Ordinal.Equals(x: additional, y: name)) == true;
     }
 
     private static List<(string Name, int LineNumber)> CollectSubHeadings(string[] lines, int start, int end)
@@ -267,9 +264,9 @@ public static class ChangeLogLinter
 
         for (int i = start; i < end; i++)
         {
-            if (lines[i].StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal))
+            if (lines[i].StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal))
             {
-                string name = lines[i][SubHeadingPrefix.Length..];
+                string name = lines[i][SUB_HEADING_PREFIX.Length..];
                 result.Add((name, i + 1)); // 1-based line number
             }
         }
@@ -282,8 +279,8 @@ public static class ChangeLogLinter
         for (int i = unreleasedStart + 1; i < lines.Length; i++)
         {
             if (
-                lines[i].StartsWith(value: VersionHeaderPrefix, comparisonType: StringComparison.Ordinal)
-                && !StringComparer.Ordinal.Equals(x: lines[i], y: UnreleasedHeader)
+                lines[i].StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal)
+                && !StringComparer.Ordinal.Equals(x: lines[i], y: UNRELEASED_HEADER)
             )
             {
                 return i;
@@ -297,7 +294,7 @@ public static class ChangeLogLinter
     {
         for (int i = 0; i < lines.Length - 1; i++)
         {
-            if (!lines[i].StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal))
+            if (!IsChangeTypeHeading(lines[i]))
             {
                 continue;
             }
@@ -321,22 +318,35 @@ public static class ChangeLogLinter
             }
 
             // A blank line between a ### heading and another section (### or ##) is acceptable formatting
-            if (
-                lines[nextNonEmpty].StartsWith(value: SubHeadingPrefix, comparisonType: StringComparison.Ordinal)
-                || lines[nextNonEmpty].StartsWith(value: VersionHeaderPrefix, comparisonType: StringComparison.Ordinal)
-            )
+            if (IsChangeTypeHeadingOrVersionHeading(lines[nextNonEmpty]))
             {
                 continue;
             }
 
-            string name = lines[i][SubHeadingPrefix.Length..];
+            string name = lines[i][SUB_HEADING_PREFIX.Length..];
             errors.Add(
-                new LintError(
+                new(
                     LineNumber: i + 1, // 1-based
                     Message: $"Blank line after heading '### {name}'"
                 )
             );
         }
+    }
+
+    private static bool IsChangeTypeHeadingOrVersionHeading(string line)
+    {
+        return IsChangeTypeHeading(line)
+               || IsVersionHeader(line);
+    }
+
+    private static bool IsVersionHeader(string line)
+    {
+        return line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal);
+    }
+
+    private static bool IsChangeTypeHeading(string line)
+    {
+        return line.StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal);
     }
 
     private static void CheckVersionHeaders(string[] lines, List<LintError> errors)
@@ -348,27 +358,27 @@ public static class ChangeLogLinter
             string line = lines[i];
 
             if (
-                !line.StartsWith(value: VersionHeaderPrefix, comparisonType: StringComparison.Ordinal)
-                || StringComparer.Ordinal.Equals(x: line, y: UnreleasedHeader)
+                !line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal)
+                || StringComparer.Ordinal.Equals(x: line, y: UNRELEASED_HEADER)
             )
             {
                 continue;
             }
 
-            int closeBracket = line.IndexOf(value: ']', startIndex: VersionHeaderPrefix.Length);
+            int closeBracket = line.IndexOf(value: ']', startIndex: VERSION_HEADER_PREFIX.Length);
 
             if (closeBracket == -1)
             {
                 continue;
             }
 
-            string versionStr = line[VersionHeaderPrefix.Length..closeBracket];
+            string versionStr = line[VERSION_HEADER_PREFIX.Length..closeBracket];
             int lineNumber = i + 1; // 1-based
 
             if (!IsValidVersion(versionStr))
             {
                 errors.Add(
-                    new LintError(
+                    new(
                         LineNumber: lineNumber,
                         Message: $"Invalid version '{versionStr}' — must be a valid semver version"
                     )
@@ -396,7 +406,7 @@ public static class ChangeLogLinter
             if (versions[i].ParsedVersion >= versions[i - 1].ParsedVersion)
             {
                 errors.Add(
-                    new LintError(
+                    new(
                         LineNumber: versions[i].LineNumber,
                         Message: $"Version '{versions[i].OriginalVersion}' is not in descending order"
                     )

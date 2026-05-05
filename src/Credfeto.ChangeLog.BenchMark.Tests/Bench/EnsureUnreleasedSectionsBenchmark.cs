@@ -13,7 +13,7 @@ namespace Credfeto.ChangeLog.BenchMark.Tests.Bench;
 )]
 public class EnsureUnreleasedSectionsBenchmark
 {
-    private const string CorrectOrderChangelog =
+    private const string CORRECT_ORDER_CHANGELOG =
         @"# Changelog
 All notable changes to this project will be documented in this file.
 
@@ -35,7 +35,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-    private const string OutOfOrderChangelog =
+    private const string OUT_OF_ORDER_CHANGELOG =
         @"# Changelog
 All notable changes to this project will be documented in this file.
 
@@ -60,12 +60,12 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [Benchmark]
     public string EnsureUnreleasedSections_AllSectionsCorrect()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(CorrectOrderChangelog);
+        return ChangeLogUpdater.EnsureUnreleasedSections(CORRECT_ORDER_CHANGELOG);
     }
 
     [Benchmark]
     public string EnsureUnreleasedSections_OutOfOrderAndMissing()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(OutOfOrderChangelog);
+        return ChangeLogUpdater.EnsureUnreleasedSections(OUT_OF_ORDER_CHANGELOG);
     }
 }

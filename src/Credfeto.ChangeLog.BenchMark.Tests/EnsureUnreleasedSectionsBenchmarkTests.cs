@@ -10,8 +10,8 @@ public sealed class EnsureUnreleasedSectionsBenchmarkTests : LoggingTestBase
 {
     // Baselines measured after pre-computing section heading strings (issue #252).
     // These limits include a 25% margin to allow for minor variation across machines.
-    private const long MaxAllocatedBytesAllSectionsCorrect = 8000;
-    private const long MaxAllocatedBytesOutOfOrderAndMissing = 8550;
+    private const long MAX_ALLOCATED_BYTES_ALL_SECTIONS_CORRECT = 8000;
+    private const long MAX_ALLOCATED_BYTES_OUT_OF_ORDER_AND_MISSING = 8550;
 
     public EnsureUnreleasedSectionsBenchmarkTests(ITestOutputHelper output)
         : base(output)
@@ -49,8 +49,8 @@ public sealed class EnsureUnreleasedSectionsBenchmarkTests : LoggingTestBase
     {
         return methodName switch
         {
-            nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_AllSectionsCorrect) => MaxAllocatedBytesAllSectionsCorrect,
-            nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_OutOfOrderAndMissing) => MaxAllocatedBytesOutOfOrderAndMissing,
+            nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_AllSectionsCorrect) => MAX_ALLOCATED_BYTES_ALL_SECTIONS_CORRECT,
+            nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_OutOfOrderAndMissing) => MAX_ALLOCATED_BYTES_OUT_OF_ORDER_AND_MISSING,
             _ => long.MaxValue,
         };
     }
