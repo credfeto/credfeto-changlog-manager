@@ -30,6 +30,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - update CLI and tests to resolve changelog operations through DI
 - Reorganised Credfeto.ChangeLog into Extensions, Models, and Services sub-folders with matching namespaces
 - Renamed IChangeLogLoader to IChangeLogStorage and FileSystemChangeLogLoader to FileSystemChangeLogStorage to reflect load and save responsibilities
+- Extracted common string comparison, HTML comment detection, and unreleased-section helpers into ChangeLogHeadingExtensions
 ### Deprecated
 ### Removed
 ### Deployment Changes

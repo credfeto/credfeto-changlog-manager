@@ -51,7 +51,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
             Branch originBranch = FindOriginBranch(repo: repo, originBranchName: originBranchName);
 
-            if (StringComparer.Ordinal.Equals(x: originBranch.Tip.Sha, y: sha))
+            if (originBranch.Tip.Sha.EqualsOrdinal(sha))
             {
                 return false;
             }
@@ -68,7 +68,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
             );
 
             PatchEntryChanges? change = changes.FirstOrDefault(candidate =>
-                StringComparer.Ordinal.Equals(x: candidate.Path, y: changeLogInRepoPath)
+                candidate.Path.EqualsOrdinal(changeLogInRepoPath)
             );
 
             if (change is not null)
@@ -102,7 +102,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
     private static Branch FindOriginBranch(Repository repo, string originBranchName)
     {
-        return repo.Branches.FirstOrDefault(b => StringComparer.Ordinal.Equals(x: b.FriendlyName, y: originBranchName))
+        return repo.Branches.FirstOrDefault(b => b.FriendlyName.EqualsOrdinal(originBranchName))
             ?? Throws.CouldNotFindBranch(originBranchName);
     }
 
@@ -211,7 +211,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
                     break;
 
                 case '\\':
-                    if (StringComparer.Ordinal.Equals(x: line, y: @"\ No newline at end of file"))
+                    if (line.EqualsOrdinal(@"\ No newline at end of file"))
                     {
                         break;
                     }

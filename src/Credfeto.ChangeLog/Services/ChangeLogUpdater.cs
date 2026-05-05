@@ -188,7 +188,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
                     return Throws.CouldNotFindTypeHeading(type);
                 }
 
-                if (!StringComparer.Ordinal.Equals(x: line, y: search))
+                if (!line.EqualsOrdinal(search))
                 {
                     continue;
                 }
@@ -427,7 +427,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
 
     private static bool SkipComments(List<string> text, int i, List<int> removeIndexes, ref bool inComment)
     {
-        if (ContainsHtmlCommentStart(text[i]) && !ContainsHtmlCommentEnd(text[i]))
+        if (text[i].ContainsHtmlCommentStart() && !text[i].ContainsHtmlCommentEnd())
         {
             if (string.IsNullOrWhiteSpace(text[i - 1]))
             {
@@ -441,7 +441,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
 
         if (inComment)
         {
-            if (ContainsHtmlCommentEnd(text[i]))
+            if (text[i].ContainsHtmlCommentEnd())
             {
                 inComment = false;
             }
@@ -450,16 +450,6 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         }
 
         return false;
-    }
-
-    private static bool ContainsHtmlCommentStart(string line)
-    {
-        return line.Contains(value: "<!--", comparisonType: StringComparison.Ordinal);
-    }
-
-    private static bool ContainsHtmlCommentEnd(string line)
-    {
-        return line.Contains(value: "-->", comparisonType: StringComparison.Ordinal);
     }
 
     [SuppressMessage(
@@ -512,7 +502,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
     private static string? GetLatestRelease(IReadOnlyDictionary<string, int> releases)
     {
         return releases
-            .Keys.Where(x => !StringComparer.Ordinal.Equals(x: x, y: FileConstants.Unreleased))
+            .Keys.Where(x => !x.EqualsOrdinal(FileConstants.Unreleased))
             .OrderByDescending(x => new Version(x))
             .FirstOrDefault();
     }
@@ -576,7 +566,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
 
     private static bool IsNextItem(string line)
     {
-        return line.StartsWith('#') || line.StartsWith(value: "<!--", comparisonType: StringComparison.Ordinal);
+        return line.StartsWith('#') || line.StartsWithHtmlComment();
     }
 
     private static string EnsureChangelog(string changeLog)
@@ -600,7 +590,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             return Throws.CouldNotFindUnreleasedSectionString();
         }
 
-        int unreleasedEnd = FindUnreleasedEnd(text: text, unreleasedStart: unreleasedStart);
+        int unreleasedEnd = text.FindUnreleasedEnd(unreleasedStart);
 
         (List<string> sectionOrder, Dictionary<string, List<string>> sections, List<string> trailer) =
             ParseUnreleasedSections(text: text, unreleasedStart: unreleasedStart, unreleasedEnd: unreleasedEnd);
@@ -630,19 +620,6 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return -1;
     }
 
-    private static int FindUnreleasedEnd(IReadOnlyList<string> text, int unreleasedStart)
-    {
-        for (int i = unreleasedStart + 1; i < text.Count; i++)
-        {
-            if (IsRelease(text[i]))
-            {
-                return i;
-            }
-        }
-
-        return text.Count;
-    }
-
     private static (List<string> sectionOrder, Dictionary<string, List<string>> sections, List<string> trailer)
         ParseUnreleasedSections(IReadOnlyList<string> text, int unreleasedStart, int unreleasedEnd)
     {
@@ -655,7 +632,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         {
             string line = text[i];
 
-            if (line.StartsWith(value: "<!--", comparisonType: StringComparison.Ordinal))
+            if (line.StartsWithHtmlComment())
             {
                 ExtractTrailingBlanksIntoTrailer(sections: sections, currentSection: currentSection, trailer: trailer);
 

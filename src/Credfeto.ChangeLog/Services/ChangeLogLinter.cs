@@ -100,7 +100,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         IReadOnlyCollection<string>? additionalSections
     )
     {
-        int unreleasedEnd = FindUnreleasedEnd(lines: lines, unreleasedStart: unreleasedLineIndex);
+        int unreleasedEnd = lines.FindUnreleasedEnd(unreleasedLineIndex);
 
         List<(string Name, int LineNumber)> foundHeadings = CollectSubHeadings(
             lines: lines,
@@ -218,14 +218,14 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
 
     private static bool IsRequiredSection(string name)
     {
-        return RequiredSections.Any(required => StringComparer.Ordinal.Equals(x: required, y: name));
+        return RequiredSections.Any(required => required.EqualsOrdinal(name));
     }
 
     private static int FindInList(List<(string Name, int LineNumber)> list, string name)
     {
         for (int i = 0; i < list.Count; i++)
         {
-            if (StringComparer.Ordinal.Equals(x: list[i].Name, y: name))
+            if (list[i].Name.EqualsOrdinal(name))
             {
                 return i;
             }
@@ -241,12 +241,12 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
             return true;
         }
 
-        if (KnownOptionalSections.Any(optional => StringComparer.Ordinal.Equals(x: optional, y: name)))
+        if (KnownOptionalSections.Any(optional => optional.EqualsOrdinal(name)))
         {
             return true;
         }
 
-        return additionalSections?.Any(additional => StringComparer.Ordinal.Equals(x: additional, y: name)) == true;
+        return additionalSections?.Any(additional => additional.EqualsOrdinal(name)) == true;
     }
 
     private static List<(string Name, int LineNumber)> CollectSubHeadings(string[] lines, int start, int end)
@@ -263,22 +263,6 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         }
 
         return result;
-    }
-
-    private static int FindUnreleasedEnd(string[] lines, int unreleasedStart)
-    {
-        for (int i = unreleasedStart + 1; i < lines.Length; i++)
-        {
-            if (
-                lines[i].IsVersionHeader()
-                && !Unreleased.IsUnreleasedHeader(lines[i])
-            )
-            {
-                return i;
-            }
-        }
-
-        return lines.Length;
     }
 
     private static void CheckBlankLineAfterHeadings(string[] lines, List<LintError> errors)

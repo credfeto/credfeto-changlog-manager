@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog.Extensions;
 
@@ -37,5 +39,38 @@ internal static class ChangeLogHeadingExtensions
         }
 
         return line[VERSION_HEADER_PREFIX.Length..closeBracket];
+    }
+
+    public static int FindUnreleasedEnd(this IReadOnlyList<string> lines, int unreleasedStart)
+    {
+        for (int i = unreleasedStart + 1; i < lines.Count; i++)
+        {
+            if (lines[i].IsVersionHeader() && !Unreleased.IsUnreleasedHeader(lines[i]))
+            {
+                return i;
+            }
+        }
+
+        return lines.Count;
+    }
+
+    public static bool ContainsHtmlCommentStart(this string line)
+    {
+        return line.Contains(value: "<!--", comparisonType: StringComparison.Ordinal);
+    }
+
+    public static bool ContainsHtmlCommentEnd(this string line)
+    {
+        return line.Contains(value: "-->", comparisonType: StringComparison.Ordinal);
+    }
+
+    public static bool StartsWithHtmlComment(this string line)
+    {
+        return line.StartsWith(value: "<!--", comparisonType: StringComparison.Ordinal);
+    }
+
+    public static bool EqualsOrdinal(this string str, string other)
+    {
+        return StringComparer.Ordinal.Equals(x: str, y: other);
     }
 }
