@@ -13,9 +13,9 @@ namespace Credfeto.ChangeLog.Services;
 [SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
 internal sealed class ChangeLogReader : IChangeLogReader
 {
-    private readonly IChangeLogLoader _loader;
+    private readonly IChangeLogStorage _loader;
 
-    public ChangeLogReader(IChangeLogLoader loader)
+    public ChangeLogReader(IChangeLogStorage loader)
     {
         this._loader = loader;
     }

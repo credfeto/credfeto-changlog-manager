@@ -17,9 +17,9 @@ namespace Credfeto.ChangeLog.Services;
 [SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
 internal sealed class ChangeLogChecker : IChangeLogChecker
 {
-    private readonly IChangeLogLoader _loader;
+    private readonly IChangeLogStorage _loader;
 
-    public ChangeLogChecker(IChangeLogLoader loader)
+    public ChangeLogChecker(IChangeLogStorage loader)
     {
         this._loader = loader;
     }
@@ -85,7 +85,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return true;
     }
 
-    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, IChangeLogLoader loader, CancellationToken cancellationToken)
+    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, IChangeLogStorage loader, CancellationToken cancellationToken)
     {
         IReadOnlyList<string> changelog = await loader.LoadLinesAsync(changeLogFileName, cancellationToken);
 

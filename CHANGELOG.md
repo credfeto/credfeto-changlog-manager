@@ -10,6 +10,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Added
 - add DI registration extension AddChangeLog to configure IChangeLogLoader
 - add service interfaces IChangeLogReader, IChangeLogLinter, IChangeLogFixer, IChangeLogUpdater with file-backed implementations injectable via DI
+- Mock-based unit tests for ChangeLogReader, ChangeLogFixer, ChangeLogLinter, ChangeLogUpdater services using NSubstitute
+- DI registration tests in ChangeLogSetupTests verifying all services are resolvable via AddChangeLog
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
@@ -27,6 +29,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - replace string.Join with LinesToText extension and Split with SplitToLines
 - update CLI and tests to resolve changelog operations through DI
 - Reorganised Credfeto.ChangeLog into Extensions, Models, and Services sub-folders with matching namespaces
+- Renamed IChangeLogLoader to IChangeLogStorage and FileSystemChangeLogLoader to FileSystemChangeLogStorage to reflect load and save responsibilities
 ### Deprecated
 ### Removed
 ### Deployment Changes

@@ -7,7 +7,7 @@ public static class ChangeLogSetup
 {
     public static IServiceCollection AddChangeLog(this IServiceCollection services)
     {
-        return services.AddSingleton<IChangeLogLoader, FileSystemChangeLogLoader>()
+        return services.AddSingleton<IChangeLogStorage, FileSystemChangeLogStorage>()
                        .AddSingleton<IChangeLogReader, ChangeLogReader>()
                        .AddSingleton<IChangeLogLinter, ChangeLogLinter>()
                        .AddSingleton<IChangeLogFixer, ChangeLogFixer>()

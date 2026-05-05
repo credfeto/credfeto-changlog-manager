@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Credfeto.ChangeLog;
 
-public interface IChangeLogLoader
+public interface IChangeLogStorage
 {
     bool Exists(string changeLogFileName);
 

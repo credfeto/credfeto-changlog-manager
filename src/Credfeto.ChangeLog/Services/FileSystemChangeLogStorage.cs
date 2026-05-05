@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Credfeto.ChangeLog.Services;
 
-public sealed class FileSystemChangeLogLoader : IChangeLogLoader
+public sealed class FileSystemChangeLogStorage : IChangeLogStorage
 {
     public bool Exists(string changeLogFileName)
     {

@@ -23,9 +23,9 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
 
     private static readonly string[] KnownOptionalSections = ["Deprecated", "Deployment Changes"];
 
-    private readonly IChangeLogLoader _loader;
+    private readonly IChangeLogStorage _loader;
 
-    public ChangeLogLinter(IChangeLogLoader loader)
+    public ChangeLogLinter(IChangeLogStorage loader)
     {
         this._loader = loader;
     }
