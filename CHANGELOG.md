@@ -6,6 +6,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
 
 ## [Unreleased]
+### Security
 ### Added
 ### Fixed
 ### Changed
@@ -18,9 +19,10 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Reduced heap allocations in EnsureUnreleasedSections by pre-computing section heading strings in ChangeLogSections rather than concatenating them on every call
 - Refined changelog section linting and related updater/fixer command behaviour.
 - Extracted shared changelog heading extension methods and reused them in reader/linter.
+- Centralised changelog file loading behind a shared loader abstraction and added file-operation coverage tests.
+### Deprecated
 ### Removed
 ### Deployment Changes
-
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->
