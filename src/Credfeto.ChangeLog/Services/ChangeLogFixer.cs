@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog.Extensions;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
@@ -10,49 +11,57 @@ namespace Credfeto.ChangeLog.Services;
 internal sealed class ChangeLogFixer : IChangeLogFixer
 {
     private readonly IChangeLogStorage _loader;
+    private readonly IChangeLogParser _parser;
+    private readonly IChangeLogSerialiser _serialiser;
+    private readonly ChangeLogLanguage _language;
 
-    public ChangeLogFixer(IChangeLogStorage loader)
+    public ChangeLogFixer(IChangeLogStorage loader, IChangeLogParser parser, IChangeLogSerialiser serialiser, ChangeLogLanguage language)
     {
         this._loader = loader;
+        this._parser = parser;
+        this._serialiser = serialiser;
+        this._language = language;
     }
 
     public async ValueTask FixFileAsync(string changeLogFileName, IReadOnlyCollection<string>? additionalSections, CancellationToken cancellationToken)
     {
         string content = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
-        string @fixed = Fix(content: content, additionalSections: additionalSections);
-
-        await this._loader.SaveTextAsync(changeLogFileName, contents: @fixed, cancellationToken: cancellationToken);
+        ChangeLogDocument document = await this._parser.ParseAsync(content: content, cancellationToken: cancellationToken);
+        ChangeLogDocument corrected = Fix(document: document, language: this._language);
+        string result = await this._serialiser.SerialiseAsync(document: corrected, cancellationToken: cancellationToken);
+        await this._loader.SaveTextAsync(changeLogFileName, contents: result, cancellationToken: cancellationToken);
     }
 
-    internal static string Fix(string content, IReadOnlyCollection<string>? additionalSections = null)
+    internal static ChangeLogDocument Fix(ChangeLogDocument document, ChangeLogLanguage language)
     {
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(content);
-
-        return RemoveBlankLinesAfterHeadings(result);
+        ChangeLogDocument ensured = ChangeLogUpdater.EnsureUnreleasedSections(document: document, language: language);
+        return RemoveBlankLinesAfterHeadings(ensured);
     }
 
-    private static string RemoveBlankLinesAfterHeadings(string content)
+    private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
     {
-        IReadOnlyList<string> lines = content.SplitToLines();
-        List<string> output = new(lines.Count);
-        int i = 0;
-
-        while (i < lines.Count)
+        if (document.Unreleased is null)
         {
-            string line = lines[i];
-            output.Add(line);
-            i++;
-
-            if (
-                line.IsChangeTypeHeading()
-                && i < lines.Count
-                && string.IsNullOrWhiteSpace(lines[i])
-            )
-            {
-                i++;
-            }
+            return document;
         }
 
-        return output.LinesToText();
+        return document with { Unreleased = RemoveBlankLinesFromSections(document.Unreleased) };
     }
+
+    private static ChangeLogUnreleased RemoveBlankLinesFromSections(ChangeLogUnreleased unreleased)
+    {
+        ImmutableArray<ChangeLogSection>.Builder builder = ImmutableArray.CreateBuilder<ChangeLogSection>(unreleased.Sections.Length);
+
+        foreach (ChangeLogSection section in unreleased.Sections)
+        {
+            builder.Add(RemoveLeadingBlank(section));
+        }
+
+        return unreleased with { Sections = builder.ToImmutable() };
+    }
+
+    private static ChangeLogSection RemoveLeadingBlank(ChangeLogSection section)
+        => section.Entries.Length > 0 && string.IsNullOrWhiteSpace(section.Entries[0])
+            ? section with { Entries = section.Entries[1..] }
+            : section;
 }

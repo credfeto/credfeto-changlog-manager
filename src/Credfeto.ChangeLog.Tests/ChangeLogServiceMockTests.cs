@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -14,6 +15,10 @@ namespace Credfeto.ChangeLog.Tests;
 [SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "NSubstitute mock setup and verification necessarily handles ValueTask instances outside normal await patterns")]
 public sealed class ChangeLogServiceMockTests : TestBase
 {
+    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogParser Parser = new();
+    private static readonly ChangeLogSerialiser Serialiser = new();
+
     private const string SIMPLE_CHANGE_LOG =
         """
         # Changelog
@@ -25,6 +30,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         - Added item
         ### Fixed
         ### Changed
+        ### Deprecated
         ### Removed
         ### Deployment Changes
 
@@ -116,7 +122,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.CompletedTask);
 
-        ChangeLogFixer fixer = new(storage);
+        ChangeLogFixer fixer = new(storage, Parser, Serialiser, Language);
 
         await fixer.FixFileAsync(
             changeLogFileName: "CHANGELOG.md",
@@ -144,7 +150,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.FromResult(SIMPLE_CHANGE_LOG));
 
-        ChangeLogLinter linter = new(storage);
+        ChangeLogLinter linter = new(storage, Parser, Language);
 
         IReadOnlyList<LintError> errors = await linter.LintFileAsync(
             changeLogFileName: "CHANGELOG.md",
@@ -171,7 +177,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.FromResult(invalidContent));
 
-        ChangeLogLinter linter = new(storage);
+        ChangeLogLinter linter = new(storage, Parser, Language);
 
         IReadOnlyList<LintError> errors = await linter.LintFileAsync(
             changeLogFileName: "CHANGELOG.md",
@@ -198,7 +204,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
 
         await updater.AddEntryAsync(
             changeLogFileName: "CHANGELOG.md",
@@ -223,10 +229,12 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
         storage.Exists(Arg.Any<string>()).Returns(false);
+        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+               .Returns(ValueTask.FromResult(TemplateFile.Initial));
         storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
 
         await updater.AddEntryAsync(
             changeLogFileName: "CHANGELOG.md",
@@ -236,6 +244,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         );
 
         storage.Received(1).Exists("CHANGELOG.md");
+        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
         // First call: CreateEmptyAsync saves TemplateFile.Initial
         // Second call: AddEntryAsync saves the updated content
         await storage.Received(2).SaveTextAsync("CHANGELOG.md", Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -253,7 +262,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
                .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
 
         await updater.EnsureUnreleasedSectionsAsync(
             changeLogFileName: "CHANGELOG.md",
