@@ -77,7 +77,7 @@ public static class ChangeLogUpdater
             text.Insert(index: index, item: entryText);
         }
 
-        return string.Join(separator: Environment.NewLine, values: text).Trim();
+        return text.LinesToText();
     }
 
     private static List<string> ChangeLogAsLines(string changeLog)
@@ -105,7 +105,7 @@ public static class ChangeLogUpdater
             index = FindRemovePosition(changeLog: text, type: type, entryText: entryText);
         }
 
-        return string.Join(separator: Environment.NewLine, values: text).Trim();
+        return text.LinesToText();
     }
 
     private static string CreateEntryText(string message)
@@ -271,7 +271,7 @@ public static class ChangeLogUpdater
             pending: pending
         );
 
-        return string.Join(separator: Environment.NewLine, values: text).Trim();
+        return text.LinesToText();
     }
 
     private static void MoveUnreleasedToRelease(
@@ -634,7 +634,7 @@ public static class ChangeLogUpdater
         text.RemoveRange(index: unreleasedStart + 1, count: unreleasedEnd - unreleasedStart - 1);
         text.InsertRange(index: unreleasedStart + 1, collection: newContent);
 
-        return string.Join(separator: Environment.NewLine, values: text).Trim();
+        return text.LinesToText();
     }
 
     private static int FindUnreleasedStart(IReadOnlyList<string> text)

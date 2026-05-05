@@ -22,6 +22,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Centralised changelog file loading behind a shared loader abstraction and added file-operation coverage tests.
 - remove IsSubHeading wrapper and inline IsChangeTypeHeading extension calls
 - remove IsChangeTypeHeadingOrVersionHeading wrapper and inline extension calls
+- replace string.Join with LinesToText extension and Split with SplitToLines
 ### Deprecated
 ### Removed
 ### Deployment Changes

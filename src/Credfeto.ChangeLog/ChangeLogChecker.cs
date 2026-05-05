@@ -146,7 +146,7 @@ public static class ChangeLogChecker
     private static string ExtractPatchDetails(string patch)
     {
         Console.WriteLine(patch);
-        List<string> lines = [.. patch.Split('\n')];
+        List<string> lines = [.. patch.SplitToLines()];
 
         RemoveLastLineIfBlank(lines);
 
