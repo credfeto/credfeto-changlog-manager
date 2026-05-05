@@ -73,7 +73,7 @@ public static class ChangeLogReader
 
             if (previousLine.StartsWith(value: "### ", comparisonType: StringComparison.Ordinal))
             {
-                releaseNotes.AppendLine(previousLine);
+                releaseNotes = releaseNotes.AppendLine(previousLine);
             }
 
             releaseNotes = releaseNotes.AppendLine(text[i]);
