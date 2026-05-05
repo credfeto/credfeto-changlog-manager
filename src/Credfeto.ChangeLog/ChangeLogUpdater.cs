@@ -377,7 +377,7 @@ public static class ChangeLogUpdater
         int i
     )
     {
-        if (IsSubHeading(previousLine))
+        if (previousLine.IsChangeTypeHeading())
         {
             newRelease.Add(previousLine);
         }
@@ -391,7 +391,7 @@ public static class ChangeLogUpdater
 
     private static bool SkipHeadingLine(List<string> text, int i, ref string previousLine)
     {
-        if (IsSubHeading(text[i]))
+        if (text[i].IsChangeTypeHeading())
         {
             previousLine = text[i];
 
@@ -403,7 +403,7 @@ public static class ChangeLogUpdater
 
     private static bool SkipEmptyHeadingSections(List<string> text, int i, ref string previousLine)
     {
-        if (IsSubHeading(text[i]) && IsSubHeading(previousLine))
+        if (text[i].IsChangeTypeHeading() && previousLine.IsChangeTypeHeading())
         {
             previousLine = text[i];
 
@@ -461,11 +461,6 @@ public static class ChangeLogUpdater
     private static bool ContainsHtmlCommentEnd(string line)
     {
         return line.Contains(value: "-->", comparisonType: StringComparison.Ordinal);
-    }
-
-    private static bool IsSubHeading(string line)
-    {
-        return line.IsChangeTypeHeading();
     }
 
     [SuppressMessage(
@@ -692,7 +687,7 @@ public static class ChangeLogUpdater
                 break;
             }
 
-            if (IsSubHeading(line))
+            if (line.IsChangeTypeHeading())
             {
                 string sectionName = line.GetChangeTypeName();
                 currentSection = sectionName;
