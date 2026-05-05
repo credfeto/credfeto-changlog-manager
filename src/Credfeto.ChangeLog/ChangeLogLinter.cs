@@ -305,7 +305,7 @@ public static class ChangeLogLinter
             }
 
             // A blank line between a ### heading and another section (### or ##) is acceptable formatting
-            if (IsChangeTypeHeadingOrVersionHeading(lines[nextNonEmpty]))
+            if (lines[nextNonEmpty].IsChangeTypeHeading() || lines[nextNonEmpty].IsVersionHeader())
             {
                 continue;
             }
@@ -318,12 +318,6 @@ public static class ChangeLogLinter
                 )
             );
         }
-    }
-
-    private static bool IsChangeTypeHeadingOrVersionHeading(string line)
-    {
-        return line.IsChangeTypeHeading()
-               || line.IsVersionHeader();
     }
 
     private static void CheckVersionHeaders(string[] lines, List<LintError> errors)

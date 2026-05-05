@@ -21,6 +21,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Extracted shared changelog heading extension methods and reused them in reader/linter.
 - Centralised changelog file loading behind a shared loader abstraction and added file-operation coverage tests.
 - remove IsSubHeading wrapper and inline IsChangeTypeHeading extension calls
+- remove IsChangeTypeHeadingOrVersionHeading wrapper and inline extension calls
 ### Deprecated
 ### Removed
 ### Deployment Changes
