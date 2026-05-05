@@ -10,7 +10,7 @@ internal sealed class FileSystemChangeLogLoader : IChangeLogLoader
 {
     internal static IChangeLogLoader Instance { get; } = new FileSystemChangeLogLoader();
 
-    private FileSystemChangeLogLoader()
+    internal FileSystemChangeLogLoader()
     {
     }
 
