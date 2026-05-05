@@ -5,11 +5,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FunFair.Test.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-public sealed class ChangeLogFileOperationsTests : TestBase
+public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
 {
     private const string SIMPLE_CHANGE_LOG =
         """
@@ -28,6 +29,20 @@ public sealed class ChangeLogFileOperationsTests : TestBase
         ## [0.0.0] - Project created
         """;
 
+    private readonly ServiceProvider _serviceProvider;
+
+    public ChangeLogFileOperationsTests()
+    {
+        ServiceCollection services = new();
+        services.AddChangeLog();
+        this._serviceProvider = services.BuildServiceProvider();
+    }
+
+    public void Dispose()
+    {
+        this._serviceProvider.Dispose();
+    }
+
     [Fact]
     public async Task ExtractReleaseNotesFromFileAsyncReadsChangeLogFromDisk()
     {
@@ -36,7 +51,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            string result = await ChangeLogReader.ExtractReleaseNotesFromFileAsync(
+            IChangeLogReader reader = this._serviceProvider.GetRequiredService<IChangeLogReader>();
+
+            string result = await reader.ExtractReleaseNotesFromFileAsync(
                 changeLogFileName: fileName,
                 version: string.Empty,
                 cancellationToken: cancellationTokenSource.Token
@@ -65,7 +82,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            int? result = await ChangeLogReader.FindFirstReleaseVersionPositionAsync(
+            IChangeLogReader reader = this._serviceProvider.GetRequiredService<IChangeLogReader>();
+
+            int? result = await reader.FindFirstReleaseVersionPositionAsync(
                 changeLogFileName: fileName,
                 cancellationToken: cancellationTokenSource.Token
             );
@@ -91,7 +110,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            IReadOnlyList<LintError> result = await ChangeLogLinter.LintFileAsync(
+            IChangeLogLinter linter = this._serviceProvider.GetRequiredService<IChangeLogLinter>();
+
+            IReadOnlyList<LintError> result = await linter.LintFileAsync(
                 changeLogFileName: fileName,
                 additionalSections: null,
                 cancellationToken: cancellationTokenSource.Token
@@ -124,7 +145,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            await ChangeLogFixer.FixFileAsync(
+            IChangeLogFixer fixer = this._serviceProvider.GetRequiredService<IChangeLogFixer>();
+
+            await fixer.FixFileAsync(
                 changeLogFileName: fileName,
                 additionalSections: null,
                 cancellationToken: cancellationTokenSource.Token
@@ -156,7 +179,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            await ChangeLogUpdater.AddEntryAsync(
+            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+            await updater.AddEntryAsync(
                 changeLogFileName: fileName,
                 type: "Added",
                 message: "Created from missing file",
@@ -183,7 +208,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            await ChangeLogUpdater.AddEntryAsync(
+            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+            await updater.AddEntryAsync(
                 changeLogFileName: fileName,
                 type: "Added",
                 message: "Existing file entry",
@@ -210,7 +237,9 @@ public sealed class ChangeLogFileOperationsTests : TestBase
 
         try
         {
-            await ChangeLogUpdater.CreateReleaseAsync(
+            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+            await updater.CreateReleaseAsync(
                 changeLogFileName: fileName,
                 version: "1.2.3",
                 pending: true,
