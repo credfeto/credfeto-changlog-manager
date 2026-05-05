@@ -1,3 +1,4 @@
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -88,5 +89,41 @@ public sealed class ChangeLogSetupTests : TestBase
 
         IChangeLogDetector detector = provider.GetRequiredService<IChangeLogDetector>();
         Assert.NotNull(detector);
+    }
+
+    [Fact]
+    public void AddChangeLogRegistersIChangeLogParser()
+    {
+        ServiceCollection services = new();
+        services.AddChangeLog();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        IChangeLogParser parser = provider.GetRequiredService<IChangeLogParser>();
+        Assert.NotNull(parser);
+    }
+
+    [Fact]
+    public void AddChangeLogRegistersIChangeLogSerialiser()
+    {
+        ServiceCollection services = new();
+        services.AddChangeLog();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        IChangeLogSerialiser serialiser = provider.GetRequiredService<IChangeLogSerialiser>();
+        Assert.NotNull(serialiser);
+    }
+
+    [Fact]
+    public void AddChangeLogRegistersChangeLogLanguage()
+    {
+        ServiceCollection services = new();
+        services.AddChangeLog();
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        ChangeLogLanguage language = provider.GetRequiredService<ChangeLogLanguage>();
+        Assert.NotNull(language);
     }
 }
