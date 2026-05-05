@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using CommandLine;
 using Credfeto.ChangeLog.Cmd.Exceptions;
 using Credfeto.ChangeLog.Models;
-using Credfeto.ChangeLog.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Credfeto.ChangeLog.Cmd;
@@ -73,7 +72,7 @@ internal static class Program
     {
         if (options.CheckInsert is not null)
         {
-            await CheckInsertPositionAsync(options: options, cancellationToken: cancellationToken);
+            await CheckInsertPositionAsync(options: options, loader: services.GetRequiredService<IChangeLogLoader>(), cancellationToken: cancellationToken);
 
             return;
         }
@@ -199,7 +198,7 @@ internal static class Program
         return options.CreateRelease ?? throw new InvalidOptionsException(nameof(options.CreateRelease) + " is null");
     }
 
-    private static async Task CheckInsertPositionAsync(Options options, CancellationToken cancellationToken)
+    private static async Task CheckInsertPositionAsync(Options options, IChangeLogLoader loader, CancellationToken cancellationToken)
     {
         string originBranchName = GetCheckInsert(options);
         string changeLog = FindChangeLog(options);
@@ -208,6 +207,7 @@ internal static class Program
         bool valid = await ChangeLogChecker.ChangeLogModifiedInReleaseSectionAsync(
             changeLogFileName: changeLog,
             originBranchName: originBranchName,
+            loader: loader,
             cancellationToken: cancellationToken
         );
 
@@ -323,14 +323,15 @@ internal static class Program
 
         try
         {
-            ServiceCollection services = new();
-            services.AddChangeLog();
+            await using (ServiceProvider serviceProvider = BuildServiceProvider())
+            {
 
-            await using ServiceProvider serviceProvider = services.BuildServiceProvider();
+                ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
 
-            ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
-
-            return parser.Tag == ParserResultType.Parsed ? SUCCESS : ERROR;
+                return parser.Tag == ParserResultType.Parsed
+                    ? SUCCESS
+                    : ERROR;
+            }
         }
         catch (Exception exception)
         {
@@ -343,6 +344,12 @@ internal static class Program
 
             return ERROR;
         }
+    }
+
+    private static ServiceProvider BuildServiceProvider()
+    {
+        return new ServiceCollection().AddChangeLog()
+                                      .BuildServiceProvider();
     }
 
     private static Task<ParserResult<Options>> ParseOptionsAsync(IEnumerable<string> args, IServiceProvider serviceProvider)

@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog;
+using Credfeto.ChangeLog.Constants;
 
 namespace Credfeto.ChangeLog.Services;
 
-internal sealed class ChangeLogUpdaterService : IChangeLogUpdater
+public sealed class ChangeLogUpdaterService : IChangeLogUpdater
 {
     private readonly IChangeLogLoader _loader;
 

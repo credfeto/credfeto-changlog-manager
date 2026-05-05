@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Helpers;
 using LibGit2Sharp;
 
@@ -33,7 +34,7 @@ public static class ChangeLogDetector
 
         IReadOnlyList<string> changelogs = Directory.GetFiles(
             path: repoRoot,
-            searchPattern: Constants.ChangeLogFileName,
+            searchPattern: FileConstants.ChangeLogFileName,
             searchOption: SearchOption.AllDirectories
         );
 
@@ -51,7 +52,7 @@ public static class ChangeLogDetector
 
             default:
             {
-                string changeLogAtRepoRoot = Path.Combine(path1: repoRoot, path2: Constants.ChangeLogFileName);
+                string changeLogAtRepoRoot = Path.Combine(path1: repoRoot, path2: FileConstants.ChangeLogFileName);
 
                 if (changelogs.Contains(value: changeLogAtRepoRoot, comparer: StringComparer.Ordinal))
                 {

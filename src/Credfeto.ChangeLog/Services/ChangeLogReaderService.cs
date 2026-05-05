@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog;
 using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog.Services;
 
-internal sealed class ChangeLogReaderService : IChangeLogReader
+public sealed class ChangeLogReaderService : IChangeLogReader
 {
     private readonly IChangeLogLoader _loader;
 

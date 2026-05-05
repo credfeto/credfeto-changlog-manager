@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Credfeto.ChangeLog.Services;
+namespace Credfeto.ChangeLog;
 
 public interface IChangeLogUpdater
 {

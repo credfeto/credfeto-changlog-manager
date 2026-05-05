@@ -5,9 +5,9 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
-using Credfeto.ChangeLog.Services;
 using LibGit2Sharp;
 using ZLinq;
 
@@ -18,12 +18,14 @@ public static class ChangeLogChecker
     public static async Task<bool> ChangeLogModifiedInReleaseSectionAsync(
         string changeLogFileName,
         string originBranchName,
+        IChangeLogLoader loader,
         CancellationToken cancellationToken
     )
     {
         changeLogFileName = GetFullChangeLogFilePath(changeLogFileName);
         int? position = await FindFirstReleaseVersionPositionAsync(
             changeLogFileName: changeLogFileName,
+            loader: loader,
             cancellationToken: cancellationToken
         );
 
@@ -76,9 +78,9 @@ public static class ChangeLogChecker
         return true;
     }
 
-    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken)
+    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, IChangeLogLoader loader, CancellationToken cancellationToken)
     {
-        IReadOnlyList<string> changelog = await FileSystemChangeLogLoader.Instance.LoadLinesAsync(changeLogFileName, cancellationToken);
+        IReadOnlyList<string> changelog = await loader.LoadLinesAsync(changeLogFileName, cancellationToken);
 
         for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
         {

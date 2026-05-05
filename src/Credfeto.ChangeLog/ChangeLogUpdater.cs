@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
-using Credfeto.ChangeLog.Services;
 using ZLinq;
 
 namespace Credfeto.ChangeLog;
@@ -190,7 +190,7 @@ public static class ChangeLogUpdater
 
         Dictionary<string, int> releases = FindReleasePositions(text);
 
-        if (!releases.TryGetValue(key: Constants.Unreleased, out int unreleasedIndex))
+        if (!releases.TryGetValue(key: FileConstants.Unreleased, out int unreleasedIndex))
         {
             return Throws.EmptyChangeLogNoUnreleasedSection();
         }
@@ -451,7 +451,7 @@ public static class ChangeLogUpdater
     private static string? GetLatestRelease(IReadOnlyDictionary<string, int> releases)
     {
         return releases
-            .Keys.Where(x => !StringComparer.Ordinal.Equals(x: x, y: Constants.Unreleased))
+            .Keys.Where(x => !StringComparer.Ordinal.Equals(x: x, y: FileConstants.Unreleased))
             .OrderByDescending(x => new Version(x))
             .FirstOrDefault();
     }
@@ -462,7 +462,7 @@ public static class ChangeLogUpdater
 
         if (releases.Count == 0)
         {
-            return Throws.CouldNotFindUnreleasedSectionDictioonary();
+            return Throws.CouldNotFindUnreleasedSectionDictionary();
         }
 
         return releases;
@@ -483,7 +483,7 @@ public static class ChangeLogUpdater
     {
         if (Unreleased.IsUnreleasedHeader(line))
         {
-            return Constants.Unreleased;
+            return FileConstants.Unreleased;
         }
 
         Match match = CommonRegex.VersionHeader.Match(line);

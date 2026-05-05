@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Credfeto.ChangeLog.Services;
+namespace Credfeto.ChangeLog;
 
-internal interface IChangeLogLoader
+public interface IChangeLogLoader
 {
     bool Exists(string changeLogFileName);
 

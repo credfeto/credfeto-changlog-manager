@@ -6,14 +6,8 @@ using System.Threading.Tasks;
 
 namespace Credfeto.ChangeLog.Services;
 
-internal sealed class FileSystemChangeLogLoader : IChangeLogLoader
+public sealed class FileSystemChangeLogLoader : IChangeLogLoader
 {
-    internal static IChangeLogLoader Instance { get; } = new FileSystemChangeLogLoader();
-
-    internal FileSystemChangeLogLoader()
-    {
-    }
-
     public bool Exists(string changeLogFileName)
     {
         return File.Exists(changeLogFileName);
