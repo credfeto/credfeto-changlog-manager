@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Services;
 
 namespace Credfeto.ChangeLog;
 

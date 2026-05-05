@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using Credfeto.ChangeLog.Cmd.Exceptions;
+using Credfeto.ChangeLog.Models;
+using Credfeto.ChangeLog.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Credfeto.ChangeLog.Cmd;

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
 internal sealed class ChangeLogFixerService : IChangeLogFixer
 {

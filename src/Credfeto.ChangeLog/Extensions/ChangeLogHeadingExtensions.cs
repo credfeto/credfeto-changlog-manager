@@ -1,6 +1,6 @@
 using System;
 
-namespace Credfeto.ChangeLog.Helpers;
+namespace Credfeto.ChangeLog.Extensions;
 
 internal static class ChangeLogHeadingExtensions
 {

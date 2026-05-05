@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog;
 

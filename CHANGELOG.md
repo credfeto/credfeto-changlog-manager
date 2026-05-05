@@ -26,6 +26,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - remove IsChangeTypeHeadingOrVersionHeading wrapper and inline extension calls
 - replace string.Join with LinesToText extension and Split with SplitToLines
 - update CLI and tests to resolve changelog operations through DI
+- Reorganised Credfeto.ChangeLog into Extensions, Models, and Services sub-folders with matching namespaces
 ### Deprecated
 ### Removed
 ### Deployment Changes

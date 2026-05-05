@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
 internal interface IChangeLogLoader
 {

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Services;
 using ZLinq;
 
 namespace Credfeto.ChangeLog;

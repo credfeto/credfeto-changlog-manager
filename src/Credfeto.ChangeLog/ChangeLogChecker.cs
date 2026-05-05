@@ -5,7 +5,9 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Services;
 using LibGit2Sharp;
 using ZLinq;
 

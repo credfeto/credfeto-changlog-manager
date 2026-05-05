@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using ZLinq;
 
-namespace Credfeto.ChangeLog.Helpers;
+namespace Credfeto.ChangeLog.Extensions;
 
 public static class TextBlockToLines
 {

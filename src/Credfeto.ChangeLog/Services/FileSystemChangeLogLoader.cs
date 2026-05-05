@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
 internal sealed class FileSystemChangeLogLoader : IChangeLogLoader
 {

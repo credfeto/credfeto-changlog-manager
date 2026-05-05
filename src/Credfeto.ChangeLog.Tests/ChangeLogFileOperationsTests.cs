@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Models;
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
