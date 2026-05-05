@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +12,6 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogUpdater
 {
-    private const string SUB_HEADING_PREFIX = "### ";
     private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
 
     public static async Task AddEntryAsync(
@@ -31,12 +28,7 @@ public static class ChangeLogUpdater
 
         string content = AddEntryCommon(changeLog: textBlock, type: type, message: message);
 
-        await File.WriteAllTextAsync(
-            path: changeLogFileName,
-            contents: content,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
     }
 
     public static async Task RemoveEntryAsync(
@@ -53,12 +45,7 @@ public static class ChangeLogUpdater
 
         string content = RemoveEntryCommon(changeLog: textBlock, type: type, message: message);
 
-        await File.WriteAllTextAsync(
-            path: changeLogFileName,
-            contents: content,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
     }
 
     private static async Task<string> ReadChangeLogAsync(string changeLogFileName, CancellationToken cancellationToken)
@@ -237,7 +224,7 @@ public static class ChangeLogUpdater
 
     private static string BuildSubHeaderSection(string type)
     {
-        return SUB_HEADING_PREFIX + type;
+        return type.AsChangeTypeHeading();
     }
 
     public static async Task CreateReleaseAsync(
@@ -251,12 +238,7 @@ public static class ChangeLogUpdater
 
         string newChangeLog = CreateReleaseCommon(changeLog: originalChangeLog, version: version, pending: pending);
 
-        await File.WriteAllTextAsync(
-            path: changeLogFileName,
-            contents: newChangeLog,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: newChangeLog, cancellationToken: cancellationToken);
     }
 
     public static string CreateRelease(string changeLog, string version, bool pending)
@@ -483,7 +465,7 @@ public static class ChangeLogUpdater
 
     private static bool IsSubHeading(string line)
     {
-        return line.StartsWith(value: SUB_HEADING_PREFIX, comparisonType: StringComparison.Ordinal);
+        return line.IsChangeTypeHeading();
     }
 
     [SuppressMessage(
@@ -613,14 +595,9 @@ public static class ChangeLogUpdater
         return changeLog;
     }
 
-    public static Task CreateEmptyAsync(string changeLogFileName, in CancellationToken cancellationToken)
+    public static ValueTask CreateEmptyAsync(string changeLogFileName, in CancellationToken cancellationToken)
     {
-        return File.WriteAllTextAsync(
-            path: changeLogFileName,
-            contents: TemplateFile.Initial,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        return ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: TemplateFile.Initial, cancellationToken: cancellationToken);
     }
 
     public static async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
@@ -629,12 +606,7 @@ public static class ChangeLogUpdater
 
         string content = EnsureUnreleasedSectionsCommon(textBlock);
 
-        await File.WriteAllTextAsync(
-            path: changeLogFileName,
-            contents: content,
-            encoding: Encoding.UTF8,
-            cancellationToken: cancellationToken
-        );
+        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
     }
 
     public static string EnsureUnreleasedSections(string changeLog)
@@ -722,7 +694,7 @@ public static class ChangeLogUpdater
 
             if (IsSubHeading(line))
             {
-                string sectionName = line[SUB_HEADING_PREFIX.Length..];
+                string sectionName = line.GetChangeTypeName();
                 currentSection = sectionName;
 
                 if (!sections.ContainsKey(sectionName))
@@ -784,7 +756,7 @@ public static class ChangeLogUpdater
 
         foreach (string sectionName in sectionOrder.Where(s => !ChangeLogSections.KnownSections.Contains(s)))
         {
-            newContent.Add(SUB_HEADING_PREFIX + sectionName);
+            newContent.Add(sectionName.AsChangeTypeHeading());
             newContent.AddRange(sections[sectionName]);
         }
 

@@ -36,4 +36,14 @@ internal sealed class FileSystemChangeLogLoader : IChangeLogLoader
             cancellationToken: cancellationToken
         );
     }
+
+    public async ValueTask SaveTextAsync(string changeLogFileName, string contents, CancellationToken cancellationToken)
+    {
+        await File.WriteAllTextAsync(
+            path: changeLogFileName,
+            contents: contents,
+            encoding: Encoding.UTF8,
+            cancellationToken: cancellationToken
+        );
+    }
 }

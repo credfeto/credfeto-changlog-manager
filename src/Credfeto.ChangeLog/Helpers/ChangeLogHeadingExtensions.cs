@@ -16,4 +16,26 @@ internal static class ChangeLogHeadingExtensions
     {
         return line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal);
     }
+
+    public static string GetChangeTypeName(this string line)
+    {
+        return line[CHANGE_TYPE_HEADING_PREFIX.Length..];
+    }
+
+    public static string AsChangeTypeHeading(this string name)
+    {
+        return CHANGE_TYPE_HEADING_PREFIX + name;
+    }
+
+    public static string? GetVersionString(this string line)
+    {
+        int closeBracket = line.IndexOf(value: ']', startIndex: VERSION_HEADER_PREFIX.Length);
+
+        if (closeBracket == -1)
+        {
+            return null;
+        }
+
+        return line[VERSION_HEADER_PREFIX.Length..closeBracket];
+    }
 }

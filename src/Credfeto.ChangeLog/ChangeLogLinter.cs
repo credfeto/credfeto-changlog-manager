@@ -21,9 +21,6 @@ public static class ChangeLogLinter
 
     private static readonly string[] KnownOptionalSections = ["Deprecated", "Deployment Changes"];
 
-    private const string UNRELEASED_HEADER = "## [Unreleased]";
-    private const string SUB_HEADING_PREFIX = "### ";
-    private const string VERSION_HEADER_PREFIX = "## [";
 
     public static async ValueTask<IReadOnlyList<LintError>> LintFileAsync(
         string changeLogFileName,
@@ -53,14 +50,7 @@ public static class ChangeLogLinter
 
     private static string[] NormalizeLines(string content)
     {
-        string[] lines = content.Split('\n');
-
-        for (int i = 0; i < lines.Length; i++)
-        {
-            lines[i] = lines[i].TrimEnd('\r');
-        }
-
-        return lines;
+        return [.. content.SplitToLines()];
     }
 
     private static void CheckUnreleasedSectionPresent(
@@ -90,7 +80,7 @@ public static class ChangeLogLinter
     {
         for (int i = 0; i < lines.Length; i++)
         {
-            if (StringComparer.Ordinal.Equals(x: lines[i], y: UNRELEASED_HEADER))
+            if (Unreleased.IsUnreleasedHeader(lines[i]))
             {
                 return i;
             }
@@ -263,7 +253,7 @@ public static class ChangeLogLinter
         {
             if (lines[i].IsChangeTypeHeading())
             {
-                string name = lines[i][SUB_HEADING_PREFIX.Length..];
+                string name = lines[i].GetChangeTypeName();
                 result.Add((name, i + 1)); // 1-based line number
             }
         }
@@ -277,7 +267,7 @@ public static class ChangeLogLinter
         {
             if (
                 lines[i].IsVersionHeader()
-                && !StringComparer.Ordinal.Equals(x: lines[i], y: UNRELEASED_HEADER)
+                && !Unreleased.IsUnreleasedHeader(lines[i])
             )
             {
                 return i;
@@ -291,7 +281,7 @@ public static class ChangeLogLinter
     {
         for (int i = 0; i < lines.Length - 1; i++)
         {
-            if (!IsChangeTypeHeading(lines[i]))
+            if (!lines[i].IsChangeTypeHeading())
             {
                 continue;
             }
@@ -320,7 +310,7 @@ public static class ChangeLogLinter
                 continue;
             }
 
-            string name = lines[i][SUB_HEADING_PREFIX.Length..];
+            string name = lines[i].GetChangeTypeName();
             errors.Add(
                 new(
                     LineNumber: i + 1, // 1-based
@@ -332,18 +322,8 @@ public static class ChangeLogLinter
 
     private static bool IsChangeTypeHeadingOrVersionHeading(string line)
     {
-        return IsChangeTypeHeading(line)
-               || IsVersionHeader(line);
-    }
-
-    private static bool IsVersionHeader(string line)
-    {
-        return line.IsVersionHeader();
-    }
-
-    private static bool IsChangeTypeHeading(string line)
-    {
-        return line.IsChangeTypeHeading();
+        return line.IsChangeTypeHeading()
+               || line.IsVersionHeader();
     }
 
     private static void CheckVersionHeaders(string[] lines, List<LintError> errors)
@@ -356,20 +336,18 @@ public static class ChangeLogLinter
 
             if (
                 !line.IsVersionHeader()
-                || StringComparer.Ordinal.Equals(x: line, y: UNRELEASED_HEADER)
+                || Unreleased.IsUnreleasedHeader(line)
             )
             {
                 continue;
             }
 
-            int closeBracket = line.IndexOf(value: ']', startIndex: VERSION_HEADER_PREFIX.Length);
+            string? versionStr = line.GetVersionString();
 
-            if (closeBracket == -1)
+            if (versionStr is null)
             {
                 continue;
             }
-
-            string versionStr = line[VERSION_HEADER_PREFIX.Length..closeBracket];
             int lineNumber = i + 1; // 1-based
 
             if (!IsValidVersion(versionStr))

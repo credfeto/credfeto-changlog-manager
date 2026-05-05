@@ -11,4 +11,6 @@ internal interface IChangeLogLoader
     ValueTask<string> LoadTextAsync(string changeLogFileName, CancellationToken cancellationToken);
 
     ValueTask<IReadOnlyList<string>> LoadLinesAsync(string changeLogFileName, CancellationToken cancellationToken);
+
+    ValueTask SaveTextAsync(string changeLogFileName, string contents, CancellationToken cancellationToken);
 }
