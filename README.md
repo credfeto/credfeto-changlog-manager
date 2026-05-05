@@ -128,6 +128,44 @@ Notes:
 - If the specified version already exists then an error will occur.
 - If the specified version is older than the latest release then an error will occur.
 
+### Print Unreleased Content to Console
+
+Prints the current [Unreleased] section to stdout.
+
+```shell
+dotnet changelog --changelog CHANGELOG.md --un-released
+```
+
+### Lint the Changelog
+
+Validates the changelog format and reports any errors.
+
+```shell
+dotnet changelog --changelog CHANGELOG.md --lint
+```
+
+Lint with additional allowed sections (comma-separated):
+
+```shell
+dotnet changelog --changelog CHANGELOG.md --lint --additional-sections "Security,Performance"
+```
+
+Lint and automatically fix formatting issues (rewrites the file):
+
+```shell
+dotnet changelog --changelog CHANGELOG.md --lint --fix
+```
+
+Lint with additional sections and auto-fix:
+
+```shell
+dotnet changelog --changelog CHANGELOG.md --lint --additional-sections "Security,Performance" --fix
+```
+
+Notes:
+- `--lint` exits with a non-zero exit code if any errors are found.
+- `--fix` rewrites the changelog to correct ordering and missing sections in `[Unreleased]`; it then re-lints to confirm the file is valid.
+
 ### Check insert position of changes are all in [Unreleased] section
 
 Where `origin/target` is the name of the branch a PR is to be merged into.
