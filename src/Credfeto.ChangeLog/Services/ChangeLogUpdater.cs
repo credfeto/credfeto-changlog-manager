@@ -3,18 +3,92 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 using ZLinq;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogUpdater
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogUpdater : IChangeLogUpdater
 {
-    public static string AddEntry(string changeLog, string type, string message)
+    private readonly IChangeLogLoader _loader;
+
+    public ChangeLogUpdater(IChangeLogLoader loader)
+    {
+        this._loader = loader;
+    }
+
+    public async Task AddEntryAsync(string changeLogFileName, string type, string message, CancellationToken cancellationToken)
+    {
+        string textBlock = await this.ReadChangeLogAsync(changeLogFileName, cancellationToken);
+        string content = AddEntry(changeLog: textBlock, type: type, message: message);
+
+        await this._loader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
+    }
+
+    public async Task RemoveEntryAsync(string changeLogFileName, string type, string message, CancellationToken cancellationToken)
+    {
+        string textBlock = await this.ReadChangeLogAsync(changeLogFileName, cancellationToken);
+        string content = RemoveEntry(changeLog: textBlock, type: type, message: message);
+
+        await this._loader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
+    }
+
+    public async Task CreateReleaseAsync(string changeLogFileName, string version, bool pending, CancellationToken cancellationToken)
+    {
+        string textBlock = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
+        string content = CreateRelease(changeLog: textBlock, version: version, pending: pending);
+
+        await this._loader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
+    }
+
+    public async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        string textBlock = await this.ReadChangeLogAsync(changeLogFileName, cancellationToken);
+        string content = EnsureUnreleasedSections(textBlock);
+
+        await this._loader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
+    }
+
+    public ValueTask CreateEmptyAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        return this._loader.SaveTextAsync(changeLogFileName, contents: TemplateFile.Initial, cancellationToken: cancellationToken);
+    }
+
+    private async Task<string> ReadChangeLogAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        if (this._loader.Exists(changeLogFileName))
+        {
+            return await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
+        }
+
+        await this.CreateEmptyAsync(changeLogFileName, cancellationToken);
+
+        return TemplateFile.Initial;
+    }
+
+    internal static string AddEntry(string changeLog, string type, string message)
     {
         return AddEntryCommon(changeLog: changeLog, type: type, message: message);
+    }
+
+    internal static string RemoveEntry(string changeLog, string type, string message)
+    {
+        return RemoveEntryCommon(changeLog: changeLog, type: type, message: message);
+    }
+
+    internal static string CreateRelease(string changeLog, string version, bool pending)
+    {
+        return CreateReleaseCommon(changeLog: changeLog, version: version, pending: pending);
+    }
+
+    internal static string EnsureUnreleasedSections(string changeLog)
+    {
+        return EnsureUnreleasedSectionsCommon(changeLog);
     }
 
     private static string AddEntryCommon(string changeLog, string type, string message)
@@ -37,11 +111,6 @@ public static class ChangeLogUpdater
         return [.. EnsureChangelog(changeLog).SplitToLines()];
     }
 
-    public static string RemoveEntry(string changeLog, string type, string message)
-    {
-        return RemoveEntryCommon(changeLog: changeLog, type: type, message: message);
-    }
-
     private static string RemoveEntryCommon(string changeLog, string type, string message)
     {
         List<string> text = ChangeLogAsLines(changeLog);
@@ -53,7 +122,6 @@ public static class ChangeLogUpdater
         {
             text.RemoveAt(index: index);
 
-            // check for another item to remove
             index = FindRemovePosition(changeLog: text, type: type, entryText: entryText);
         }
 
@@ -154,7 +222,6 @@ public static class ChangeLogUpdater
         {
             if (isMatch(changeLog[next]))
             {
-                // Found matching text
                 return exactMatchAction(next);
             }
 
@@ -177,11 +244,6 @@ public static class ChangeLogUpdater
     private static string BuildSubHeaderSection(string type)
     {
         return type.AsChangeTypeHeading();
-    }
-
-    public static string CreateRelease(string changeLog, string version, bool pending)
-    {
-        return CreateReleaseCommon(changeLog: changeLog, version: version, pending: pending);
     }
 
     private static string CreateReleaseCommon(string changeLog, string version, bool pending)
@@ -369,7 +431,6 @@ public static class ChangeLogUpdater
         {
             if (string.IsNullOrWhiteSpace(text[i - 1]))
             {
-                // if line before was blank then don't delete it
                 removeIndexes.Remove(i - 1);
             }
 
@@ -526,11 +587,6 @@ public static class ChangeLogUpdater
         }
 
         return changeLog;
-    }
-
-    public static string EnsureUnreleasedSections(string changeLog)
-    {
-        return EnsureUnreleasedSectionsCommon(changeLog);
     }
 
     private static string EnsureUnreleasedSectionsCommon(string changeLog)

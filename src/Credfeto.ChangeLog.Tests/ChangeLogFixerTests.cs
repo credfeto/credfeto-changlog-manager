@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Credfeto.ChangeLog.Models;
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 

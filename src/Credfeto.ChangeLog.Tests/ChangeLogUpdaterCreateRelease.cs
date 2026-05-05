@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Credfeto.ChangeLog.Exceptions;
+using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 

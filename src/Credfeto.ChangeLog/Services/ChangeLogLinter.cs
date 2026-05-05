@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 using Credfeto.ChangeLog.Models;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogLinter
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogLinter : IChangeLogLinter
 {
     private static readonly string[] RequiredSections =
     [
@@ -19,7 +23,21 @@ public static class ChangeLogLinter
 
     private static readonly string[] KnownOptionalSections = ["Deprecated", "Deployment Changes"];
 
-    public static IReadOnlyList<LintError> Lint(string content, IReadOnlyCollection<string>? additionalSections = null)
+    private readonly IChangeLogLoader _loader;
+
+    public ChangeLogLinter(IChangeLogLoader loader)
+    {
+        this._loader = loader;
+    }
+
+    public async ValueTask<IReadOnlyList<LintError>> LintFileAsync(string changeLogFileName, IReadOnlyCollection<string>? additionalSections, CancellationToken cancellationToken)
+    {
+        string content = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
+
+        return Lint(content: content, additionalSections: additionalSections);
+    }
+
+    internal static IReadOnlyList<LintError> Lint(string content, IReadOnlyCollection<string>? additionalSections = null)
     {
         List<LintError> errors = [];
 
@@ -240,7 +258,7 @@ public static class ChangeLogLinter
             if (lines[i].IsChangeTypeHeading())
             {
                 string name = lines[i].GetChangeTypeName();
-                result.Add((name, i + 1)); // 1-based line number
+                result.Add((name, i + 1));
             }
         }
 
@@ -277,7 +295,6 @@ public static class ChangeLogLinter
                 continue;
             }
 
-            // Find the next non-empty line after the blank
             int nextNonEmpty = i + 2;
 
             while (nextNonEmpty < lines.Length && string.IsNullOrWhiteSpace(lines[nextNonEmpty]))
@@ -290,7 +307,6 @@ public static class ChangeLogLinter
                 continue;
             }
 
-            // A blank line between a ### heading and another section (### or ##) is acceptable formatting
             if (lines[nextNonEmpty].IsChangeTypeHeading() || lines[nextNonEmpty].IsVersionHeader())
             {
                 continue;
@@ -299,7 +315,7 @@ public static class ChangeLogLinter
             string name = lines[i].GetChangeTypeName();
             errors.Add(
                 new(
-                    LineNumber: i + 1, // 1-based
+                    LineNumber: i + 1,
                     Message: $"Blank line after heading '### {name}'"
                 )
             );
@@ -328,7 +344,8 @@ public static class ChangeLogLinter
             {
                 continue;
             }
-            int lineNumber = i + 1; // 1-based
+
+            int lineNumber = i + 1;
 
             if (!IsValidVersion(versionStr))
             {
@@ -377,7 +394,6 @@ public static class ChangeLogLinter
             return false;
         }
 
-        // Require at least 3 parts (Major.Minor.Build)
         return parsed.Build >= 0;
     }
 }

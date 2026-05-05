@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
+using Credfeto.ChangeLog.Services;
 
 namespace Credfeto.ChangeLog.BenchMark.Tests.Bench;
 

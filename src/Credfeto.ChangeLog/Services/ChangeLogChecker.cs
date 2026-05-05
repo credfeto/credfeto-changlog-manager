@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -11,21 +12,28 @@ using Credfeto.ChangeLog.Helpers;
 using LibGit2Sharp;
 using ZLinq;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogChecker
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogChecker : IChangeLogChecker
 {
-    public static async Task<bool> ChangeLogModifiedInReleaseSectionAsync(
+    private readonly IChangeLogLoader _loader;
+
+    public ChangeLogChecker(IChangeLogLoader loader)
+    {
+        this._loader = loader;
+    }
+
+    public async Task<bool> ChangeLogModifiedInReleaseSectionAsync(
         string changeLogFileName,
         string originBranchName,
-        IChangeLogLoader loader,
         CancellationToken cancellationToken
     )
     {
         changeLogFileName = GetFullChangeLogFilePath(changeLogFileName);
         int? position = await FindFirstReleaseVersionPositionAsync(
             changeLogFileName: changeLogFileName,
-            loader: loader,
+            loader: this._loader,
             cancellationToken: cancellationToken
         );
 
@@ -45,7 +53,6 @@ public static class ChangeLogChecker
 
             if (StringComparer.Ordinal.Equals(x: originBranch.Tip.Sha, y: sha))
             {
-                // same branch/commit
                 return false;
             }
 

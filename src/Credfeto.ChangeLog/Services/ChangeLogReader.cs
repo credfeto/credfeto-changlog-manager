@@ -1,15 +1,48 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogReader
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogReader : IChangeLogReader
 {
-    public static string ExtractReleaseNotes(string changeLog, string version)
+    private readonly IChangeLogLoader _loader;
+
+    public ChangeLogReader(IChangeLogLoader loader)
+    {
+        this._loader = loader;
+    }
+
+    public async ValueTask<string> ExtractReleaseNotesFromFileAsync(string changeLogFileName, string version, CancellationToken cancellationToken)
+    {
+        string textBlock = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
+
+        return ExtractReleaseNotes(changeLog: textBlock, version: version);
+    }
+
+    public async ValueTask<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<string> changelog = await this._loader.LoadLinesAsync(changeLogFileName, cancellationToken);
+
+        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
+        {
+            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
+            {
+                return lineIndex + 1;
+            }
+        }
+
+        return null;
+    }
+
+    internal static string ExtractReleaseNotes(string changeLog, string version)
     {
         Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
 

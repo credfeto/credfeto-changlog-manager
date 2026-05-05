@@ -6,29 +6,29 @@ using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Helpers;
 using LibGit2Sharp;
 
-namespace Credfeto.ChangeLog;
+namespace Credfeto.ChangeLog.Services;
 
-public static class ChangeLogDetector
+[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+internal sealed class ChangeLogDetector : IChangeLogDetector
 {
-    public static bool TryFindChangeLog([NotNullWhen(true)] out string? changeLogFileName)
+    public bool TryFindChangeLog([NotNullWhen(true)] out string? changeLogFileName)
     {
         try
         {
             using (Repository repository = GitRepository.OpenRepository(Environment.CurrentDirectory))
             {
-                return TryFindChangeLog(repository: repository, changeLogFileName: out changeLogFileName);
+                return TryFindChangeLogInRepository(repository: repository, changeLogFileName: out changeLogFileName);
             }
         }
         catch (Exception)
         {
-            // Couldn't
             changeLogFileName = null;
 
             return false;
         }
     }
 
-    public static bool TryFindChangeLog(Repository repository, [NotNullWhen(true)] out string? changeLogFileName)
+    private static bool TryFindChangeLogInRepository(Repository repository, [NotNullWhen(true)] out string? changeLogFileName)
     {
         string repoRoot = repository.Info.WorkingDirectory;
 
