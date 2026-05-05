@@ -25,6 +25,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - remove IsSubHeading wrapper and inline IsChangeTypeHeading extension calls
 - remove IsChangeTypeHeadingOrVersionHeading wrapper and inline extension calls
 - replace string.Join with LinesToText extension and Split with SplitToLines
+- update CLI and tests to resolve changelog operations through DI
 ### Deprecated
 ### Removed
 ### Deployment Changes
