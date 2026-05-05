@@ -777,7 +777,6 @@ public static class ChangeLogUpdater
     )
     {
         List<string> newContent = [];
-        HashSet<string> processedSections = new(StringComparer.Ordinal);
 
         for (int i = 0; i < ChangeLogSections.Order.Length; i++)
         {
@@ -788,11 +787,9 @@ public static class ChangeLogUpdater
             {
                 newContent.AddRange(content);
             }
-
-            processedSections.Add(sectionName);
         }
 
-        foreach (string sectionName in sectionOrder.Where(s => !processedSections.Contains(s)))
+        foreach (string sectionName in sectionOrder.Where(s => !ChangeLogSections.KnownSections.Contains(s)))
         {
             newContent.Add(SubHeadingPrefix + sectionName);
             newContent.AddRange(sections[sectionName]);

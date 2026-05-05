@@ -8,10 +8,10 @@ namespace Credfeto.ChangeLog.BenchMark.Tests;
 
 public sealed class EnsureUnreleasedSectionsBenchmarkTests : LoggingTestBase
 {
-    // Baselines measured after pre-computing section heading strings (issue #252).
+    // Baselines measured after replacing per-call HashSet with static FrozenSet (issue #253).
     // These limits include a 25% margin to allow for minor variation across machines.
-    private const long MaxAllocatedBytesAllSectionsCorrect = 8000;
-    private const long MaxAllocatedBytesOutOfOrderAndMissing = 8550;
+    private const long MaxAllocatedBytesAllSectionsCorrect = 7424;
+    private const long MaxAllocatedBytesOutOfOrderAndMissing = 7975;
 
     public EnsureUnreleasedSectionsBenchmarkTests(ITestOutputHelper output)
         : base(output)

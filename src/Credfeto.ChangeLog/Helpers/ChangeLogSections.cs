@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 
 namespace Credfeto.ChangeLog.Helpers;
@@ -25,4 +27,6 @@ public static class ChangeLogSections
         "### Removed",
         "### Deployment Changes",
     ];
+
+    public static readonly FrozenSet<string> KnownSections = Order.ToFrozenSet(StringComparer.Ordinal);
 }
