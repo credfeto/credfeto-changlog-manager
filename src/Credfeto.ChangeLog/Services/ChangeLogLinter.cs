@@ -169,7 +169,9 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
     }
 
     private static bool HasLeadingBlank(ChangeLogSection section)
-        => section.Entries.Length > 0 && string.IsNullOrWhiteSpace(section.Entries[0]);
+        => section.Entries.Length > 0
+        && string.IsNullOrWhiteSpace(section.Entries[0])
+        && section.Entries.Any(e => !string.IsNullOrWhiteSpace(e));
 
     private static void CheckVersionHeaders(in ImmutableArray<ChangeLogRelease> releases, List<LintError> errors)
     {

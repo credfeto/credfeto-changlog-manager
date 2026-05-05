@@ -176,11 +176,20 @@ internal sealed class ChangeLogParser : IChangeLogParser
         {
             if (this.CurrentSectionName is not null)
             {
+                TrimTrailingBlanks(this.CurrentEntries);
                 this.CurrentSections.Add(new(Name: this.CurrentSectionName, LineNumber: this.CurrentSectionLine, Entries: [.. this.CurrentEntries]));
             }
 
             this.CurrentSectionName = null;
             this.CurrentEntries.Clear();
+        }
+
+        private static void TrimTrailingBlanks(List<string> entries)
+        {
+            while (entries.Count > 0 && string.IsNullOrWhiteSpace(entries[^1]))
+            {
+                entries.RemoveAt(entries.Count - 1);
+            }
         }
 
         public void Flush(List<ChangeLogRelease> releases)
