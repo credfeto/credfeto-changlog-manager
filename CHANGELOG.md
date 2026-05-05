@@ -11,6 +11,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 - Refined changelog section linting and related updater/fixer command behaviour.
+- Extracted shared changelog heading extension methods and reused them in reader/linter.
 ### Removed
 ### Deployment Changes
 
