@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog;
 
 public static class ChangeLogLinter
 {
-    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
-
     private static readonly string[] RequiredSections =
     [
         "Security",
@@ -20,18 +16,6 @@ public static class ChangeLogLinter
     ];
 
     private static readonly string[] KnownOptionalSections = ["Deprecated", "Deployment Changes"];
-
-
-    public static async ValueTask<IReadOnlyList<LintError>> LintFileAsync(
-        string changeLogFileName,
-        IReadOnlyCollection<string>? additionalSections,
-        CancellationToken cancellationToken
-    )
-    {
-        string content = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
-
-        return Lint(content: content, additionalSections: additionalSections);
-    }
 
     public static IReadOnlyList<LintError> Lint(string content, IReadOnlyCollection<string>? additionalSections = null)
     {

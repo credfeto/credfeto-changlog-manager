@@ -1,27 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog;
 
 public static class ChangeLogReader
 {
-    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
-
-    public static async Task<string> ExtractReleaseNotesFromFileAsync(
-        string changeLogFileName,
-        string version,
-        CancellationToken cancellationToken
-    )
-    {
-        string textBlock = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
-
-        return ExtractReleaseNotes(changeLog: textBlock, version: version);
-    }
-
     public static string ExtractReleaseNotes(string changeLog, string version)
     {
         Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
@@ -83,27 +68,6 @@ public static class ChangeLogReader
     private static IReadOnlyList<string> RemoveComments(string changeLog)
     {
         return CommonRegex.RemoveComments.Replace(input: changeLog, replacement: string.Empty).Trim().SplitToLines();
-    }
-
-    public static async Task<int?> FindFirstReleaseVersionPositionAsync(
-        string changeLogFileName,
-        CancellationToken cancellationToken
-    )
-    {
-        IReadOnlyList<string> changelog = await ChangeLogLoader.LoadLinesAsync(changeLogFileName, cancellationToken);
-
-        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
-        {
-            string line = changelog[lineIndex];
-
-            if (CommonRegex.VersionHeader.IsMatch(line))
-            {
-                // Line indexes start from 1
-                return lineIndex + 1;
-            }
-        }
-
-        return null;
     }
 
     private static void FindSectionForBuild(

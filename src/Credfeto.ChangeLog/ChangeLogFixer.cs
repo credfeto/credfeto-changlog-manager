@@ -1,27 +1,10 @@
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog;
 
 public static class ChangeLogFixer
 {
-    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
-
-    public static async ValueTask FixFileAsync(
-        string changeLogFileName,
-        IReadOnlyCollection<string>? additionalSections,
-        CancellationToken cancellationToken
-    )
-    {
-        string content = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
-
-        string @fixed = Fix(content: content, additionalSections: additionalSections);
-
-        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: @fixed, cancellationToken: cancellationToken);
-    }
-
     public static string Fix(string content, IReadOnlyCollection<string>? additionalSections = null)
     {
         string result = ChangeLogUpdater.EnsureUnreleasedSections(content);

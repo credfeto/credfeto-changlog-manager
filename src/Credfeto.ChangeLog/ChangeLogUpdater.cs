@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using Credfeto.ChangeLog.Helpers;
 using ZLinq;
 
@@ -12,54 +10,6 @@ namespace Credfeto.ChangeLog;
 
 public static class ChangeLogUpdater
 {
-    private static readonly IChangeLogLoader ChangeLogLoader = FileSystemChangeLogLoader.Instance;
-
-    public static async Task AddEntryAsync(
-        string changeLogFileName,
-        string type,
-        string message,
-        CancellationToken cancellationToken
-    )
-    {
-        string textBlock = await ReadChangeLogAsync(
-            changeLogFileName: changeLogFileName,
-            cancellationToken: cancellationToken
-        );
-
-        string content = AddEntryCommon(changeLog: textBlock, type: type, message: message);
-
-        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
-    }
-
-    public static async Task RemoveEntryAsync(
-        string changeLogFileName,
-        string type,
-        string message,
-        CancellationToken cancellationToken
-    )
-    {
-        string textBlock = await ReadChangeLogAsync(
-            changeLogFileName: changeLogFileName,
-            cancellationToken: cancellationToken
-        );
-
-        string content = RemoveEntryCommon(changeLog: textBlock, type: type, message: message);
-
-        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
-    }
-
-    private static async Task<string> ReadChangeLogAsync(string changeLogFileName, CancellationToken cancellationToken)
-    {
-        if (ChangeLogLoader.Exists(changeLogFileName))
-        {
-            return await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
-        }
-
-        await CreateEmptyAsync(changeLogFileName: changeLogFileName, cancellationToken: cancellationToken);
-
-        return TemplateFile.Initial;
-    }
-
     public static string AddEntry(string changeLog, string type, string message)
     {
         return AddEntryCommon(changeLog: changeLog, type: type, message: message);
@@ -225,20 +175,6 @@ public static class ChangeLogUpdater
     private static string BuildSubHeaderSection(string type)
     {
         return type.AsChangeTypeHeading();
-    }
-
-    public static async Task CreateReleaseAsync(
-        string changeLogFileName,
-        string version,
-        bool pending,
-        CancellationToken cancellationToken
-    )
-    {
-        string originalChangeLog = await ChangeLogLoader.LoadTextAsync(changeLogFileName, cancellationToken);
-
-        string newChangeLog = CreateReleaseCommon(changeLog: originalChangeLog, version: version, pending: pending);
-
-        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: newChangeLog, cancellationToken: cancellationToken);
     }
 
     public static string CreateRelease(string changeLog, string version, bool pending)
@@ -588,20 +524,6 @@ public static class ChangeLogUpdater
         }
 
         return changeLog;
-    }
-
-    public static ValueTask CreateEmptyAsync(string changeLogFileName, in CancellationToken cancellationToken)
-    {
-        return ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: TemplateFile.Initial, cancellationToken: cancellationToken);
-    }
-
-    public static async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
-    {
-        string textBlock = await ReadChangeLogAsync(changeLogFileName: changeLogFileName, cancellationToken: cancellationToken);
-
-        string content = EnsureUnreleasedSectionsCommon(textBlock);
-
-        await ChangeLogLoader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
     }
 
     public static string EnsureUnreleasedSections(string changeLog)

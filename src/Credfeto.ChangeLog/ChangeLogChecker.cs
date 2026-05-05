@@ -20,7 +20,7 @@ public static class ChangeLogChecker
     )
     {
         changeLogFileName = GetFullChangeLogFilePath(changeLogFileName);
-        int? position = await ChangeLogReader.FindFirstReleaseVersionPositionAsync(
+        int? position = await FindFirstReleaseVersionPositionAsync(
             changeLogFileName: changeLogFileName,
             cancellationToken: cancellationToken
         );
@@ -72,6 +72,21 @@ public static class ChangeLogChecker
         }
 
         return true;
+    }
+
+    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<string> changelog = await FileSystemChangeLogLoader.Instance.LoadLinesAsync(changeLogFileName, cancellationToken);
+
+        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
+        {
+            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
+            {
+                return lineIndex + 1;
+            }
+        }
+
+        return null;
     }
 
     private static Branch FindOriginBranch(Repository repo, string originBranchName)
