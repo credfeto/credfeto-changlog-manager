@@ -9,6 +9,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Added
 ### Fixed
 ### Changed
+- ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 ### Removed
 ### Deployment Changes
 
