@@ -9,6 +9,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Security
 ### Added
 - add DI registration extension AddChangeLog to configure IChangeLogLoader
+- add service interfaces IChangeLogReader, IChangeLogLinter, IChangeLogFixer, IChangeLogUpdater with file-backed implementations injectable via DI
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
