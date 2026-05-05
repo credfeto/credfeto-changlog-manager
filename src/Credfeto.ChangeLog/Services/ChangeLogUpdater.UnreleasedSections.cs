@@ -12,7 +12,7 @@ internal sealed partial class ChangeLogUpdater
     {
         List<string> text = ChangeLogAsLines(changeLog);
 
-        int unreleasedStart = FindUnreleasedStart(text);
+        int unreleasedStart = text.FindUnreleasedStart();
 
         if (unreleasedStart == -1)
         {
@@ -34,19 +34,6 @@ internal sealed partial class ChangeLogUpdater
         text.InsertRange(index: unreleasedStart + 1, collection: newContent);
 
         return text.LinesToText();
-    }
-
-    private static int FindUnreleasedStart(IReadOnlyList<string> text)
-    {
-        for (int i = 0; i < text.Count; i++)
-        {
-            if (Unreleased.IsUnreleasedHeader(text[i]))
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     private static (List<string> sectionOrder, Dictionary<string, List<string>> sections, List<string> trailer)

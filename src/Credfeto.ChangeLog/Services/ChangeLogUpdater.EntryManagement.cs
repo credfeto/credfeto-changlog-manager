@@ -99,7 +99,7 @@ internal sealed partial class ChangeLogUpdater
             }
             else
             {
-                if (IsRelease(line))
+                if (line.IsVersionHeader())
                 {
                     return Throws.CouldNotFindTypeHeading(type);
                 }

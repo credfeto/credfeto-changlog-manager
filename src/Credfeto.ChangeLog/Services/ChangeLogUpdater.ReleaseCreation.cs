@@ -288,7 +288,7 @@ internal sealed partial class ChangeLogUpdater
     private static Dictionary<string, int> GetReleasePositions(IReadOnlyList<string> text)
     {
         return text.Select((line, index) => new { line, index })
-            .Where(i => IsRelease(i.line))
+            .Where(i => i.line.IsVersionHeader())
             .ToDictionary(
                 keySelector: i => ExtractRelease(i.line),
                 elementSelector: i => i.index,
@@ -306,10 +306,5 @@ internal sealed partial class ChangeLogUpdater
         Match match = CommonRegex.VersionHeader.Match(line);
 
         return match.Groups["version"].Value;
-    }
-
-    private static bool IsRelease(string line)
-    {
-        return Unreleased.IsUnreleasedHeader(line) || CommonRegex.VersionHeader.IsMatch(line);
     }
 }

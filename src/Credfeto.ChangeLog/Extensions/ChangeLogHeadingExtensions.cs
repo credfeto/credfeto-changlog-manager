@@ -41,6 +41,19 @@ internal static class ChangeLogHeadingExtensions
         return line[VERSION_HEADER_PREFIX.Length..closeBracket];
     }
 
+    public static int FindUnreleasedStart(this IReadOnlyList<string> lines)
+    {
+        for (int i = 0; i < lines.Count; i++)
+        {
+            if (Unreleased.IsUnreleasedHeader(lines[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     public static int FindUnreleasedEnd(this IReadOnlyList<string> lines, int unreleasedStart)
     {
         for (int i = unreleasedStart + 1; i < lines.Count; i++)

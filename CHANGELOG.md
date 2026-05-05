@@ -32,6 +32,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Renamed IChangeLogLoader to IChangeLogStorage and FileSystemChangeLogLoader to FileSystemChangeLogStorage to reflect load and save responsibilities
 - Extracted common string comparison, HTML comment detection, and unreleased-section helpers into ChangeLogHeadingExtensions
 - Split ChangeLogUpdater and ChangeLogLinter into focused partial class files by responsibility
+- Extracted FindUnreleasedStart as a shared extension method; replaced duplicated IsRelease private method with IsVersionHeader extension
 ### Deprecated
 ### Removed
 ### Deployment Changes

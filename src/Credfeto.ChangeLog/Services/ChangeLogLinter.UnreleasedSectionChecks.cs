@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Credfeto.ChangeLog.Extensions;
-using Credfeto.ChangeLog.Helpers;
 using Credfeto.ChangeLog.Models;
 using ZLinq;
 
@@ -15,7 +14,7 @@ internal sealed partial class ChangeLogLinter
         IReadOnlyCollection<string>? additionalSections
     )
     {
-        int unreleasedLineIndex = FindUnreleasedLine(lines);
+        int unreleasedLineIndex = lines.FindUnreleasedStart();
 
         if (unreleasedLineIndex == -1)
         {
@@ -30,19 +29,6 @@ internal sealed partial class ChangeLogLinter
             errors: errors,
             additionalSections: additionalSections
         );
-    }
-
-    private static int FindUnreleasedLine(string[] lines)
-    {
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (Unreleased.IsUnreleasedHeader(lines[i]))
-            {
-                return i;
-            }
-        }
-
-        return -1;
     }
 
     private static void CheckRequiredSectionsInUnreleased(
