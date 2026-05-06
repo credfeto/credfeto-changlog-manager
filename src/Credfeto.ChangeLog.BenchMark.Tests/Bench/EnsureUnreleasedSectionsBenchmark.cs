@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
+using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 
 namespace Credfeto.ChangeLog.BenchMark.Tests.Bench;
@@ -58,15 +60,26 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
+    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+
+    private static readonly ChangeLogDocument CorrectOrderDocument = ParseSync(CORRECT_ORDER_CHANGELOG);
+    private static readonly ChangeLogDocument OutOfOrderDocument = ParseSync(OUT_OF_ORDER_CHANGELOG);
+
     [Benchmark]
-    public string EnsureUnreleasedSections_AllSectionsCorrect()
+    public ChangeLogDocument EnsureUnreleasedSections_AllSectionsCorrect()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(CORRECT_ORDER_CHANGELOG);
+        return ChangeLogUpdater.EnsureUnreleasedSections(document: CorrectOrderDocument, language: Language);
     }
 
     [Benchmark]
-    public string EnsureUnreleasedSections_OutOfOrderAndMissing()
+    public ChangeLogDocument EnsureUnreleasedSections_OutOfOrderAndMissing()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(OUT_OF_ORDER_CHANGELOG);
+        return ChangeLogUpdater.EnsureUnreleasedSections(document: OutOfOrderDocument, language: Language);
     }
+
+    [SuppressMessage(category: "Meziantou.Analyzer", checkId: "MA0045:Use async overload", Justification = "Benchmark setup requires synchronous parse of a pure ValueTask.FromResult")]
+    [SuppressMessage(category: "Microsoft.VisualStudio.Threading.Analyzers", checkId: "VSTHRD002", Justification = "Benchmark setup requires synchronous parse of a pure ValueTask.FromResult")]
+    [SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "ChangeLogParser.ParseAsync always returns ValueTask.FromResult — already completed")]
+    private static ChangeLogDocument ParseSync(string content)
+        => new ChangeLogParser().ParseAsync(content: content, cancellationToken: CancellationToken.None).GetAwaiter().GetResult();
 }
