@@ -9,12 +9,17 @@ using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Models;
 using LibGit2Sharp;
 using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogChecker : IChangeLogChecker
 {
     private readonly IChangeLogStorage _loader;
@@ -56,7 +61,10 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
                 return false;
             }
 
-            string changeLogInRepoPath = FindChangeLogPositionInRepo(repo: repo, changeLogFileName: changeLogFileName);
+            string changeLogInRepoPath = FindChangeLogPositionInRepo(
+                repo: repo,
+                changeLogFileName: changeLogFileName
+            );
             Console.WriteLine($"Relative to Repo Root: {changeLogInRepoPath}");
 
             int firstReleaseVersionIndex = position.Value;
@@ -85,19 +93,15 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return true;
     }
 
-    private static async Task<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, IChangeLogStorage loader, CancellationToken cancellationToken)
+    private static async Task<int?> FindFirstReleaseVersionPositionAsync(
+        string changeLogFileName,
+        IChangeLogStorage loader,
+        CancellationToken cancellationToken
+    )
     {
-        IReadOnlyList<string> changelog = await loader.LoadLinesAsync(changeLogFileName, cancellationToken);
+        ChangeLogDocument document = await loader.LoadAsync(changeLogFileName, cancellationToken);
 
-        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
-        {
-            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
-            {
-                return lineIndex + 1;
-            }
-        }
-
-        return null;
+        return document.Releases.IsEmpty ? null : document.Releases[0].LineNumber;
     }
 
     private static Branch FindOriginBranch(Repository repo, string originBranchName)
@@ -126,7 +130,10 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return BranchSha(repo.Head);
     }
 
-    private static bool CheckForChangesAfterFirstRelease(PatchEntryChanges change, int firstReleaseVersionIndex)
+    private static bool CheckForChangesAfterFirstRelease(
+        PatchEntryChanges change,
+        int firstReleaseVersionIndex
+    )
     {
         Console.WriteLine("Change Details");
         string patchDetails = ExtractPatchDetails(change.Patch);
@@ -180,7 +187,10 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
         if (lastHunk != -1)
         {
-            (List<string> before, List<string> after) = CompareHunk(lines: lines, lastHunk: lastHunk);
+            (List<string> before, List<string> after) = CompareHunk(
+                lines: lines,
+                lastHunk: lastHunk
+            );
 
             if (before.SequenceEqual(second: after, comparer: StringComparer.Ordinal))
             {
@@ -191,7 +201,10 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return string.Join(separator: Environment.NewLine, values: lines);
     }
 
-    private static (List<string> before, List<string> after) CompareHunk(List<string> lines, int lastHunk)
+    private static (List<string> before, List<string> after) CompareHunk(
+        List<string> lines,
+        int lastHunk
+    )
     {
         List<string> before = [];
         List<string> after = [];
@@ -262,6 +275,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
     private static string FindChangeLogPositionInRepo(Repository repo, string changeLogFileName)
     {
-        return changeLogFileName[repo.Info.WorkingDirectory.Length..].Replace(oldChar: '\\', newChar: '/');
+        return changeLogFileName[repo.Info.WorkingDirectory.Length..]
+            .Replace(oldChar: '\\', newChar: '/');
     }
 }

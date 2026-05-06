@@ -11,25 +11,33 @@ internal static class Throws
     [DoesNotReturn]
     public static string EmptyChangeLogNoUnreleasedSection()
     {
-        throw new EmptyChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
+        throw new EmptyChangeLogException(
+            "Could not find [" + FileConstants.Unreleased + "] section of file"
+        );
     }
 
     [DoesNotReturn]
     public static Dictionary<string, int> CouldNotFindUnreleasedSectionDictionary()
     {
-        throw new EmptyChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
+        throw new EmptyChangeLogException(
+            "Could not find [" + FileConstants.Unreleased + "] section of file"
+        );
     }
 
     [DoesNotReturn]
     public static int CouldNotFindUnreleasedSectionInt()
     {
-        throw new InvalidChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
+        throw new InvalidChangeLogException(
+            "Could not find [" + FileConstants.Unreleased + "] section of file"
+        );
     }
 
     [DoesNotReturn]
     public static string CouldNotFindUnreleasedSectionString()
     {
-        throw new InvalidChangeLogException("Could not find [" + FileConstants.Unreleased + "] section of file");
+        throw new InvalidChangeLogException(
+            "Could not find [" + FileConstants.Unreleased + "] section of file"
+        );
     }
 
     [DoesNotReturn]

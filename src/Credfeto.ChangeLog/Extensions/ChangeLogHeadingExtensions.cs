@@ -11,12 +11,18 @@ internal static class ChangeLogHeadingExtensions
 
     public static bool IsChangeTypeHeading(this string line)
     {
-        return line.StartsWith(value: CHANGE_TYPE_HEADING_PREFIX, comparisonType: StringComparison.Ordinal);
+        return line.StartsWith(
+            value: CHANGE_TYPE_HEADING_PREFIX,
+            comparisonType: StringComparison.Ordinal
+        );
     }
 
     public static bool IsVersionHeader(this string line)
     {
-        return line.StartsWith(value: VERSION_HEADER_PREFIX, comparisonType: StringComparison.Ordinal);
+        return line.StartsWith(
+            value: VERSION_HEADER_PREFIX,
+            comparisonType: StringComparison.Ordinal
+        );
     }
 
     public static string GetChangeTypeName(this string line)

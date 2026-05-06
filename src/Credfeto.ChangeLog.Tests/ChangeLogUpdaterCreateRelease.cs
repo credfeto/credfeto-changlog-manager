@@ -27,7 +27,9 @@ public sealed class ChangeLogUpdaterCreateRelease : TestBase
 {
     private readonly ITestOutputHelper _output;
 
-    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
 
     public ChangeLogUpdaterCreateRelease(ITestOutputHelper output)
     {
@@ -164,7 +166,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string updated = Serialise(ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language));
+        string updated = Serialise(
+            ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language)
+        );
 
         const string expected =
             @"# Changelog
@@ -218,7 +222,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string updated = Serialise(ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language));
+        string updated = Serialise(
+            ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language)
+        );
 
         const string expected =
             @"# Changelog
@@ -272,7 +278,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string updated = Serialise(ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language));
+        string updated = Serialise(
+            ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language)
+        );
 
         const string expected =
             @"# Changelog
@@ -326,7 +334,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string updated = Serialise(ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language));
+        string updated = Serialise(
+            ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language)
+        );
 
         const string expected =
             @"# Changelog
@@ -379,7 +389,9 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
 -->";
 
-        string updated = Serialise(ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language));
+        string updated = Serialise(
+            ChangeLogUpdater.CreateRelease(Parse(changeLog), "1.0.0", true, Language)
+        );
 
         const string expected =
             @"# Changelog

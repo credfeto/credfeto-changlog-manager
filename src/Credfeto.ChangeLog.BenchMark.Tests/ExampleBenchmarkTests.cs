@@ -6,12 +6,10 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.BenchMark.Tests;
 
-public sealed class ExampleBenchmarkTests: LoggingTestBase
+public sealed class ExampleBenchmarkTests : LoggingTestBase
 {
     public ExampleBenchmarkTests(ITestOutputHelper output)
-        : base(output)
-    {
-    }
+        : base(output) { }
 
     [Fact]
     public void RunBenchmark()

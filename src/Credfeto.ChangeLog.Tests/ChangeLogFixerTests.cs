@@ -7,13 +7,24 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[SuppressMessage(category: "Meziantou.Analyzer", checkId: "MA0045:Use async overload", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
-[SuppressMessage(category: "Microsoft.VisualStudio.Threading.Analyzers", checkId: "VSTHRD002", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
-[SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks")]
+[SuppressMessage(
+    category: "Meziantou.Analyzer",
+    checkId: "MA0045:Use async overload",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.VisualStudio.Threading.Analyzers",
+    checkId: "VSTHRD002",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.Reliability",
+    checkId: "CA2012:UseValueTasksCorrectly",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
 public sealed class ChangeLogFixerTests : TestBase
 {
-    private const string VALID_CHANGE_LOG =
-        """
+    private const string VALID_CHANGE_LOG = """
         # Changelog
 
         ## [Unreleased]
@@ -32,7 +43,9 @@ public sealed class ChangeLogFixerTests : TestBase
         ## [0.0.0] - Project created
         """;
 
-    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
 
     private static ChangeLogDocument Parse(string content)
     {
@@ -51,15 +64,14 @@ public sealed class ChangeLogFixerTests : TestBase
     {
         string result = Serialise(ChangeLogFixer.Fix(Parse(VALID_CHANGE_LOG), Language));
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), null, Language);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
         Assert.Empty(errors);
     }
 
     [Fact]
     public void BlankLineAfterHeading_IsRemoved()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -77,15 +89,14 @@ public sealed class ChangeLogFixerTests : TestBase
 
         string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), null, Language);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
         Assert.Empty(errors);
     }
 
     [Fact]
     public void MissingRequiredSection_IsAdded()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -97,15 +108,14 @@ public sealed class ChangeLogFixerTests : TestBase
 
         string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), null, Language);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
         Assert.Empty(errors);
     }
 
     [Fact]
     public void OutOfOrderSections_AreReordered()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -118,7 +128,7 @@ public sealed class ChangeLogFixerTests : TestBase
 
         string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), null, Language);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
         Assert.Empty(errors);
     }
 }

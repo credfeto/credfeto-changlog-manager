@@ -1,16 +1,19 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog;
 
 public interface IChangeLogStorage
 {
-    bool Exists(string changeLogFileName);
+    ValueTask<ChangeLogDocument> LoadAsync(
+        string changeLogFileName,
+        CancellationToken cancellationToken
+    );
 
-    ValueTask<string> LoadTextAsync(string changeLogFileName, CancellationToken cancellationToken);
-
-    ValueTask<IReadOnlyList<string>> LoadLinesAsync(string changeLogFileName, CancellationToken cancellationToken);
-
-    ValueTask SaveTextAsync(string changeLogFileName, string contents, CancellationToken cancellationToken);
+    ValueTask SaveAsync(
+        string changeLogFileName,
+        ChangeLogDocument document,
+        CancellationToken cancellationToken
+    );
 }

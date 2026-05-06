@@ -8,4 +8,5 @@ public sealed record ChangeLogLanguage(
     string DocumentTitle,
     string UnreleasedSectionName,
     ImmutableArray<string> SectionOrder,
-    string DateFormat);
+    string DateFormat
+);

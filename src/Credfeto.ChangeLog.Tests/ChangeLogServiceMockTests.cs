@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -11,16 +10,23 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[SuppressMessage(category: "Meziantou.Analyzer", checkId: "MA0045:Use async overload", Justification = "ValueTask mock returns are synchronous")]
-[SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "NSubstitute mock setup and verification necessarily handles ValueTask instances outside normal await patterns")]
+[SuppressMessage(
+    category: "Meziantou.Analyzer",
+    checkId: "MA0045:Use async overload",
+    Justification = "ValueTask mock returns are synchronous"
+)]
+[SuppressMessage(
+    category: "Microsoft.Reliability",
+    checkId: "CA2012:UseValueTasksCorrectly",
+    Justification = "NSubstitute mock setup and verification necessarily handles ValueTask instances outside normal await patterns"
+)]
 public sealed class ChangeLogServiceMockTests : TestBase
 {
-    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
-    private static readonly ChangeLogParser Parser = new();
-    private static readonly ChangeLogSerialiser Serialiser = new();
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
 
-    private const string SIMPLE_CHANGE_LOG =
-        """
+    private const string SIMPLE_CHANGE_LOG = """
         # Changelog
         All notable changes to this project will be documented in this file.
 
@@ -37,16 +43,28 @@ public sealed class ChangeLogServiceMockTests : TestBase
         ## [0.0.0] - Project created
         """;
 
+    [SuppressMessage(
+        category: "Microsoft.VisualStudio.Threading.Analyzers",
+        checkId: "VSTHRD002",
+        Justification = "Helpers synchronously wrap pure parse ValueTasks"
+    )]
+    private static ChangeLogDocument Parse(string content)
+    {
+        return new ChangeLogParser().ParseAsync(content, default).GetAwaiter().GetResult();
+    }
+
     // ─── ChangeLogReader ──────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task ReaderExtractReleaseNotesCallsLoadTextAsync()
+    public async Task ReaderExtractReleaseNotesCallsLoadAsync()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
+        ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(SIMPLE_CHANGE_LOG));
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
 
@@ -59,29 +77,30 @@ public sealed class ChangeLogServiceMockTests : TestBase
         Assert.Contains("### Added", result, System.StringComparison.Ordinal);
         Assert.Contains("- Added item", result, System.StringComparison.Ordinal);
 
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task ReaderFindFirstReleaseVersionPositionCallsLoadLinesAsync()
+    public async Task ReaderFindFirstReleaseVersionPositionCallsLoadAsync()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
-        IReadOnlyList<string> lines =
-        [
-            "# Changelog",
-            string.Empty,
-            "## [Unreleased]",
-            "### Added",
-            string.Empty,
-            "## [1.0.0] - 2024-01-01",
-            "### Added",
-            "- First release"
-        ];
+        const string changeLog = """
+            # Changelog
 
+            ## [Unreleased]
+            ### Added
+
+            ## [1.0.0] - 2024-01-01
+            ### Added
+            - First release
+            """;
+
+        ChangeLogDocument document = Parse(changeLog);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.LoadLinesAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(lines));
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
 
@@ -91,163 +110,160 @@ public sealed class ChangeLogServiceMockTests : TestBase
         );
 
         Assert.NotNull(result);
-        // Line index 5 is "## [1.0.0]..." so position returned is 5+1 = 6
-        Assert.Equal(expected: 6, actual: result.Value);
+        Assert.Equal(expected: document.Releases[0].LineNumber, actual: result.Value);
 
-        await storage.Received(1).LoadLinesAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
     }
 
     // ─── ChangeLogFixer ───────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task FixerFixFileAsyncCallsSaveTextAsync()
+    public async Task FixerFixAsyncCallsLoadAndSave()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
-        const string contentWithBlankLines =
-            """
+        const string contentWithBlankLines = """
+            # Changelog
+
             ## [Unreleased]
+            ### Security
             ### Added
 
             - Added item
             ### Fixed
             ### Changed
+            ### Deprecated
             ### Removed
             ### Deployment Changes
             """;
 
+        ChangeLogDocument document = Parse(contentWithBlankLines);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(contentWithBlankLines));
-        storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.CompletedTask);
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
+        storage
+            .SaveAsync(
+                Arg.Any<string>(),
+                Arg.Any<ChangeLogDocument>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(ValueTask.CompletedTask);
 
-        ChangeLogFixer fixer = new(storage, Parser, Serialiser, Language);
+        ChangeLogFixer fixer = new(storage);
 
-        await fixer.FixFileAsync(
+        await fixer.FixAsync(
             changeLogFileName: "CHANGELOG.md",
-            additionalSections: null,
+            language: Language,
             cancellationToken: cancellationTokenSource.Token
         );
 
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
-        await storage.Received(1).SaveTextAsync(
-            "CHANGELOG.md",
-            Arg.Is<string>(s => !s.Contains("### Added\r\n\r\n", System.StringComparison.Ordinal)
-                                && !s.Contains("### Added\n\n", System.StringComparison.Ordinal)),
-            Arg.Any<CancellationToken>()
-        );
+        await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
+        await storage
+            .Received(1)
+            .SaveAsync("CHANGELOG.md", Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
     }
 
     // ─── ChangeLogLinter ──────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task LinterLintFileAsyncWithValidChangeLogReturnsNoErrors()
+    public async Task LinterLintAsyncWithValidChangeLogReturnsNoErrors()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
+        ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(SIMPLE_CHANGE_LOG));
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
 
-        ChangeLogLinter linter = new(storage, Parser, Language);
+        ChangeLogLinter linter = new(storage);
 
-        IReadOnlyList<LintError> errors = await linter.LintFileAsync(
+        IReadOnlyList<LintError> errors = await linter.LintAsync(
             changeLogFileName: "CHANGELOG.md",
-            additionalSections: null,
+            language: Language,
             cancellationToken: cancellationTokenSource.Token
         );
 
         Assert.Empty(errors);
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task LinterLintFileAsyncWithMissingUnreleasedSectionReturnsError()
+    public async Task LinterLintAsyncWithMissingUnreleasedSectionReturnsError()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
-        const string invalidContent =
-            """
+        const string invalidContent = """
             # Changelog
             All notable changes to this project will be documented in this file.
             """;
 
+        ChangeLogDocument document = Parse(invalidContent);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(invalidContent));
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
 
-        ChangeLogLinter linter = new(storage, Parser, Language);
+        ChangeLogLinter linter = new(storage);
 
-        IReadOnlyList<LintError> errors = await linter.LintFileAsync(
+        IReadOnlyList<LintError> errors = await linter.LintAsync(
             changeLogFileName: "CHANGELOG.md",
-            additionalSections: null,
+            language: Language,
             cancellationToken: cancellationTokenSource.Token
         );
 
         LintError error = Assert.Single(errors);
         Assert.Equal(expected: "Missing [Unreleased] section", actual: error.Message);
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
     }
 
     // ─── ChangeLogUpdater ─────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task UpdaterAddEntryAsyncWhenFileExistsCallsSaveTextAsyncOnce()
+    public async Task UpdaterAddEntryAsyncCallsLoadAndSave()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
+        ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.Exists(Arg.Any<string>()).Returns(true);
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(SIMPLE_CHANGE_LOG));
-        storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.CompletedTask);
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
+        storage
+            .SaveAsync(
+                Arg.Any<string>(),
+                Arg.Any<ChangeLogDocument>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
+        ChangeLogUpdater updater = new(storage);
 
-        await updater.AddEntryAsync(
-            changeLogFileName: "CHANGELOG.md",
-            type: "Added",
-            message: "New feature added",
-            cancellationToken: cancellationTokenSource.Token
-        );
+        string tempFile = System.IO.Path.GetTempFileName();
+        try
+        {
+            await updater.AddEntryAsync(
+                changeLogFileName: tempFile,
+                language: Language,
+                type: "Added",
+                message: "New feature added",
+                cancellationToken: cancellationTokenSource.Token
+            );
+        }
+        finally
+        {
+            System.IO.File.Delete(tempFile);
+        }
 
-        storage.Received(1).Exists("CHANGELOG.md");
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
-        await storage.Received(1).SaveTextAsync(
-            "CHANGELOG.md",
-            Arg.Is<string>(s => s.Contains("- New feature added", System.StringComparison.Ordinal)),
-            Arg.Any<CancellationToken>()
-        );
-    }
-
-    [Fact]
-    public async Task UpdaterAddEntryAsyncWhenFileDoesNotExistCallsSaveTextAsyncTwice()
-    {
-        using CancellationTokenSource cancellationTokenSource = new();
-
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.Exists(Arg.Any<string>()).Returns(false);
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(TemplateFile.Initial));
-        storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.CompletedTask);
-
-        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
-
-        await updater.AddEntryAsync(
-            changeLogFileName: "CHANGELOG.md",
-            type: "Added",
-            message: "Created from missing file",
-            cancellationToken: cancellationTokenSource.Token
-        );
-
-        storage.Received(1).Exists("CHANGELOG.md");
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
-        // First call: CreateEmptyAsync saves TemplateFile.Initial
-        // Second call: AddEntryAsync saves the updated content
-        await storage.Received(2).SaveTextAsync("CHANGELOG.md", Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
+        await storage
+            .Received(1)
+            .SaveAsync(
+                tempFile,
+                Arg.Is<ChangeLogDocument>(d => d.Unreleased is object),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
@@ -255,21 +271,38 @@ public sealed class ChangeLogServiceMockTests : TestBase
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
+        ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage.Exists(Arg.Any<string>()).Returns(true);
-        storage.LoadTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.FromResult(SIMPLE_CHANGE_LOG));
-        storage.SaveTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-               .Returns(ValueTask.CompletedTask);
+        storage
+            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ValueTask.FromResult(document));
+        storage
+            .SaveAsync(
+                Arg.Any<string>(),
+                Arg.Any<ChangeLogDocument>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage, Parser, Serialiser, Language);
+        ChangeLogUpdater updater = new(storage);
 
-        await updater.EnsureUnreleasedSectionsAsync(
-            changeLogFileName: "CHANGELOG.md",
-            cancellationToken: cancellationTokenSource.Token
-        );
+        string tempFile = System.IO.Path.GetTempFileName();
+        try
+        {
+            await updater.EnsureUnreleasedSectionsAsync(
+                changeLogFileName: tempFile,
+                language: Language,
+                cancellationToken: cancellationTokenSource.Token
+            );
+        }
+        finally
+        {
+            System.IO.File.Delete(tempFile);
+        }
 
-        await storage.Received(1).LoadTextAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
-        await storage.Received(1).SaveTextAsync("CHANGELOG.md", Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
+        await storage
+            .Received(1)
+            .SaveAsync(tempFile, Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
     }
 }

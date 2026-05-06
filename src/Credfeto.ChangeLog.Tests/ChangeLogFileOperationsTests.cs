@@ -13,8 +13,7 @@ namespace Credfeto.ChangeLog.Tests;
 
 public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
 {
-    private const string SIMPLE_CHANGE_LOG =
-        """
+    private const string SIMPLE_CHANGE_LOG = """
         # Changelog
         All notable changes to this project will be documented in this file.
 
@@ -31,12 +30,16 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
         """;
 
     private readonly ServiceProvider _serviceProvider;
+    private readonly ChangeLogLanguage _language;
 
     public ChangeLogFileOperationsTests()
     {
         ServiceCollection services = new();
         services.AddChangeLog();
         this._serviceProvider = services.BuildServiceProvider();
+        this._language = this
+            ._serviceProvider.GetRequiredService<IChangeLogLanguageFactory>()
+            .Get(ChangeLogLanguageFactory.English);
     }
 
     public void Dispose()
@@ -48,7 +51,10 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task ExtractReleaseNotesFromFileAsyncReadsChangeLogFromDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        string fileName = await CreateTempFileAsync(SIMPLE_CHANGE_LOG, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            SIMPLE_CHANGE_LOG,
+            cancellationTokenSource.Token
+        );
 
         try
         {
@@ -79,7 +85,10 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task FindFirstReleaseVersionPositionAsyncReadsLinesFromDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        string fileName = await CreateTempFileAsync(SIMPLE_CHANGE_LOG, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            SIMPLE_CHANGE_LOG,
+            cancellationTokenSource.Token
+        );
 
         try
         {
@@ -102,20 +111,22 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task LintFileAsyncReadsChangeLogFromDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        const string invalidChangeLog =
-            """
+        const string invalidChangeLog = """
             # Changelog
             All notable changes to this project will be documented in this file.
             """;
-        string fileName = await CreateTempFileAsync(invalidChangeLog, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            invalidChangeLog,
+            cancellationTokenSource.Token
+        );
 
         try
         {
             IChangeLogLinter linter = this._serviceProvider.GetRequiredService<IChangeLogLinter>();
 
-            IReadOnlyList<LintError> result = await linter.LintFileAsync(
+            IReadOnlyList<LintError> result = await linter.LintAsync(
                 changeLogFileName: fileName,
-                additionalSections: null,
+                language: this._language,
                 cancellationToken: cancellationTokenSource.Token
             );
 
@@ -132,8 +143,7 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task FixFileAsyncUpdatesChangeLogOnDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        const string invalidChangeLog =
-            """
+        const string invalidChangeLog = """
             ## [Unreleased]
             ### Added
 
@@ -142,20 +152,28 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
             ### Changed
             ### Removed
             """;
-        string fileName = await CreateTempFileAsync(invalidChangeLog, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            invalidChangeLog,
+            cancellationTokenSource.Token
+        );
 
         try
         {
             IChangeLogFixer fixer = this._serviceProvider.GetRequiredService<IChangeLogFixer>();
 
-            await fixer.FixFileAsync(
+            await fixer.FixAsync(
                 changeLogFileName: fileName,
-                additionalSections: null,
+                language: this._language,
                 cancellationToken: cancellationTokenSource.Token
             );
 
-            string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
-            string invalidSection = "### Added" + Environment.NewLine + Environment.NewLine + "- Added item";
+            string result = await File.ReadAllTextAsync(
+                fileName,
+                Encoding.UTF8,
+                cancellationTokenSource.Token
+            );
+            string invalidSection =
+                "### Added" + Environment.NewLine + Environment.NewLine + "- Added item";
             string validSection = "### Added" + Environment.NewLine + "- Added item";
             Assert.False(
                 result.Contains(invalidSection, StringComparison.Ordinal),
@@ -180,16 +198,22 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
 
         try
         {
-            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+            IChangeLogUpdater updater =
+                this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
 
             await updater.AddEntryAsync(
                 changeLogFileName: fileName,
+                language: this._language,
                 type: "Added",
                 message: "Created from missing file",
                 cancellationToken: cancellationTokenSource.Token
             );
 
-            string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+            string result = await File.ReadAllTextAsync(
+                fileName,
+                Encoding.UTF8,
+                cancellationTokenSource.Token
+            );
             Assert.True(
                 result.Contains("Created from missing file", StringComparison.Ordinal),
                 userMessage: $"Expected the created changelog to contain the new entry, but got:{Environment.NewLine}{result}"
@@ -205,20 +229,29 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task AddEntryAsyncReadsExistingChangeLogFromDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        string fileName = await CreateTempFileAsync(SIMPLE_CHANGE_LOG, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            SIMPLE_CHANGE_LOG,
+            cancellationTokenSource.Token
+        );
 
         try
         {
-            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+            IChangeLogUpdater updater =
+                this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
 
             await updater.AddEntryAsync(
                 changeLogFileName: fileName,
+                language: this._language,
                 type: "Added",
                 message: "Existing file entry",
                 cancellationToken: cancellationTokenSource.Token
             );
 
-            string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+            string result = await File.ReadAllTextAsync(
+                fileName,
+                Encoding.UTF8,
+                cancellationTokenSource.Token
+            );
             Assert.True(
                 result.Contains("Existing file entry", StringComparison.Ordinal),
                 userMessage: $"Expected the existing changelog to contain the new entry, but got:{Environment.NewLine}{result}"
@@ -234,20 +267,29 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
     public async Task CreateReleaseAsyncReadsExistingChangeLogFromDisk()
     {
         using CancellationTokenSource cancellationTokenSource = new();
-        string fileName = await CreateTempFileAsync(SIMPLE_CHANGE_LOG, cancellationTokenSource.Token);
+        string fileName = await CreateTempFileAsync(
+            SIMPLE_CHANGE_LOG,
+            cancellationTokenSource.Token
+        );
 
         try
         {
-            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+            IChangeLogUpdater updater =
+                this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
 
             await updater.CreateReleaseAsync(
                 changeLogFileName: fileName,
+                language: this._language,
                 version: "1.2.3",
                 pending: true,
                 cancellationToken: cancellationTokenSource.Token
             );
 
-            string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+            string result = await File.ReadAllTextAsync(
+                fileName,
+                Encoding.UTF8,
+                cancellationTokenSource.Token
+            );
             Assert.True(
                 result.Contains("## [1.2.3] - TBD", StringComparison.Ordinal),
                 userMessage: $"Expected the created release header to exist, but got:{Environment.NewLine}{result}"
@@ -268,7 +310,10 @@ public sealed class ChangeLogFileOperationsTests : TestBase, IDisposable
         return Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.md");
     }
 
-    private static async Task<string> CreateTempFileAsync(string content, CancellationToken cancellationToken)
+    private static async Task<string> CreateTempFileAsync(
+        string content,
+        CancellationToken cancellationToken
+    )
     {
         string fileName = CreateTempFilePath();
 

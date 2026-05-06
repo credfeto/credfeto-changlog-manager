@@ -10,11 +10,17 @@ using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogParser : IChangeLogParser
 {
-    public ValueTask<ChangeLogDocument> ParseAsync(string content, CancellationToken cancellationToken)
-        => ValueTask.FromResult(Parse(content.SplitToLines()));
+    public ValueTask<ChangeLogDocument> ParseAsync(
+        string content,
+        CancellationToken cancellationToken
+    ) => ValueTask.FromResult(Parse(content.SplitToLines()));
 
     private static ChangeLogDocument Parse(IReadOnlyList<string> lines)
     {
@@ -28,10 +34,15 @@ internal sealed class ChangeLogParser : IChangeLogParser
         return new(
             HeaderLines: CollectLines(lines, start: 0, end: unreleasedStart),
             Unreleased: ParseUnreleased(lines, start: unreleasedStart, end: unreleasedEnd),
-            Releases: ParseReleases(lines, start: unreleasedEnd));
+            Releases: ParseReleases(lines, start: unreleasedEnd)
+        );
     }
 
-    private static ChangeLogUnreleased ParseUnreleased(IReadOnlyList<string> lines, int start, int end)
+    private static ChangeLogUnreleased ParseUnreleased(
+        IReadOnlyList<string> lines,
+        int start,
+        int end
+    )
     {
         List<ChangeLogSection> sections = [];
         List<string> trailer = [];
@@ -40,8 +51,17 @@ internal sealed class ChangeLogParser : IChangeLogParser
 
         for (int i = start + 1; i < end; i++)
         {
-            if (!ProcessUnreleasedLine(lines: lines, lineIndex: i, end: end, sections: sections,
-                    currentName: ref currentName, currentEntries: currentEntries, trailer: trailer))
+            if (
+                !ProcessUnreleasedLine(
+                    lines: lines,
+                    lineIndex: i,
+                    end: end,
+                    sections: sections,
+                    currentName: ref currentName,
+                    currentEntries: currentEntries,
+                    trailer: trailer
+                )
+            )
             {
                 break;
             }
@@ -52,9 +72,14 @@ internal sealed class ChangeLogParser : IChangeLogParser
     }
 
     private static bool ProcessUnreleasedLine(
-        IReadOnlyList<string> lines, int lineIndex, int end,
+        IReadOnlyList<string> lines,
+        int lineIndex,
+        int end,
         List<ChangeLogSection> sections,
-        ref string? currentName, List<string> currentEntries, List<string> trailer)
+        ref string? currentName,
+        List<string> currentEntries,
+        List<string> trailer
+    )
     {
         string line = lines[lineIndex];
 
@@ -79,7 +104,11 @@ internal sealed class ChangeLogParser : IChangeLogParser
         return true;
     }
 
-    private static void FlushSection(List<ChangeLogSection> sections, string? name, List<string> entries)
+    private static void FlushSection(
+        List<ChangeLogSection> sections,
+        string? name,
+        List<string> entries
+    )
     {
         if (name is not null)
         {
@@ -96,7 +125,12 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static void CollectTrailer(IReadOnlyList<string> lines, int from, int to, List<string> trailer)
+    private static void CollectTrailer(
+        IReadOnlyList<string> lines,
+        int from,
+        int to,
+        List<string> trailer
+    )
     {
         for (int j = from; j < to; j++)
         {
@@ -104,7 +138,10 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static ImmutableArray<ChangeLogRelease> ParseReleases(IReadOnlyList<string> lines, int start)
+    private static ImmutableArray<ChangeLogRelease> ParseReleases(
+        IReadOnlyList<string> lines,
+        int start
+    )
     {
         List<ChangeLogRelease> releases = [];
         ReleaseParseState state = new();
@@ -118,7 +155,12 @@ internal sealed class ChangeLogParser : IChangeLogParser
         return [.. releases];
     }
 
-    private static void ProcessReleaseLine(string line, int lineIndex, List<ChangeLogRelease> releases, ReleaseParseState state)
+    private static void ProcessReleaseLine(
+        string line,
+        int lineIndex,
+        List<ChangeLogRelease> releases,
+        ReleaseParseState state
+    )
     {
         if (line.IsVersionHeader() && !Unreleased.IsUnreleasedHeader(line))
         {
@@ -137,7 +179,11 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static ImmutableArray<string> CollectLines(IReadOnlyList<string> lines, int start, int end)
+    private static ImmutableArray<string> CollectLines(
+        IReadOnlyList<string> lines,
+        int start,
+        int end
+    )
     {
         ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>(end - start);
         for (int i = start; i < end; i++)
@@ -168,7 +214,8 @@ internal sealed class ChangeLogParser : IChangeLogParser
         {
             int closeBracket = line.IndexOf(value: ']', comparisonType: StringComparison.Ordinal);
             string version = line[4..closeBracket];
-            string date = closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
+            string date =
+                closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
             return (version, date);
         }
 
@@ -177,7 +224,13 @@ internal sealed class ChangeLogParser : IChangeLogParser
             if (this.CurrentSectionName is not null)
             {
                 TrimTrailingBlanks(this.CurrentEntries);
-                this.CurrentSections.Add(new(Name: this.CurrentSectionName, LineNumber: this.CurrentSectionLine, Entries: [.. this.CurrentEntries]));
+                this.CurrentSections.Add(
+                    new(
+                        Name: this.CurrentSectionName,
+                        LineNumber: this.CurrentSectionLine,
+                        Entries: [.. this.CurrentEntries]
+                    )
+                );
             }
 
             this.CurrentSectionName = null;
@@ -200,7 +253,14 @@ internal sealed class ChangeLogParser : IChangeLogParser
             }
 
             this.FlushSection();
-            releases.Add(new(Version: this.CurrentVersion, Date: this.CurrentDate ?? string.Empty, LineNumber: this.CurrentReleaseLineNumber, Sections: [.. this.CurrentSections]));
+            releases.Add(
+                new(
+                    Version: this.CurrentVersion,
+                    Date: this.CurrentDate ?? string.Empty,
+                    LineNumber: this.CurrentReleaseLineNumber,
+                    Sections: [.. this.CurrentSections]
+                )
+            );
             this.CurrentSections.Clear();
             this.CurrentVersion = null;
         }

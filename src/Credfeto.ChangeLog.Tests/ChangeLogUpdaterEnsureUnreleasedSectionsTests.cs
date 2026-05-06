@@ -25,12 +25,17 @@ namespace Credfeto.ChangeLog.Tests;
 )]
 public sealed class ChangeLogUpdaterEnsureUnreleasedSectionsTests : TestBase
 {
-    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
 
     private static ChangeLogDocument ParseOrCreate(string content)
     {
         ChangeLogParser parser = new();
-        return parser.ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Initial : content, default).GetAwaiter().GetResult();
+        return parser
+            .ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Initial : content, default)
+            .GetAwaiter()
+            .GetResult();
     }
 
     private static string Serialise(ChangeLogDocument document)
@@ -286,7 +291,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [MemberData(nameof(EnsureUnreleasedSectionsCases))]
     public void EnsureUnreleasedSectionsProducesCorrectResult(string existing, string expected)
     {
-        string result = Serialise(ChangeLogUpdater.EnsureUnreleasedSections(ParseOrCreate(existing), Language));
+        string result = Serialise(
+            ChangeLogUpdater.EnsureUnreleasedSections(ParseOrCreate(existing), Language)
+        );
 
         Assert.Equal(expected.ToLocalEndLine(), actual: result);
     }
@@ -302,6 +309,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Initial release.";
 
-        Assert.Throws<InvalidChangeLogException>(() => ChangeLogUpdater.EnsureUnreleasedSections(ParseOrCreate(noUnreleased), Language));
+        Assert.Throws<InvalidChangeLogException>(() =>
+            ChangeLogUpdater.EnsureUnreleasedSections(ParseOrCreate(noUnreleased), Language)
+        );
     }
 }

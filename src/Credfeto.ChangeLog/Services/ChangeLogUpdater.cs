@@ -2,10 +2,10 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Exceptions;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Models;
@@ -13,65 +13,134 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogUpdater : IChangeLogUpdater
 {
-    private readonly IChangeLogStorage _loader;
-    private readonly IChangeLogParser _parser;
-    private readonly IChangeLogSerialiser _serialiser;
-    private readonly ChangeLogLanguage _language;
+    private readonly IChangeLogStorage _storage;
 
-    public ChangeLogUpdater(
-        IChangeLogStorage loader,
-        IChangeLogParser parser,
-        IChangeLogSerialiser serialiser,
-        ChangeLogLanguage language)
+    public ChangeLogUpdater(IChangeLogStorage storage)
     {
-        this._loader = loader;
-        this._parser = parser;
-        this._serialiser = serialiser;
-        this._language = language;
+        this._storage = storage;
     }
 
-    public async Task AddEntryAsync(string changeLogFileName, string type, string message, CancellationToken cancellationToken)
+    public ValueTask CreateEmptyAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        CancellationToken cancellationToken
+    )
     {
-        ChangeLogDocument document = await this.LoadDocumentAsync(changeLogFileName, cancellationToken);
+        ChangeLogDocument empty = BuildEmptyDocument(language);
+        return this._storage.SaveAsync(
+            changeLogFileName,
+            document: empty,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    public async Task AddEntryAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        string type,
+        string message,
+        CancellationToken cancellationToken
+    )
+    {
+        ChangeLogDocument document = await this.LoadOrCreateAsync(
+            changeLogFileName: changeLogFileName,
+            language: language,
+            cancellationToken: cancellationToken
+        );
         ChangeLogDocument updated = AddEntry(document: document, type: type, message: message);
-        await this.SaveDocumentAsync(changeLogFileName: changeLogFileName, document: updated, cancellationToken: cancellationToken);
+        await this._storage.SaveAsync(
+            changeLogFileName,
+            document: updated,
+            cancellationToken: cancellationToken
+        );
     }
 
-    public async Task RemoveEntryAsync(string changeLogFileName, string type, string message, CancellationToken cancellationToken)
+    public async Task RemoveEntryAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        string type,
+        string message,
+        CancellationToken cancellationToken
+    )
     {
-        ChangeLogDocument document = await this.LoadDocumentAsync(changeLogFileName, cancellationToken);
+        ChangeLogDocument document = await this.LoadOrCreateAsync(
+            changeLogFileName: changeLogFileName,
+            language: language,
+            cancellationToken: cancellationToken
+        );
         ChangeLogDocument updated = RemoveEntry(document: document, type: type, message: message);
-        await this.SaveDocumentAsync(changeLogFileName: changeLogFileName, document: updated, cancellationToken: cancellationToken);
+        await this._storage.SaveAsync(
+            changeLogFileName,
+            document: updated,
+            cancellationToken: cancellationToken
+        );
     }
 
-    public async Task CreateReleaseAsync(string changeLogFileName, string version, bool pending, CancellationToken cancellationToken)
+    public async Task CreateReleaseAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        string version,
+        bool pending,
+        CancellationToken cancellationToken
+    )
     {
-        string content = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
-        ChangeLogDocument document = await this._parser.ParseAsync(content: content, cancellationToken: cancellationToken);
-        ChangeLogDocument updated = CreateRelease(document: document, version: version, pending: pending, language: this._language);
-        await this.SaveDocumentAsync(changeLogFileName: changeLogFileName, document: updated, cancellationToken: cancellationToken);
+        ChangeLogDocument document = await this._storage.LoadAsync(
+            changeLogFileName,
+            cancellationToken
+        );
+        ChangeLogDocument updated = CreateRelease(
+            document: document,
+            version: version,
+            pending: pending,
+            language: language
+        );
+        await this._storage.SaveAsync(
+            changeLogFileName,
+            document: updated,
+            cancellationToken: cancellationToken
+        );
     }
 
-    public async ValueTask EnsureUnreleasedSectionsAsync(string changeLogFileName, CancellationToken cancellationToken)
+    public async ValueTask EnsureUnreleasedSectionsAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        CancellationToken cancellationToken
+    )
     {
-        ChangeLogDocument document = await this.LoadDocumentAsync(changeLogFileName, cancellationToken);
-        ChangeLogDocument updated = EnsureUnreleasedSections(document: document, language: this._language);
-        await this.SaveDocumentAsync(changeLogFileName: changeLogFileName, document: updated, cancellationToken: cancellationToken);
+        ChangeLogDocument document = await this.LoadOrCreateAsync(
+            changeLogFileName: changeLogFileName,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+        ChangeLogDocument updated = EnsureUnreleasedSections(
+            document: document,
+            language: language
+        );
+        await this._storage.SaveAsync(
+            changeLogFileName,
+            document: updated,
+            cancellationToken: cancellationToken
+        );
     }
 
-    public ValueTask CreateEmptyAsync(string changeLogFileName, CancellationToken cancellationToken)
-        => this._loader.SaveTextAsync(changeLogFileName, contents: TemplateFile.Initial, cancellationToken: cancellationToken);
-
-    internal static ChangeLogDocument AddEntry(ChangeLogDocument document, string type, string message)
+    internal static ChangeLogDocument AddEntry(
+        ChangeLogDocument document,
+        string type,
+        string message
+    )
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
         string entry = "- " + message;
 
-        if (section.Entries.Any(e => e.EqualsOrdinal(entry)))
+        if (section.Entries.AsValueEnumerable().Any(e => e.EqualsOrdinal(entry)))
         {
             return document;
         }
@@ -80,21 +149,37 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
     }
 
-    internal static ChangeLogDocument RemoveEntry(ChangeLogDocument document, string type, string message)
+    internal static ChangeLogDocument RemoveEntry(
+        ChangeLogDocument document,
+        string type,
+        string message
+    )
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
         string prefix = "- " + message;
-        ImmutableArray<string> filtered = [.. section.Entries.Where(e => !e.StartsWith(value: prefix, comparisonType: StringComparison.Ordinal))];
+        ImmutableArray<string> filtered =
+        [
+            .. section.Entries.Where(e =>
+                !e.StartsWith(value: prefix, comparisonType: StringComparison.Ordinal)
+            ),
+        ];
         ChangeLogSection updated = section with { Entries = filtered };
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
     }
 
-    internal static ChangeLogDocument CreateRelease(ChangeLogDocument document, string version, bool pending, ChangeLogLanguage language)
+    internal static ChangeLogDocument CreateRelease(
+        ChangeLogDocument document,
+        string version,
+        bool pending,
+        ChangeLogLanguage language
+    )
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ValidateVersionNotExists(releases: document.Releases, version: version);
-        ImmutableArray<ChangeLogSection> releaseSections = BuildReleaseSections(unreleased.Sections);
+        ImmutableArray<ChangeLogSection> releaseSections = BuildReleaseSections(
+            unreleased.Sections
+        );
 
         if (releaseSections.IsEmpty)
         {
@@ -102,19 +187,60 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         }
 
         string date = pending ? "TBD" : CurrentDate(language);
-        ChangeLogRelease newRelease = new(Version: version, Date: date, LineNumber: 0, Sections: releaseSections);
+        ChangeLogRelease newRelease = new(
+            Version: version,
+            Date: date,
+            LineNumber: 0,
+            Sections: releaseSections
+        );
         ImmutableArray<ChangeLogRelease> releases = [newRelease, .. document.Releases];
         ChangeLogUnreleased cleared = ClearUnreleasedEntries(unreleased);
         return document with { Unreleased = cleared, Releases = releases };
     }
 
-    internal static ChangeLogDocument EnsureUnreleasedSections(ChangeLogDocument document, ChangeLogLanguage language)
+    internal static ChangeLogDocument EnsureUnreleasedSections(
+        ChangeLogDocument document,
+        ChangeLogLanguage language
+    )
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ImmutableArray<ChangeLogSection> ordered = ChangeLogSerialiser.OrderSections(
             sections: unreleased.Sections,
-            sectionOrder: language.SectionOrder);
+            sectionOrder: language.SectionOrder
+        );
         return document with { Unreleased = unreleased with { Sections = ordered } };
+    }
+
+    private static ChangeLogDocument BuildEmptyDocument(ChangeLogLanguage language)
+    {
+        ImmutableArray<ChangeLogSection> sections =
+        [
+            .. language.SectionOrder.Select(name => new ChangeLogSection(
+                Name: name,
+                LineNumber: 0,
+                Entries: []
+            )),
+        ];
+        ChangeLogUnreleased unreleased = new(LineNumber: 0, Sections: sections, TrailingLines: []);
+        return new ChangeLogDocument(HeaderLines: [], Unreleased: unreleased, Releases: []);
+    }
+
+    private async ValueTask<ChangeLogDocument> LoadOrCreateAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        CancellationToken cancellationToken
+    )
+    {
+        if (!File.Exists(changeLogFileName))
+        {
+            await this.CreateEmptyAsync(
+                changeLogFileName,
+                language: language,
+                cancellationToken: cancellationToken
+            );
+        }
+
+        return await this._storage.LoadAsync(changeLogFileName, cancellationToken);
     }
 
     private static ChangeLogUnreleased RequireUnreleased(ChangeLogDocument document)
@@ -165,14 +291,28 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return i + 1;
     }
 
-    private static ChangeLogDocument ReplaceSection(ChangeLogDocument document, ChangeLogUnreleased unreleased, ChangeLogSection updated)
+    private static ChangeLogDocument ReplaceSection(
+        ChangeLogDocument document,
+        ChangeLogUnreleased unreleased,
+        ChangeLogSection updated
+    )
     {
-        ImmutableArray<ChangeLogSection> sections = [.. unreleased.Sections.Select(s => s.Name.EqualsOrdinal(updated.Name) ? updated : s)];
+        ImmutableArray<ChangeLogSection> sections =
+        [
+            .. unreleased.Sections.Select(s => s.Name.EqualsOrdinal(updated.Name) ? updated : s),
+        ];
         return document with { Unreleased = unreleased with { Sections = sections } };
     }
 
-    [SuppressMessage(category: "SonarAnalyzer.CSharp", checkId: "S3267", Justification = "Projection not applicable: full release object needed for exception messages")]
-    private static void ValidateVersionNotExists(in ImmutableArray<ChangeLogRelease> releases, string version)
+    [SuppressMessage(
+        category: "SonarAnalyzer.CSharp",
+        checkId: "S3267",
+        Justification = "Projection not applicable: full release object needed for exception messages"
+    )]
+    private static void ValidateVersionNotExists(
+        in ImmutableArray<ChangeLogRelease> releases,
+        string version
+    )
     {
         foreach (ChangeLogRelease release in releases)
         {
@@ -181,46 +321,50 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
                 throw new ReleaseAlreadyExistsException($"Release {version} already exists");
             }
 
-            if (Version.TryParse(release.Version, out Version? existing) &&
-                Version.TryParse(version, out Version? requested) &&
-                existing > requested)
+            if (
+                Version.TryParse(release.Version, out Version? existing)
+                && Version.TryParse(version, out Version? requested)
+                && existing > requested
+            )
             {
-                throw new ReleaseTooOldException($"Release {release.Version} already exists and is newer than {version}");
+                throw new ReleaseTooOldException(
+                    $"Release {release.Version} already exists and is newer than {version}"
+                );
             }
         }
     }
 
-    private static ImmutableArray<ChangeLogSection> BuildReleaseSections(in ImmutableArray<ChangeLogSection> sections)
+    private static ImmutableArray<ChangeLogSection> BuildReleaseSections(
+        in ImmutableArray<ChangeLogSection> sections
+    )
     {
-        return [.. sections
-            .Select(s => s with { Entries = [.. s.Entries.Where(e => !string.IsNullOrEmpty(e))] })
-            .Where(s => s.Entries.Length > 0)];
+        return
+        [
+            .. sections
+                .Select(s =>
+                    s with
+                    {
+                        Entries = [.. s.Entries.Where(e => !string.IsNullOrEmpty(e))],
+                    }
+                )
+                .Where(s => s.Entries.Length > 0),
+        ];
     }
 
     private static ChangeLogUnreleased ClearUnreleasedEntries(ChangeLogUnreleased unreleased)
     {
-        ImmutableArray<ChangeLogSection> cleared = [.. unreleased.Sections.Select(s => s with { Entries = [] })];
+        ImmutableArray<ChangeLogSection> cleared =
+        [
+            .. unreleased.Sections.Select(s => s with { Entries = [] }),
+        ];
         return unreleased with { Sections = cleared };
     }
 
-    [SuppressMessage(category: "FunFair.CodeAnalysis", checkId: "FFS0001", Justification = "Should always use the local time.")]
-    private static string CurrentDate(ChangeLogLanguage language)
-        => DateTime.Now.ToString(format: language.DateFormat, provider: CultureInfo.InvariantCulture);
-
-    private async Task<ChangeLogDocument> LoadDocumentAsync(string changeLogFileName, CancellationToken cancellationToken)
-    {
-        if (!this._loader.Exists(changeLogFileName))
-        {
-            await this.CreateEmptyAsync(changeLogFileName, cancellationToken);
-        }
-
-        string content = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
-        return await this._parser.ParseAsync(content: content, cancellationToken: cancellationToken);
-    }
-
-    private async ValueTask SaveDocumentAsync(string changeLogFileName, ChangeLogDocument document, CancellationToken cancellationToken)
-    {
-        string content = await this._serialiser.SerialiseAsync(document: document, cancellationToken: cancellationToken);
-        await this._loader.SaveTextAsync(changeLogFileName, contents: content, cancellationToken: cancellationToken);
-    }
+    [SuppressMessage(
+        category: "FunFair.CodeAnalysis",
+        checkId: "FFS0001",
+        Justification = "Should always use the local time."
+    )]
+    private static string CurrentDate(ChangeLogLanguage language) =>
+        DateTime.Now.ToString(format: language.DateFormat, provider: CultureInfo.InvariantCulture);
 }

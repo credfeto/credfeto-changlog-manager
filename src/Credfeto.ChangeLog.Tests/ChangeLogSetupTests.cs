@@ -1,3 +1,4 @@
+using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -116,14 +117,16 @@ public sealed class ChangeLogSetupTests : TestBase
     }
 
     [Fact]
-    public void AddChangeLogRegistersChangeLogLanguage()
+    public void AddChangeLogRegistersIChangeLogLanguageFactory()
     {
         ServiceCollection services = new();
         services.AddChangeLog();
 
         using ServiceProvider provider = services.BuildServiceProvider();
 
-        ChangeLogLanguage language = provider.GetRequiredService<ChangeLogLanguage>();
+        IChangeLogLanguageFactory factory =
+            provider.GetRequiredService<IChangeLogLanguageFactory>();
+        ChangeLogLanguage language = factory.Get(ChangeLogLanguageFactory.English);
         Assert.NotNull(language);
     }
 }

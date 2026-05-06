@@ -10,11 +10,17 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 {
-    public ValueTask<string> SerialiseAsync(ChangeLogDocument document, CancellationToken cancellationToken)
-        => ValueTask.FromResult(Serialise(document));
+    public ValueTask<string> SerialiseAsync(
+        ChangeLogDocument document,
+        CancellationToken cancellationToken
+    ) => ValueTask.FromResult(Serialise(document));
 
     private static string Serialise(ChangeLogDocument document)
     {
@@ -48,9 +54,11 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 
     private static void SerialiseRelease(ChangeLogRelease release, List<string> lines)
     {
-        lines.Add(string.IsNullOrEmpty(release.Date)
-            ? $"## [{release.Version}]"
-            : $"## [{release.Version}] - {release.Date}");
+        lines.Add(
+            string.IsNullOrEmpty(release.Date)
+                ? $"## [{release.Version}]"
+                : $"## [{release.Version}] - {release.Date}"
+        );
 
         foreach (ChangeLogSection section in release.Sections.Where(s => s.Entries.Length > 0))
         {
@@ -68,23 +76,28 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 
     internal static ImmutableArray<ChangeLogSection> OrderSections(
         in ImmutableArray<ChangeLogSection> sections,
-        in ImmutableArray<string> sectionOrder)
+        in ImmutableArray<string> sectionOrder
+    )
     {
         List<ChangeLogSection> result = [];
         Dictionary<string, ChangeLogSection> byName = BuildSectionMap(sections);
 
         foreach (string name in sectionOrder)
         {
-            result.Add(byName.TryGetValue(name, out ChangeLogSection? existing)
-                ? existing
-                : new(Name: name, LineNumber: 0, Entries: []));
+            result.Add(
+                byName.TryGetValue(name, out ChangeLogSection? existing)
+                    ? existing
+                    : new(Name: name, LineNumber: 0, Entries: [])
+            );
         }
 
         AddUnknownSections(sections: sections, sectionOrder: sectionOrder, result: result);
         return [.. result];
     }
 
-    private static Dictionary<string, ChangeLogSection> BuildSectionMap(in ImmutableArray<ChangeLogSection> sections)
+    private static Dictionary<string, ChangeLogSection> BuildSectionMap(
+        in ImmutableArray<ChangeLogSection> sections
+    )
     {
         Dictionary<string, ChangeLogSection> map = new(System.StringComparer.Ordinal);
 
@@ -103,18 +116,25 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
         return map;
     }
 
-    private static ChangeLogSection MergeSections(ChangeLogSection first, ChangeLogSection second)
-        => first with { Entries = [.. first.Entries, .. second.Entries] };
+    private static ChangeLogSection MergeSections(
+        ChangeLogSection first,
+        ChangeLogSection second
+    ) => first with { Entries = [.. first.Entries, .. second.Entries] };
 
     private static void AddUnknownSections(
         in ImmutableArray<ChangeLogSection> sections,
         in ImmutableArray<string> sectionOrder,
-        List<ChangeLogSection> result)
+        List<ChangeLogSection> result
+    )
     {
         HashSet<string> known = new(sectionOrder.AsEnumerable(), System.StringComparer.Ordinal);
         HashSet<string> added = new(System.StringComparer.Ordinal);
 
-        foreach (ChangeLogSection section in sections.Where(s => !known.Contains(s.Name) && added.Add(s.Name)))
+        foreach (
+            ChangeLogSection section in sections.Where(s =>
+                !known.Contains(s.Name) && added.Add(s.Name)
+            )
+        )
         {
             result.Add(section);
         }

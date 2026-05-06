@@ -10,13 +10,26 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
     private static readonly ChangeLogLanguage EnglishLanguage = new(
         DocumentTitle: "Changelog",
         UnreleasedSectionName: "Unreleased",
-        SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
-        DateFormat: "yyyy-MM-dd");
+        SectionOrder:
+        [
+            "Security",
+            "Added",
+            "Fixed",
+            "Changed",
+            "Deprecated",
+            "Removed",
+            "Deployment Changes",
+        ],
+        DateFormat: "yyyy-MM-dd"
+    );
 
     public ChangeLogLanguage Get(string languageCode)
     {
         return string.Equals(languageCode, English, StringComparison.Ordinal)
             ? EnglishLanguage
-            : throw new ArgumentException(message: $"Unknown language code: {languageCode}", paramName: nameof(languageCode));
+            : throw new ArgumentException(
+                message: $"Unknown language code: {languageCode}",
+                paramName: nameof(languageCode)
+            );
     }
 }

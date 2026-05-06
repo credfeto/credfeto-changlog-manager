@@ -5,5 +5,9 @@ namespace Credfeto.ChangeLog;
 
 public interface IChangeLogChecker
 {
-    Task<bool> ChangeLogModifiedInReleaseSectionAsync(string changeLogFileName, string originBranchName, CancellationToken cancellationToken);
+    Task<bool> ChangeLogModifiedInReleaseSectionAsync(
+        string changeLogFileName,
+        string originBranchName,
+        CancellationToken cancellationToken
+    );
 }
