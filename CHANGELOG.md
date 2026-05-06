@@ -33,6 +33,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Extracted common string comparison, HTML comment detection, and unreleased-section helpers into ChangeLogHeadingExtensions
 - Split ChangeLogUpdater and ChangeLogLinter into focused partial class files by responsibility
 - Extracted FindUnreleasedStart as a shared extension method; replaced duplicated IsRelease private method with IsVersionHeader extension
+- ChangeLogLanguageFactory is now a non-static class implementing IChangeLogLanguageFactory; language code changed from 'keep-a-changelog' to 'en'
 ### Deprecated
 ### Removed
 ### Deployment Changes

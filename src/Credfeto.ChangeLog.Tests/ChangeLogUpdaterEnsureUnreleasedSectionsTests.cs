@@ -25,7 +25,7 @@ namespace Credfeto.ChangeLog.Tests;
 )]
 public sealed class ChangeLogUpdaterEnsureUnreleasedSectionsTests : TestBase
 {
-    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
 
     private static ChangeLogDocument ParseOrCreate(string content)
     {

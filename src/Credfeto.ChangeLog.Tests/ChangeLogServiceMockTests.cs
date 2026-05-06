@@ -15,7 +15,7 @@ namespace Credfeto.ChangeLog.Tests;
 [SuppressMessage(category: "Microsoft.Reliability", checkId: "CA2012:UseValueTasksCorrectly", Justification = "NSubstitute mock setup and verification necessarily handles ValueTask instances outside normal await patterns")]
 public sealed class ChangeLogServiceMockTests : TestBase
 {
-    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
     private static readonly ChangeLogParser Parser = new();
     private static readonly ChangeLogSerialiser Serialiser = new();
 

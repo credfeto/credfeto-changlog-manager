@@ -300,7 +300,7 @@ public sealed class ChangeLogLinterTests : TestBase
         );
     }
 
-    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
 
     private static ChangeLogDocument Parse(string content)
     {

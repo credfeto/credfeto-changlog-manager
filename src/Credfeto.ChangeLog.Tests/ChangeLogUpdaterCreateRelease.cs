@@ -27,7 +27,7 @@ public sealed class ChangeLogUpdaterCreateRelease : TestBase
 {
     private readonly ITestOutputHelper _output;
 
-    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
 
     public ChangeLogUpdaterCreateRelease(ITestOutputHelper output)
     {

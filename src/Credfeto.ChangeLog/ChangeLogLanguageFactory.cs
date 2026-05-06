@@ -3,20 +3,20 @@ using System.Collections.Immutable;
 
 namespace Credfeto.ChangeLog;
 
-public static class ChangeLogLanguageFactory
+public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
 {
-    public const string KeepAChangelog = "keep-a-changelog";
+    public const string English = "en";
 
-    private static readonly ChangeLogLanguage DefaultLanguage = new(
+    private static readonly ChangeLogLanguage EnglishLanguage = new(
         DocumentTitle: "Changelog",
         UnreleasedSectionName: "Unreleased",
         SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
         DateFormat: "yyyy-MM-dd");
 
-    public static ChangeLogLanguage Get(string languageCode)
+    public ChangeLogLanguage Get(string languageCode)
     {
-        return string.Equals(languageCode, KeepAChangelog, StringComparison.Ordinal)
-            ? DefaultLanguage
+        return string.Equals(languageCode, English, StringComparison.Ordinal)
+            ? EnglishLanguage
             : throw new ArgumentException(message: $"Unknown language code: {languageCode}", paramName: nameof(languageCode));
     }
 }

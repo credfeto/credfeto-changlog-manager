@@ -60,7 +60,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-    private static readonly ChangeLogLanguage Language = ChangeLogLanguageFactory.Get(ChangeLogLanguageFactory.KeepAChangelog);
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(ChangeLogLanguageFactory.English);
 
     private static readonly ChangeLogDocument CorrectOrderDocument = ParseSync(CORRECT_ORDER_CHANGELOG);
     private static readonly ChangeLogDocument OutOfOrderDocument = ParseSync(OUT_OF_ORDER_CHANGELOG);
