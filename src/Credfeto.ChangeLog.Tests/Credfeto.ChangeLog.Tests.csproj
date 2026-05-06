@@ -20,7 +20,7 @@
     <IsPublishable>false</IsPublishable>
     <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
     <LangVersion>latest</LangVersion>
-    <NoWarn>CS8892</NoWarn>
+    <NoWarn />
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditLevel>high</NuGetAuditLevel>
     <NuGetAuditMode>all</NuGetAuditMode>
