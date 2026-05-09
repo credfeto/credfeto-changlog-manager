@@ -55,9 +55,10 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             cancellationToken: cancellationToken
         );
         ChangeLogDocument updated = AddEntry(document: document, type: type, message: message);
+        ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
         await this._storage.SaveAsync(
             changeLogFileName,
-            document: updated,
+            document: withPreamble,
             cancellationToken: cancellationToken
         );
     }
@@ -76,9 +77,10 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             cancellationToken: cancellationToken
         );
         ChangeLogDocument updated = RemoveEntry(document: document, type: type, message: message);
+        ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
         await this._storage.SaveAsync(
             changeLogFileName,
-            document: updated,
+            document: withPreamble,
             cancellationToken: cancellationToken
         );
     }
@@ -101,9 +103,10 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             pending: pending,
             language: language
         );
+        ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
         await this._storage.SaveAsync(
             changeLogFileName,
-            document: updated,
+            document: withPreamble,
             cancellationToken: cancellationToken
         );
     }
@@ -123,9 +126,10 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             document: document,
             language: language
         );
+        ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
         await this._storage.SaveAsync(
             changeLogFileName,
-            document: updated,
+            document: withPreamble,
             cancellationToken: cancellationToken
         );
     }

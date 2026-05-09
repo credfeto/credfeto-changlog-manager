@@ -51,7 +51,7 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         return RemoveBlankLinesAfterHeadings(withPreamble);
     }
 
-    private static ChangeLogDocument EnsurePreamble(ChangeLogDocument document)
+    internal static ChangeLogDocument EnsurePreamble(ChangeLogDocument document)
     {
         if (HasPreamble(document.HeaderLines))
         {
