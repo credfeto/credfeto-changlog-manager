@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -7,10 +9,24 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
+[SuppressMessage(
+    category: "Meziantou.Analyzer",
+    checkId: "MA0045:Use async overload",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.VisualStudio.Threading.Analyzers",
+    checkId: "VSTHRD002",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.Reliability",
+    checkId: "CA2012:UseValueTasksCorrectly",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
 public sealed class ChangeLogLinterTests : TestBase
 {
-    private const string VALID_CHANGE_LOG =
-        """
+    private const string VALID_CHANGE_LOG = """
         # Changelog
 
         ## [Unreleased]
@@ -18,6 +34,7 @@ public sealed class ChangeLogLinterTests : TestBase
         ### Added
         ### Fixed
         ### Changed
+        ### Deprecated
         ### Removed
         ### Deployment Changes
 
@@ -31,7 +48,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void ValidChangelog_ReturnsNoErrors()
     {
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(VALID_CHANGE_LOG);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(VALID_CHANGE_LOG), Language);
 
         Assert.Empty(errors);
     }
@@ -39,8 +56,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void MissingUnreleasedSection_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [1.0.0] - 2024-01-01
@@ -48,16 +64,18 @@ public sealed class ChangeLogLinterTests : TestBase
             - Initial release
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
-        Assert.Contains(errors, e => e.Message.Contains(value: "[Unreleased]", comparisonType: StringComparison.Ordinal));
+        Assert.Contains(
+            errors,
+            e => e.Message.Contains(value: "[Unreleased]", comparisonType: StringComparison.Ordinal)
+        );
     }
 
     [Fact]
     public void MissingRequiredSection_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -74,7 +92,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
@@ -87,8 +105,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void DuplicateSection_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -105,7 +122,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
@@ -118,8 +135,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void UnknownSection_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -134,7 +150,7 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
@@ -147,8 +163,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void UnknownSection_AllowedViaAdditionalSections_ReturnsNoError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -163,7 +178,13 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(content: changeLog, additionalSections: ["Custom"]);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(
+            Parse(changeLog),
+            Language with
+            {
+                SectionOrder = [.. Language.SectionOrder, "Custom"],
+            }
+        );
 
         Assert.DoesNotContain(
             errors,
@@ -176,8 +197,7 @@ public sealed class ChangeLogLinterTests : TestBase
     [Fact]
     public void BlankLineAfterHeading_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -193,19 +213,22 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
-            e => e.Message.Contains(value: "Blank line after heading '### Added'", comparisonType: StringComparison.Ordinal)
+            e =>
+                e.Message.Contains(
+                    value: "Blank line after heading '### Added'",
+                    comparisonType: StringComparison.Ordinal
+                )
         );
     }
 
     [Fact]
     public void NoBlankLineAfterHeading_ReturnsNoError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -220,19 +243,22 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.DoesNotContain(
             errors,
-            e => e.Message.Contains(value: "Blank line after heading", comparisonType: StringComparison.Ordinal)
+            e =>
+                e.Message.Contains(
+                    value: "Blank line after heading",
+                    comparisonType: StringComparison.Ordinal
+                )
         );
     }
 
     [Fact]
     public void InvalidVersionHeader_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -250,21 +276,23 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
             e =>
                 e.Message.Contains(value: "not-a-version", comparisonType: StringComparison.Ordinal)
-                && e.Message.Contains(value: "Invalid version", comparisonType: StringComparison.Ordinal)
+                && e.Message.Contains(
+                    value: "Invalid version",
+                    comparisonType: StringComparison.Ordinal
+                )
         );
     }
 
     [Fact]
     public void ValidVersionsInOrder_ReturnsNoErrors()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -286,19 +314,32 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.DoesNotContain(
             errors,
-            e => e.Message.Contains(value: "descending order", comparisonType: StringComparison.Ordinal)
+            e =>
+                e.Message.Contains(
+                    value: "descending order",
+                    comparisonType: StringComparison.Ordinal
+                )
         );
+    }
+
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
+
+    private static ChangeLogDocument Parse(string content)
+    {
+        ChangeLogParser parser = new();
+        return parser.ParseAsync(content, default).GetAwaiter().GetResult();
     }
 
     [Fact]
     public void VersionsOutOfOrder_ReturnsError()
     {
-        const string changeLog =
-            """
+        const string changeLog = """
             # Changelog
 
             ## [Unreleased]
@@ -320,13 +361,16 @@ public sealed class ChangeLogLinterTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(changeLog);
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
 
         Assert.Contains(
             errors,
             e =>
                 e.Message.Contains(value: "2.0.0", comparisonType: StringComparison.Ordinal)
-                && e.Message.Contains(value: "descending order", comparisonType: StringComparison.Ordinal)
+                && e.Message.Contains(
+                    value: "descending order",
+                    comparisonType: StringComparison.Ordinal
+                )
         );
     }
 }

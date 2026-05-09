@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -44,57 +45,112 @@ internal static class Program
     {
         CancellationToken cancellationToken = CancellationToken.None;
         IChangeLogDetector detector = services.GetRequiredService<IChangeLogDetector>();
+        ChangeLogLanguage language = services
+            .GetRequiredService<IChangeLogLanguageFactory>()
+            .Get(ChangeLogLanguageFactory.English);
 
         if (options.Extract is not null && options.Version is not null)
         {
-            await ExtractChangeLogTextForVersionAsync(options: options, detector: detector, reader: services.GetRequiredService<IChangeLogReader>(), cancellationToken: cancellationToken);
+            await ExtractChangeLogTextForVersionAsync(
+                options: options,
+                detector: detector,
+                reader: services.GetRequiredService<IChangeLogReader>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
         if (options.Add is not null && options.Message is not null)
         {
-            await AddEntryToUnreleasedChangelogAsync(options: options, detector: detector, updater: services.GetRequiredService<IChangeLogUpdater>(), cancellationToken: cancellationToken);
+            await AddEntryToUnreleasedChangelogAsync(
+                options: options,
+                detector: detector,
+                language: language,
+                updater: services.GetRequiredService<IChangeLogUpdater>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
         if (options.Remove is not null && options.Message is not null)
         {
-            await RemoveEntryFromUnreleasedChangelogAsync(options: options, detector: detector, updater: services.GetRequiredService<IChangeLogUpdater>(), cancellationToken: cancellationToken);
+            await RemoveEntryFromUnreleasedChangelogAsync(
+                options: options,
+                detector: detector,
+                language: language,
+                updater: services.GetRequiredService<IChangeLogUpdater>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
-        await ParsedOkContinuationAsync(options: options, detector: detector, services: services, cancellationToken: cancellationToken);
+        await ParsedOkContinuationAsync(
+            options: options,
+            detector: detector,
+            language: language,
+            services: services,
+            cancellationToken: cancellationToken
+        );
     }
 
-    private static async Task ParsedOkContinuationAsync(Options options, IChangeLogDetector detector, IServiceProvider services, CancellationToken cancellationToken)
+    private static async Task ParsedOkContinuationAsync(
+        Options options,
+        IChangeLogDetector detector,
+        ChangeLogLanguage language,
+        IServiceProvider services,
+        CancellationToken cancellationToken
+    )
     {
         if (options.CheckInsert is not null)
         {
-            await CheckInsertPositionAsync(options: options, detector: detector, checker: services.GetRequiredService<IChangeLogChecker>(), cancellationToken: cancellationToken);
+            await CheckInsertPositionAsync(
+                options: options,
+                detector: detector,
+                checker: services.GetRequiredService<IChangeLogChecker>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
         if (options.CreateRelease is not null)
         {
-            await CreateNewReleaseAsync(options: options, detector: detector, updater: services.GetRequiredService<IChangeLogUpdater>(), cancellationToken: cancellationToken);
+            await CreateNewReleaseAsync(
+                options: options,
+                detector: detector,
+                language: language,
+                updater: services.GetRequiredService<IChangeLogUpdater>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
         if (options.DisplayUnreleased)
         {
-            await OutputUnreleasedContentAsync(options: options, detector: detector, reader: services.GetRequiredService<IChangeLogReader>(), cancellationToken: cancellationToken);
+            await OutputUnreleasedContentAsync(
+                options: options,
+                detector: detector,
+                reader: services.GetRequiredService<IChangeLogReader>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
 
         if (options.Lint)
         {
-            await LintChangeLogAsync(options: options, detector: detector, linter: services.GetRequiredService<IChangeLogLinter>(), fixer: services.GetRequiredService<IChangeLogFixer>(), cancellationToken: cancellationToken);
+            await LintChangeLogAsync(
+                options: options,
+                detector: detector,
+                language: language,
+                linter: services.GetRequiredService<IChangeLogLinter>(),
+                fixer: services.GetRequiredService<IChangeLogFixer>(),
+                cancellationToken: cancellationToken
+            );
 
             return;
         }
@@ -102,17 +158,42 @@ internal static class Program
         throw new InvalidOptionsException();
     }
 
-    private static async Task LintChangeLogAsync(Options options, IChangeLogDetector detector, IChangeLogLinter linter, IChangeLogFixer fixer, CancellationToken cancellationToken)
+    private static ChangeLogLanguage WithAdditionalSections(
+        ChangeLogLanguage language,
+        IReadOnlyList<string> additionalSections
+    )
+    {
+        if (additionalSections.Count == 0)
+        {
+            return language;
+        }
+
+        return language with
+        {
+            SectionOrder = [.. language.SectionOrder, .. additionalSections],
+        };
+    }
+
+    private static async Task LintChangeLogAsync(
+        Options options,
+        IChangeLogDetector detector,
+        ChangeLogLanguage language,
+        IChangeLogLinter linter,
+        IChangeLogFixer fixer,
+        CancellationToken cancellationToken
+    )
     {
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
 
-        IReadOnlyList<string> additionalSections = [.. options.AdditionalSections];
-        IReadOnlyCollection<string>? additionalSectionsArg = additionalSections.Count > 0 ? additionalSections : null;
+        ChangeLogLanguage effectiveLanguage = WithAdditionalSections(
+            language: language,
+            additionalSections: [.. options.AdditionalSections]
+        );
 
-        IReadOnlyList<LintError> errors = await linter.LintFileAsync(
+        IReadOnlyList<LintError> errors = await linter.LintAsync(
             changeLogFileName: changeLog,
-            additionalSections: additionalSectionsArg,
+            language: effectiveLanguage,
             cancellationToken: cancellationToken
         );
 
@@ -130,41 +211,67 @@ internal static class Program
 
         if (options.Fix)
         {
-            Console.WriteLine("Applying fixes...");
-
-            await fixer.FixFileAsync(
-                changeLogFileName: changeLog,
-                additionalSections: additionalSectionsArg,
+            await FixAndRelintAsync(
+                changeLog: changeLog,
+                language: effectiveLanguage,
+                linter: linter,
+                fixer: fixer,
                 cancellationToken: cancellationToken
             );
 
-            Console.WriteLine("Fixed. Re-linting...");
-
-            IReadOnlyList<LintError> remainingErrors = await linter.LintFileAsync(
-                changeLogFileName: changeLog,
-                additionalSections: additionalSectionsArg,
-                cancellationToken: cancellationToken
-            );
-
-            if (remainingErrors.Count == 0)
-            {
-                Console.WriteLine("Changelog is valid after fix");
-
-                return;
-            }
-
-            Console.WriteLine("Remaining errors after fix:");
-
-            foreach (LintError error in remainingErrors)
-            {
-                Console.WriteLine($"Line {error.LineNumber}: {error.Message}");
-            }
+            return;
         }
 
         throw new ChangeLogInvalidFailedException("Changelog has lint errors");
     }
 
-    private static async Task OutputUnreleasedContentAsync(Options options, IChangeLogDetector detector, IChangeLogReader reader, CancellationToken cancellationToken)
+    private static async Task FixAndRelintAsync(
+        string changeLog,
+        ChangeLogLanguage language,
+        IChangeLogLinter linter,
+        IChangeLogFixer fixer,
+        CancellationToken cancellationToken
+    )
+    {
+        Console.WriteLine("Applying fixes...");
+
+        await fixer.FixAsync(
+            changeLogFileName: changeLog,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+
+        Console.WriteLine("Fixed. Re-linting...");
+
+        IReadOnlyList<LintError> remainingErrors = await linter.LintAsync(
+            changeLogFileName: changeLog,
+            language: language,
+            cancellationToken: cancellationToken
+        );
+
+        if (remainingErrors.Count == 0)
+        {
+            Console.WriteLine("Changelog is valid after fix");
+
+            return;
+        }
+
+        Console.WriteLine("Remaining errors after fix:");
+
+        foreach (LintError error in remainingErrors)
+        {
+            Console.WriteLine($"Line {error.LineNumber}: {error.Message}");
+        }
+
+        throw new ChangeLogInvalidFailedException("Changelog has lint errors");
+    }
+
+    private static async Task OutputUnreleasedContentAsync(
+        Options options,
+        IChangeLogDetector detector,
+        IChangeLogReader reader,
+        CancellationToken cancellationToken
+    )
     {
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
@@ -179,7 +286,13 @@ internal static class Program
         Console.WriteLine(text);
     }
 
-    private static Task CreateNewReleaseAsync(Options options, IChangeLogDetector detector, IChangeLogUpdater updater, in CancellationToken cancellationToken)
+    private static Task CreateNewReleaseAsync(
+        Options options,
+        IChangeLogDetector detector,
+        ChangeLogLanguage language,
+        IChangeLogUpdater updater,
+        in CancellationToken cancellationToken
+    )
     {
         string releaseVersion = GetCreateRelease(options);
         string changeLog = FindChangeLog(options, detector);
@@ -188,6 +301,7 @@ internal static class Program
 
         return updater.CreateReleaseAsync(
             changeLogFileName: changeLog,
+            language: language,
             version: releaseVersion,
             pending: options.Pending,
             cancellationToken: cancellationToken
@@ -196,10 +310,16 @@ internal static class Program
 
     private static string GetCreateRelease(Options options)
     {
-        return options.CreateRelease ?? throw new InvalidOptionsException(nameof(options.CreateRelease) + " is null");
+        return options.CreateRelease
+            ?? throw new InvalidOptionsException(nameof(options.CreateRelease) + " is null");
     }
 
-    private static async Task CheckInsertPositionAsync(Options options, IChangeLogDetector detector, IChangeLogChecker checker, CancellationToken cancellationToken)
+    private static async Task CheckInsertPositionAsync(
+        Options options,
+        IChangeLogDetector detector,
+        IChangeLogChecker checker,
+        CancellationToken cancellationToken
+    )
     {
         string originBranchName = GetCheckInsert(options);
         string changeLog = FindChangeLog(options, detector);
@@ -223,10 +343,17 @@ internal static class Program
 
     private static string GetCheckInsert(Options options)
     {
-        return options.CheckInsert ?? throw new InvalidOptionsException(nameof(options.CheckInsert) + " is null");
+        return options.CheckInsert
+            ?? throw new InvalidOptionsException(nameof(options.CheckInsert) + " is null");
     }
 
-    private static Task AddEntryToUnreleasedChangelogAsync(Options options, IChangeLogDetector detector, IChangeLogUpdater updater, in CancellationToken cancellationToken)
+    private static Task AddEntryToUnreleasedChangelogAsync(
+        Options options,
+        IChangeLogDetector detector,
+        ChangeLogLanguage language,
+        IChangeLogUpdater updater,
+        in CancellationToken cancellationToken
+    )
     {
         string changeType = GetAdd(options);
         string message = GetMessage(options);
@@ -237,6 +364,7 @@ internal static class Program
 
         return updater.AddEntryAsync(
             changeLogFileName: changeLog,
+            language: language,
             type: changeType,
             message: message,
             cancellationToken: cancellationToken
@@ -248,7 +376,13 @@ internal static class Program
         return options.Add ?? throw new InvalidOptionsException(nameof(options.Add) + " is null");
     }
 
-    private static Task RemoveEntryFromUnreleasedChangelogAsync(Options options, IChangeLogDetector detector, IChangeLogUpdater updater, in CancellationToken cancellationToken)
+    private static Task RemoveEntryFromUnreleasedChangelogAsync(
+        Options options,
+        IChangeLogDetector detector,
+        ChangeLogLanguage language,
+        IChangeLogUpdater updater,
+        in CancellationToken cancellationToken
+    )
     {
         string changeType = GetChangeType(options);
         string message = GetMessage(options);
@@ -259,6 +393,7 @@ internal static class Program
 
         return updater.RemoveEntryAsync(
             changeLogFileName: changeLog,
+            language: language,
             type: changeType,
             message: message,
             cancellationToken: cancellationToken
@@ -267,15 +402,22 @@ internal static class Program
 
     private static string GetChangeType(Options options)
     {
-        return options.Remove ?? throw new InvalidOptionsException(nameof(options.Remove) + " is null");
+        return options.Remove
+            ?? throw new InvalidOptionsException(nameof(options.Remove) + " is null");
     }
 
     private static string GetMessage(Options options)
     {
-        return options.Message ?? throw new InvalidOptionsException(nameof(options.Message) + " is null");
+        return options.Message
+            ?? throw new InvalidOptionsException(nameof(options.Message) + " is null");
     }
 
-    private static async Task ExtractChangeLogTextForVersionAsync(Options options, IChangeLogDetector detector, IChangeLogReader reader, CancellationToken cancellationToken)
+    private static async Task ExtractChangeLogTextForVersionAsync(
+        Options options,
+        IChangeLogDetector detector,
+        IChangeLogReader reader,
+        CancellationToken cancellationToken
+    )
     {
         string outputFileName = GetExtract(options);
         string version = GetVersion(options);
@@ -299,12 +441,14 @@ internal static class Program
 
     private static string GetVersion(Options options)
     {
-        return options.Version ?? throw new InvalidOptionsException(nameof(options.Version) + " is null");
+        return options.Version
+            ?? throw new InvalidOptionsException(nameof(options.Version) + " is null");
     }
 
     private static string GetExtract(Options options)
     {
-        return options.Extract ?? throw new InvalidOptionsException(nameof(options.Extract) + " is null");
+        return options.Extract
+            ?? throw new InvalidOptionsException(nameof(options.Extract) + " is null");
     }
 
     private static void NotParsed(IEnumerable<Error> errors)
@@ -325,12 +469,9 @@ internal static class Program
         {
             await using (ServiceProvider serviceProvider = BuildServiceProvider())
             {
-
                 ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
 
-                return parser.Tag == ParserResultType.Parsed
-                    ? SUCCESS
-                    : ERROR;
+                return parser.Tag == ParserResultType.Parsed ? SUCCESS : ERROR;
             }
         }
         catch (Exception exception)
@@ -348,13 +489,16 @@ internal static class Program
 
     private static ServiceProvider BuildServiceProvider()
     {
-        return new ServiceCollection().AddChangeLog()
-                                      .BuildServiceProvider();
+        return new ServiceCollection().AddChangeLog().BuildServiceProvider();
     }
 
-    private static Task<ParserResult<Options>> ParseOptionsAsync(IEnumerable<string> args, IServiceProvider serviceProvider)
+    private static Task<ParserResult<Options>> ParseOptionsAsync(
+        IEnumerable<string> args,
+        IServiceProvider serviceProvider
+    )
     {
-        return Parser.Default.ParseArguments<Options>(args)
+        return Parser
+            .Default.ParseArguments<Options>(args)
             .WithNotParsed(NotParsed)
             .WithParsedAsync(options => ParsedOkAsync(options, serviceProvider));
     }

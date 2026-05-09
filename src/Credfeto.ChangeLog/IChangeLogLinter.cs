@@ -7,5 +7,9 @@ namespace Credfeto.ChangeLog;
 
 public interface IChangeLogLinter
 {
-    ValueTask<IReadOnlyList<LintError>> LintFileAsync(string changeLogFileName, IReadOnlyCollection<string>? additionalSections, CancellationToken cancellationToken);
+    ValueTask<IReadOnlyList<LintError>> LintAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        CancellationToken cancellationToken
+    );
 }

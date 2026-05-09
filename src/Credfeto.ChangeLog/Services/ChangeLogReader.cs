@@ -1,160 +1,139 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
-using Credfeto.ChangeLog.Extensions;
-using Credfeto.ChangeLog.Helpers;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogReader : IChangeLogReader
 {
-    private readonly IChangeLogStorage _loader;
+    private readonly IChangeLogStorage _storage;
 
-    public ChangeLogReader(IChangeLogStorage loader)
+    public ChangeLogReader(IChangeLogStorage storage)
     {
-        this._loader = loader;
+        this._storage = storage;
     }
 
-    public async ValueTask<string> ExtractReleaseNotesFromFileAsync(string changeLogFileName, string version, CancellationToken cancellationToken)
+    public async ValueTask<string> ExtractReleaseNotesFromFileAsync(
+        string changeLogFileName,
+        string version,
+        CancellationToken cancellationToken
+    )
     {
-        string textBlock = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
+        ChangeLogDocument document = await this._storage.LoadAsync(
+            changeLogFileName,
+            cancellationToken
+        );
 
-        return ExtractReleaseNotes(changeLog: textBlock, version: version);
+        return FormatSections(FindSections(document: document, version: version));
     }
 
-    public async ValueTask<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken)
+    public async ValueTask<int?> FindFirstReleaseVersionPositionAsync(
+        string changeLogFileName,
+        CancellationToken cancellationToken
+    )
     {
-        IReadOnlyList<string> changelog = await this._loader.LoadLinesAsync(changeLogFileName, cancellationToken);
+        ChangeLogDocument document = await this._storage.LoadAsync(
+            changeLogFileName,
+            cancellationToken
+        );
 
-        for (int lineIndex = 0; lineIndex < changelog.Count; ++lineIndex)
+        return document.Releases.IsEmpty ? null : document.Releases[0].LineNumber;
+    }
+
+    internal static string ExtractReleaseNotes(ChangeLogDocument document, string version)
+    {
+        return FormatSections(FindSections(document: document, version: version));
+    }
+
+    private static ImmutableArray<ChangeLogSection> FindSections(
+        ChangeLogDocument document,
+        string version
+    )
+    {
+        Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
+
+        if (releaseVersion is null)
         {
-            if (CommonRegex.VersionHeader.IsMatch(changelog[lineIndex]))
+            return document.Unreleased?.Sections ?? [];
+        }
+
+        ChangeLogRelease? release = FindRelease(
+            releases: document.Releases,
+            version: releaseVersion
+        );
+
+        return release?.Sections ?? [];
+    }
+
+    private static ChangeLogRelease? FindRelease(
+        in ImmutableArray<ChangeLogRelease> releases,
+        Version version
+    )
+    {
+        foreach (ChangeLogRelease release in releases)
+        {
+            if (
+                Version.TryParse(input: release.Version, result: out Version? parsed)
+                && VersionMatches(parsed: parsed, requested: version)
+            )
             {
-                return lineIndex + 1;
+                return release;
             }
         }
 
         return null;
     }
 
-    internal static string ExtractReleaseNotes(string changeLog, string version)
+    private static bool VersionMatches(Version parsed, Version requested)
     {
-        Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
+        int requestedBuild = requested.Build is 0 or -1 ? 0 : requested.Build;
+        int parsedBuild = parsed.Build is 0 or -1 ? 0 : parsed.Build;
 
-        IReadOnlyList<string> text = RemoveComments(changeLog);
-
-        FindSectionForBuild(text: text, version: releaseVersion, out int foundStart, out int foundEnd);
-
-        if (foundStart == -1)
-        {
-            return string.Empty;
-        }
-
-        if (foundEnd == -1)
-        {
-            foundEnd = text.Count;
-        }
-
-        string previousLine = string.Empty;
-
-        StringBuilder releaseNotes = new();
-
-        for (int i = foundStart; i < foundEnd; i++)
-        {
-            if (string.IsNullOrEmpty(text[i]))
-            {
-                continue;
-            }
-
-            if (
-                text[i].IsChangeTypeHeading()
-                && previousLine.IsChangeTypeHeading()
-            )
-            {
-                previousLine = text[i];
-
-                continue;
-            }
-
-            if (text[i].IsChangeTypeHeading())
-            {
-                previousLine = text[i];
-
-                continue;
-            }
-
-            if (previousLine.IsChangeTypeHeading())
-            {
-                releaseNotes = releaseNotes.AppendLine(previousLine);
-            }
-
-            releaseNotes = releaseNotes.AppendLine(text[i]);
-            previousLine = text[i];
-        }
-
-        return releaseNotes.ToString().Trim();
+        return parsed.Major == requested.Major
+            && parsed.Minor == requested.Minor
+            && parsedBuild == requestedBuild;
     }
 
-    private static IReadOnlyList<string> RemoveComments(string changeLog)
+    private static string FormatSections(in ImmutableArray<ChangeLogSection> sections)
     {
-        return CommonRegex.RemoveComments.Replace(input: changeLog, replacement: string.Empty).Trim().SplitToLines();
+        StringBuilder result = new();
+
+        foreach (ChangeLogSection section in sections)
+        {
+            AppendSection(result: result, section: section);
+        }
+
+        return result.ToString().Trim();
     }
 
-    private static void FindSectionForBuild(
-        IReadOnlyList<string> text,
-        Version? version,
-        out int foundStart,
-        out int foundEnd
-    )
+    private static void AppendSection(StringBuilder result, ChangeLogSection section)
     {
-        foundStart = -1;
-        foundEnd = -1;
+        bool headingWritten = false;
 
-        for (int i = 1; i < text.Count; i++)
+        foreach (string entry in section.Entries)
         {
-            string line = text[i];
-
-            if (IsMatchingVersion(version: version, line: line))
+            if (string.IsNullOrEmpty(entry))
             {
-                foundStart = i + 1;
-
                 continue;
             }
 
-            if (foundStart != -1 && line.IsVersionHeader())
+            if (!headingWritten)
             {
-                foundEnd = i;
-
-                break;
+                result.AppendLine($"### {section.Name}");
+                headingWritten = true;
             }
-        }
-    }
 
-    private static bool IsMatchingVersion(Version? version, string line)
-    {
-        if (version is null)
-        {
-            return Unreleased.IsUnreleasedHeader(line);
-        }
-
-        return Candidates(version)
-            .Any(candidate => line.StartsWith(value: candidate, comparisonType: StringComparison.OrdinalIgnoreCase));
-
-        static IEnumerable<string> Candidates(Version expected)
-        {
-            int build = expected.Build is 0 or -1 ? 0 : expected.Build;
-
-            yield return $"## [{expected.Major}.{expected.Minor}.{build}]";
-
-            if (build == 0)
-            {
-                yield return $"## [{expected.Major}.{expected.Minor}]";
-            }
+            result.AppendLine(entry);
         }
     }
 }

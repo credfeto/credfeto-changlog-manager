@@ -1,9 +1,26 @@
+using System.Diagnostics.CodeAnalysis;
+using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
 using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
+[SuppressMessage(
+    category: "Meziantou.Analyzer",
+    checkId: "MA0045:Use async overload",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.VisualStudio.Threading.Analyzers",
+    checkId: "VSTHRD002",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
+[SuppressMessage(
+    category: "Microsoft.Reliability",
+    checkId: "CA2012:UseValueTasksCorrectly",
+    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
+)]
 public sealed class ChangeLogReaderTests : TestBase
 {
     private const string MULTI_RELEASE_CHANGE_LOG =
@@ -47,7 +64,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [InlineData("1.0.0.1")]
     public void ReadEmptyChangeLogReturnsEmpty(string version)
     {
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: string.Empty, version: version);
+        string result = ExtractReleaseNotes(changeLog: string.Empty, version: version);
         Assert.Empty(result);
     }
 
@@ -77,7 +94,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         Assert.Empty(result);
     }
 
@@ -108,7 +125,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         const string expected =
             @"### Added
 - Something was added.";
@@ -143,7 +160,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         const string expected =
             @"### Fixed
 - Something was fixed.";
@@ -178,7 +195,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         const string expected =
             @"### Changed
 - Something was changed.";
@@ -213,7 +230,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         const string expected =
             @"### Removed
 - Something was removed.";
@@ -224,7 +241,9 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [Theory]
     [InlineData("")]
     [InlineData("1.0.0.1-master")]
-    public void ReadUnReleasedSectionWithJustDeploymentChangesReturnsDeploymentChangesSectionOnly(string version)
+    public void ReadUnReleasedSectionWithJustDeploymentChangesReturnsDeploymentChangesSectionOnly(
+        string version
+    )
     {
         const string changeLog =
             @"# Changelog
@@ -248,7 +267,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 ## [0.0.0] - Project created
 ";
 
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: changeLog, version: version);
+        string result = ExtractReleaseNotes(changeLog: changeLog, version: version);
         const string expected =
             @"### Deployment Changes
 - Need to do something special here on the next deployment.";
@@ -262,7 +281,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [InlineData("1.1.1.3000")]
     public void ReadASpecificReleaseReturnsThatReleaseOnly(string version)
     {
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
+        string result = ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
         const string expected =
             @"### Added
 - Something was added here.";
@@ -276,7 +295,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [InlineData("1.0.0.3000")]
     public void ReadASpecificReleaseReturnsThatReleaseOnlyIgnoringZeroVersionParts(string version)
     {
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
+        string result = ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
         const string expected =
             @"### Added
 - This is release 1.0.0.";
@@ -290,7 +309,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [InlineData("0.0.0.3000")]
     public void ReadASpecificReleaseAtEndOfFile(string version)
     {
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
+        string result = ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
 
         const string expected =
             @"### Added
@@ -305,8 +324,19 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [InlineData("10.3.4.3000")]
     public void ReadNonExistentVersion(string version)
     {
-        string result = ChangeLogReader.ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
+        string result = ExtractReleaseNotes(changeLog: MULTI_RELEASE_CHANGE_LOG, version: version);
 
         Assert.Equal(expected: string.Empty, actual: result);
+    }
+
+    private static ChangeLogDocument Parse(string content)
+    {
+        ChangeLogParser parser = new();
+        return parser.ParseAsync(content, default).GetAwaiter().GetResult();
+    }
+
+    private static string ExtractReleaseNotes(string changeLog, string version)
+    {
+        return ChangeLogReader.ExtractReleaseNotes(document: Parse(changeLog), version: version);
     }
 }

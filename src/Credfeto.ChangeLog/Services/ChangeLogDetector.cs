@@ -8,16 +8,25 @@ using LibGit2Sharp;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogDetector : IChangeLogDetector
 {
     public bool TryFindChangeLog([NotNullWhen(true)] out string? changeLogFileName)
     {
         try
         {
-            using (Repository repository = GitRepository.OpenRepository(Environment.CurrentDirectory))
+            using (
+                Repository repository = GitRepository.OpenRepository(Environment.CurrentDirectory)
+            )
             {
-                return TryFindChangeLogInRepository(repository: repository, changeLogFileName: out changeLogFileName);
+                return TryFindChangeLogInRepository(
+                    repository: repository,
+                    changeLogFileName: out changeLogFileName
+                );
             }
         }
         catch (Exception)
@@ -28,7 +37,10 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
         }
     }
 
-    private static bool TryFindChangeLogInRepository(Repository repository, [NotNullWhen(true)] out string? changeLogFileName)
+    private static bool TryFindChangeLogInRepository(
+        Repository repository,
+        [NotNullWhen(true)] out string? changeLogFileName
+    )
     {
         string repoRoot = repository.Info.WorkingDirectory;
 
@@ -52,9 +64,17 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
 
             default:
             {
-                string changeLogAtRepoRoot = Path.Combine(path1: repoRoot, path2: FileConstants.ChangeLogFileName);
+                string changeLogAtRepoRoot = Path.Combine(
+                    path1: repoRoot,
+                    path2: FileConstants.ChangeLogFileName
+                );
 
-                if (changelogs.Contains(value: changeLogAtRepoRoot, comparer: StringComparer.Ordinal))
+                if (
+                    changelogs.Contains(
+                        value: changeLogAtRepoRoot,
+                        comparer: StringComparer.Ordinal
+                    )
+                )
                 {
                     changeLogFileName = changeLogAtRepoRoot;
 

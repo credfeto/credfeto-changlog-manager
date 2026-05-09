@@ -16,7 +16,12 @@ namespace Credfeto.ChangeLog.Cmd;
 )]
 public sealed class Options
 {
-    [Option(shortName: 'f', longName: "changelog", Required = false, HelpText = "The changelog filename to use")]
+    [Option(
+        shortName: 'f',
+        longName: "changelog",
+        Required = false,
+        HelpText = "The changelog filename to use"
+    )]
     public string? ChangeLog { get; init; }
 
     [Option(
@@ -46,7 +51,13 @@ public sealed class Options
     )]
     public string? Remove { get; init; }
 
-    [Option(shortName: 'a', longName: "add", Group = "Commands", Required = false, HelpText = "The entry type to add")]
+    [Option(
+        shortName: 'a',
+        longName: "add",
+        Group = "Commands",
+        Required = false,
+        HelpText = "The entry type to add"
+    )]
     public string? Add { get; init; }
 
     [Option(shortName: 'm', longName: "message", Required = false, HelpText = "The message to add")]
@@ -70,7 +81,12 @@ public sealed class Options
     )]
     public string? CreateRelease { get; init; }
 
-    [Option(shortName: 'p', longName: "Pending", Required = false, HelpText = "If the release is pending")]
+    [Option(
+        shortName: 'p',
+        longName: "Pending",
+        Required = false,
+        HelpText = "If the release is pending"
+    )]
     public bool Pending { get; init; }
 
     [Option(
@@ -91,9 +107,18 @@ public sealed class Options
     )]
     public bool Lint { get; init; }
 
-    [Option(longName: "additional-sections", Required = false, Separator = ',', HelpText = "Additional change type sections allowed in unreleased")]
+    [Option(
+        longName: "additional-sections",
+        Required = false,
+        Separator = ',',
+        HelpText = "Additional change type sections allowed in unreleased"
+    )]
     public IEnumerable<string> AdditionalSections { get; init; } = [];
 
-    [Option(longName: "fix", Required = false, HelpText = "When used with --lint, rewrite the file to fix formatting issues")]
+    [Option(
+        longName: "fix",
+        Required = false,
+        HelpText = "When used with --lint, rewrite the file to fix formatting issues"
+    )]
     public bool Fix { get; init; }
 }

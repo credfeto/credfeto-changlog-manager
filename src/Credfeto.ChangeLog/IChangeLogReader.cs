@@ -5,7 +5,14 @@ namespace Credfeto.ChangeLog;
 
 public interface IChangeLogReader
 {
-    ValueTask<string> ExtractReleaseNotesFromFileAsync(string changeLogFileName, string version, CancellationToken cancellationToken);
+    ValueTask<string> ExtractReleaseNotesFromFileAsync(
+        string changeLogFileName,
+        string version,
+        CancellationToken cancellationToken
+    );
 
-    ValueTask<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken);
+    ValueTask<int?> FindFirstReleaseVersionPositionAsync(
+        string changeLogFileName,
+        CancellationToken cancellationToken
+    );
 }

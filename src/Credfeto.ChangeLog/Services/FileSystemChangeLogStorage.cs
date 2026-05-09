@@ -1,41 +1,59 @@
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-public sealed class FileSystemChangeLogStorage : IChangeLogStorage
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
+internal sealed class FileSystemChangeLogStorage : IChangeLogStorage
 {
-    public bool Exists(string changeLogFileName)
+    private readonly IChangeLogParser _parser;
+    private readonly IChangeLogSerialiser _serialiser;
+
+    public FileSystemChangeLogStorage(IChangeLogParser parser, IChangeLogSerialiser serialiser)
     {
-        return File.Exists(changeLogFileName);
+        this._parser = parser;
+        this._serialiser = serialiser;
     }
 
-    public async ValueTask<string> LoadTextAsync(string changeLogFileName, CancellationToken cancellationToken)
+    public async ValueTask<ChangeLogDocument> LoadAsync(
+        string changeLogFileName,
+        CancellationToken cancellationToken
+    )
     {
-        return await File.ReadAllTextAsync(
+        string content = await File.ReadAllTextAsync(
             path: changeLogFileName,
             encoding: Encoding.UTF8,
             cancellationToken: cancellationToken
         );
-    }
 
-    public async ValueTask<IReadOnlyList<string>> LoadLinesAsync(string changeLogFileName, CancellationToken cancellationToken)
-    {
-        return await File.ReadAllLinesAsync(
-            path: changeLogFileName,
-            encoding: Encoding.UTF8,
+        return await this._parser.ParseAsync(
+            content: content,
             cancellationToken: cancellationToken
         );
     }
 
-    public async ValueTask SaveTextAsync(string changeLogFileName, string contents, CancellationToken cancellationToken)
+    public async ValueTask SaveAsync(
+        string changeLogFileName,
+        ChangeLogDocument document,
+        CancellationToken cancellationToken
+    )
     {
+        string content = await this._serialiser.SerialiseAsync(
+            document: document,
+            cancellationToken: cancellationToken
+        );
+
         await File.WriteAllTextAsync(
             path: changeLogFileName,
-            contents: contents,
+            contents: content,
             encoding: Encoding.UTF8,
             cancellationToken: cancellationToken
         );

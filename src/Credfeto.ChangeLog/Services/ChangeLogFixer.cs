@@ -1,58 +1,86 @@
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Credfeto.ChangeLog.Extensions;
+using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(category: "Microsoft.Performance", checkId: "CA1812: Avoid uninstantiated internal classes", Justification = "Registered in DI")]
+[SuppressMessage(
+    category: "Microsoft.Performance",
+    checkId: "CA1812: Avoid uninstantiated internal classes",
+    Justification = "Registered in DI"
+)]
 internal sealed class ChangeLogFixer : IChangeLogFixer
 {
-    private readonly IChangeLogStorage _loader;
+    private readonly IChangeLogStorage _storage;
 
-    public ChangeLogFixer(IChangeLogStorage loader)
+    public ChangeLogFixer(IChangeLogStorage storage)
     {
-        this._loader = loader;
+        this._storage = storage;
     }
 
-    public async ValueTask FixFileAsync(string changeLogFileName, IReadOnlyCollection<string>? additionalSections, CancellationToken cancellationToken)
+    public async ValueTask FixAsync(
+        string changeLogFileName,
+        ChangeLogLanguage language,
+        CancellationToken cancellationToken
+    )
     {
-        string content = await this._loader.LoadTextAsync(changeLogFileName, cancellationToken);
-        string @fixed = Fix(content: content, additionalSections: additionalSections);
-
-        await this._loader.SaveTextAsync(changeLogFileName, contents: @fixed, cancellationToken: cancellationToken);
+        ChangeLogDocument document = await this._storage.LoadAsync(
+            changeLogFileName,
+            cancellationToken
+        );
+        ChangeLogDocument corrected = Fix(document: document, language: language);
+        await this._storage.SaveAsync(
+            changeLogFileName,
+            document: corrected,
+            cancellationToken: cancellationToken
+        );
     }
 
-    internal static string Fix(string content, IReadOnlyCollection<string>? additionalSections = null)
+    internal static ChangeLogDocument Fix(ChangeLogDocument document, ChangeLogLanguage language)
     {
-        string result = ChangeLogUpdater.EnsureUnreleasedSections(content);
-
-        return RemoveBlankLinesAfterHeadings(result);
+        ChangeLogDocument ensured = ChangeLogUpdater.EnsureUnreleasedSections(
+            document: document,
+            language: language
+        );
+        return RemoveBlankLinesAfterHeadings(ensured);
     }
 
-    private static string RemoveBlankLinesAfterHeadings(string content)
+    private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
     {
-        IReadOnlyList<string> lines = content.SplitToLines();
-        List<string> output = new(lines.Count);
-        int i = 0;
-
-        while (i < lines.Count)
+        if (document.Unreleased is null)
         {
-            string line = lines[i];
-            output.Add(line);
-            i++;
-
-            if (
-                line.IsChangeTypeHeading()
-                && i < lines.Count
-                && string.IsNullOrWhiteSpace(lines[i])
-            )
-            {
-                i++;
-            }
+            return document;
         }
 
-        return output.LinesToText();
+        return document with
+        {
+            Unreleased = RemoveBlankLinesFromSections(document.Unreleased),
+        };
     }
+
+    private static ChangeLogUnreleased RemoveBlankLinesFromSections(ChangeLogUnreleased unreleased)
+    {
+        ImmutableArray<ChangeLogSection>.Builder builder =
+            ImmutableArray.CreateBuilder<ChangeLogSection>(unreleased.Sections.Length);
+
+        foreach (ChangeLogSection section in unreleased.Sections)
+        {
+            builder.Add(RemoveLeadingBlank(section));
+        }
+
+        return unreleased with
+        {
+            Sections = builder.ToImmutable(),
+        };
+    }
+
+    private static ChangeLogSection RemoveLeadingBlank(ChangeLogSection section) =>
+        section.Entries.Length > 0 && string.IsNullOrWhiteSpace(section.Entries[0])
+            ? section with
+            {
+                Entries = section.Entries[1..],
+            }
+            : section;
 }
