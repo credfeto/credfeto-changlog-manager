@@ -8,6 +8,17 @@ internal static class ChangeLogHeadingExtensions
 {
     private const string CHANGE_TYPE_HEADING_PREFIX = "### ";
     private const string VERSION_HEADER_PREFIX = "## [";
+    private const string REFERENCE_LINK_SEPARATOR = "]: ";
+
+    public static bool IsComparisonLink(this string line)
+    {
+        return line.Length > 3
+            && line[0] == '['
+            && line.Contains(
+                value: REFERENCE_LINK_SEPARATOR,
+                comparisonType: StringComparison.Ordinal
+            );
+    }
 
     public static bool IsChangeTypeHeading(this string line)
     {
