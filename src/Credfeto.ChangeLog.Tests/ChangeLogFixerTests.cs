@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -23,7 +24,7 @@ namespace Credfeto.ChangeLog.Tests;
     checkId: "CA2012:UseValueTasksCorrectly",
     Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
 )]
-public sealed class ChangeLogFixerTests : TestBase
+public sealed partial class ChangeLogFixerTests : TestBase
 {
     private const string VALID_CHANGE_LOG = """
         # Changelog
@@ -189,10 +190,7 @@ public sealed class ChangeLogFixerTests : TestBase
 
         string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
 
-        int count = CountOccurrences(
-            result,
-            "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),"
-        );
+        int count = PreambleFormatLineRegex().Count(result);
         Assert.Equal(expected: 1, actual: count);
     }
 
@@ -225,25 +223,10 @@ public sealed class ChangeLogFixerTests : TestBase
         Assert.True(preambleIndex < commentIndex, "Preamble should appear before HTML comment");
     }
 
-    private static int CountOccurrences(string text, string pattern)
-    {
-        int count = 0;
-        int index = 0;
-
-        while (
-            (
-                index = text.IndexOf(
-                    value: pattern,
-                    startIndex: index,
-                    comparisonType: StringComparison.Ordinal
-                )
-            ) >= 0
-        )
-        {
-            count++;
-            index += pattern.Length;
-        }
-
-        return count;
-    }
+    [GeneratedRegex(
+        pattern: @"The format is based on \[Keep a Changelog\]\(https://keepachangelog\.com/en/1\.1\.0/\),",
+        options: RegexOptions.None,
+        matchTimeoutMilliseconds: 1000
+    )]
+    private static partial Regex PreambleFormatLineRegex();
 }

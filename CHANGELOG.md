@@ -37,6 +37,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - ChangeLogLanguageFactory is now a non-static class implementing IChangeLogLanguageFactory; language code changed from 'keep-a-changelog' to 'en'
 - Refactored service layer: IChangeLogStorage reduced to LoadAsync/SaveAsync; ChangeLogLanguage moved to method parameters; ChangeLogLanguageFactory made non-static implementing IChangeLogLanguageFactory with English constant renamed from KeepAChangelog to English
 - Maintain the keepachangelog.com and semver.org preamble URLs in changelog headers when fixing
+- replace CountOccurrences helper with source-generated regex in ChangeLogFixerTests
 ### Deprecated
 ### Removed
 ### Deployment Changes
