@@ -204,19 +204,29 @@ internal sealed class ChangeLogParser : IChangeLogParser
         public List<string> CurrentEntries { get; } = [];
         private List<ChangeLogSection> CurrentSections { get; } = [];
 
+        public bool CurrentIsYanked { get; private set; }
+
         public void StartRelease(string line, int lineNumber)
         {
-            (this.CurrentVersion, this.CurrentDate) = ParseVersionHeader(line);
+            (this.CurrentVersion, this.CurrentDate, this.CurrentIsYanked) = ParseVersionHeader(
+                line
+            );
             this.CurrentReleaseLineNumber = lineNumber;
         }
 
-        private static (string Version, string Date) ParseVersionHeader(string line)
+        private static (string Version, string Date, bool IsYanked) ParseVersionHeader(string line)
         {
             int closeBracket = line.IndexOf(value: ']', comparisonType: StringComparison.Ordinal);
             string version = line[4..closeBracket];
-            string date =
-                closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
-            return (version, date);
+            string raw = closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
+
+            bool isYanked = raw.EndsWith(
+                value: " [YANKED]",
+                comparisonType: StringComparison.OrdinalIgnoreCase
+            );
+            string date = isYanked ? raw[..^" [YANKED]".Length] : raw;
+
+            return (version, date, isYanked);
         }
 
         public void FlushSection()
@@ -258,11 +268,13 @@ internal sealed class ChangeLogParser : IChangeLogParser
                     Version: this.CurrentVersion,
                     Date: this.CurrentDate ?? string.Empty,
                     LineNumber: this.CurrentReleaseLineNumber,
-                    Sections: [.. this.CurrentSections]
+                    Sections: [.. this.CurrentSections],
+                    IsYanked: this.CurrentIsYanked
                 )
             );
             this.CurrentSections.Clear();
             this.CurrentVersion = null;
+            this.CurrentIsYanked = false;
         }
     }
 }

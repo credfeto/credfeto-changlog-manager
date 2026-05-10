@@ -3,10 +3,13 @@ using System.Diagnostics;
 
 namespace Credfeto.ChangeLog.Models;
 
-[DebuggerDisplay("[{Version}] - {Date} (line {LineNumber})")]
+[DebuggerDisplay(
+    "[{Version}] - {Date}{IsYanked ? \" [YANKED]\" : string.Empty,nq} (line {LineNumber})"
+)]
 public sealed record ChangeLogRelease(
     string Version,
     string Date,
     int LineNumber,
-    ImmutableArray<ChangeLogSection> Sections
+    ImmutableArray<ChangeLogSection> Sections,
+    bool IsYanked = false
 );

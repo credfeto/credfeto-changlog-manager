@@ -54,11 +54,16 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 
     private static void SerialiseRelease(ChangeLogRelease release, List<string> lines)
     {
-        lines.Add(
-            string.IsNullOrEmpty(release.Date)
-                ? $"## [{release.Version}]"
-                : $"## [{release.Version}] - {release.Date}"
-        );
+        string header = string.IsNullOrEmpty(release.Date)
+            ? $"## [{release.Version}]"
+            : $"## [{release.Version}] - {release.Date}";
+
+        if (release.IsYanked)
+        {
+            header += " [YANKED]";
+        }
+
+        lines.Add(header);
 
         foreach (ChangeLogSection section in release.Sections.Where(s => s.Entries.Length > 0))
         {

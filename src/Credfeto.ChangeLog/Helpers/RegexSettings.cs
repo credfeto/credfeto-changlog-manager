@@ -14,7 +14,8 @@ internal static class RegexSettings
     public const RegexOptions VersionHeaderOptions =
         RegexOptions.Compiled | RegexOptions.ExplicitCapture;
 
-    public const string VersionHeaderRegex = @"^##\s\[(?<version>\d+(.\d+)+)\]";
+    public const string VersionHeaderRegex =
+        @"^##\s\[(?<version>\d+(.\d+)+)\](\s+-\s+(?<date>[^\[]+?))?(\s+\[(?<yanked>YANKED)\])?$";
 
     public const RegexOptions GitHunkPositionOptions =
         RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
