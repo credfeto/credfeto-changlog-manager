@@ -12,6 +12,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - add service interfaces IChangeLogReader, IChangeLogLinter, IChangeLogFixer, IChangeLogUpdater with file-backed implementations injectable via DI
 - Mock-based unit tests for ChangeLogReader, ChangeLogFixer, ChangeLogLinter, ChangeLogUpdater services using NSubstitute
 - DI registration tests in ChangeLogSetupTests verifying all services are resolvable via AddChangeLog
+- Ensure preamble is inserted on every changelog edit operation (AddEntry, RemoveEntry, CreateRelease, EnsureUnreleasedSections), not only during Fix
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
@@ -35,6 +36,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Extracted FindUnreleasedStart as a shared extension method; replaced duplicated IsRelease private method with IsVersionHeader extension
 - ChangeLogLanguageFactory is now a non-static class implementing IChangeLogLanguageFactory; language code changed from 'keep-a-changelog' to 'en'
 - Refactored service layer: IChangeLogStorage reduced to LoadAsync/SaveAsync; ChangeLogLanguage moved to method parameters; ChangeLogLanguageFactory made non-static implementing IChangeLogLanguageFactory with English constant renamed from KeepAChangelog to English
+- Maintain the keepachangelog.com and semver.org preamble URLs in changelog headers when fixing
+- replace CountOccurrences helper with source-generated regex in ChangeLogFixerTests
 ### Deprecated
 ### Removed
 ### Deployment Changes

@@ -2,7 +2,9 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
+using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
@@ -44,7 +46,80 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
             document: document,
             language: language
         );
-        return RemoveBlankLinesAfterHeadings(ensured);
+        ChangeLogDocument withPreamble = EnsurePreamble(ensured);
+        return RemoveBlankLinesAfterHeadings(withPreamble);
+    }
+
+    internal static ChangeLogDocument EnsurePreamble(ChangeLogDocument document)
+    {
+        if (HasPreamble(document.HeaderLines))
+        {
+            return document;
+        }
+
+        return document with
+        {
+            HeaderLines = InsertPreamble(document.HeaderLines),
+        };
+    }
+
+    private static bool HasPreamble(in ImmutableArray<string> headerLines) =>
+        headerLines
+            .AsValueEnumerable()
+            .Any(line =>
+                line.Contains(
+                    value: TemplateFile.PreambleLine1,
+                    comparisonType: System.StringComparison.Ordinal
+                )
+            );
+
+    private static ImmutableArray<string> InsertPreamble(in ImmutableArray<string> headerLines)
+    {
+        int commentStart = FindHtmlCommentStart(headerLines);
+
+        ImmutableArray<string> before =
+            commentStart >= 0 ? headerLines[..commentStart] : headerLines;
+        ImmutableArray<string> after = commentStart >= 0 ? headerLines[commentStart..] : [];
+
+        ImmutableArray<string> trimmed = TrimTrailingBlanks(before);
+
+        return
+        [
+            .. trimmed,
+            string.Empty,
+            TemplateFile.PreambleLine1,
+            TemplateFile.PreambleLine2,
+            string.Empty,
+            .. after,
+        ];
+    }
+
+    private static int FindHtmlCommentStart(in ImmutableArray<string> headerLines)
+    {
+        for (int i = 0; i < headerLines.Length; i++)
+        {
+            if (
+                headerLines[i]
+                    .StartsWith(value: "<!--", comparisonType: System.StringComparison.Ordinal)
+            )
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static ImmutableArray<string> TrimTrailingBlanks(in ImmutableArray<string> lines)
+    {
+        int end = lines.Length;
+
+        while (end > 0 && string.IsNullOrWhiteSpace(lines[end - 1]))
+        {
+            end--;
+        }
+
+        return end == lines.Length ? lines : lines[..end];
     }
 
     private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)

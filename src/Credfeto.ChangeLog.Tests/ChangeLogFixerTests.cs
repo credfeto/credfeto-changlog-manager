@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -22,7 +24,7 @@ namespace Credfeto.ChangeLog.Tests;
     checkId: "CA2012:UseValueTasksCorrectly",
     Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
 )]
-public sealed class ChangeLogFixerTests : TestBase
+public sealed partial class ChangeLogFixerTests : TestBase
 {
     private const string VALID_CHANGE_LOG = """
         # Changelog
@@ -131,4 +133,100 @@ public sealed class ChangeLogFixerTests : TestBase
         IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
         Assert.Empty(errors);
     }
+
+    [Fact]
+    public void MissingPreamble_IsAdded()
+    {
+        const string changeLog = """
+            # Changelog
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [0.0.0] - Project created
+            """;
+
+        string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
+
+        Assert.Contains(
+            "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),",
+            result,
+            StringComparison.Ordinal
+        );
+        Assert.Contains(
+            "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).",
+            result,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public void ExistingPreamble_IsNotDuplicated()
+    {
+        const string changeLog = """
+            # Changelog
+            All notable changes to this project will be documented in this file.
+
+            The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+            and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [0.0.0] - Project created
+            """;
+
+        string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
+
+        int count = PreambleFormatLineRegex().Count(result);
+        Assert.Equal(expected: 1, actual: count);
+    }
+
+    [Fact]
+    public void MissingPreamble_IsInsertedBeforeHtmlComment()
+    {
+        const string changeLog = """
+            # Changelog
+
+            <!--
+            Please ADD ALL Changes to the UNRELEASED SECTION
+            -->
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [0.0.0] - Project created
+            """;
+
+        string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
+
+        int preambleIndex = result.IndexOf("The format is based on", StringComparison.Ordinal);
+        int commentIndex = result.IndexOf("<!--", StringComparison.Ordinal);
+        Assert.True(preambleIndex < commentIndex, "Preamble should appear before HTML comment");
+    }
+
+    [GeneratedRegex(
+        pattern: @"The format is based on \[Keep a Changelog\]\(https://keepachangelog\.com/en/1\.1\.0/\),",
+        options: RegexOptions.None,
+        matchTimeoutMilliseconds: 1000
+    )]
+    private static partial Regex PreambleFormatLineRegex();
 }
