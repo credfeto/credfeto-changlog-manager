@@ -226,7 +226,12 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             )),
         ];
         ChangeLogUnreleased unreleased = new(LineNumber: 0, Sections: sections, TrailingLines: []);
-        return new ChangeLogDocument(HeaderLines: [], Unreleased: unreleased, Releases: []);
+        return new ChangeLogDocument(
+            HeaderLines: [],
+            Unreleased: unreleased,
+            Releases: [],
+            TrailingLines: []
+        );
     }
 
     private async ValueTask<ChangeLogDocument> LoadOrCreateAsync(
