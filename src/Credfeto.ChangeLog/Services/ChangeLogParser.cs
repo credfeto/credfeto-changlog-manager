@@ -27,14 +27,17 @@ internal sealed class ChangeLogParser : IChangeLogParser
         int unreleasedStart = lines.FindUnreleasedStart();
         if (unreleasedStart < 0)
         {
-            return new(HeaderLines: [.. lines], Unreleased: null, Releases: []);
+            return new(HeaderLines: [.. lines], Unreleased: null, Releases: [], TrailingLines: []);
         }
 
         int unreleasedEnd = lines.FindUnreleasedEnd(unreleasedStart);
+        (ImmutableArray<ChangeLogRelease> releases, ImmutableArray<string> trailingLines) =
+            ParseReleases(lines, start: unreleasedEnd);
         return new(
             HeaderLines: CollectLines(lines, start: 0, end: unreleasedStart),
             Unreleased: ParseUnreleased(lines, start: unreleasedStart, end: unreleasedEnd),
-            Releases: ParseReleases(lines, start: unreleasedEnd)
+            Releases: releases,
+            TrailingLines: trailingLines
         );
     }
 
@@ -138,10 +141,10 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static ImmutableArray<ChangeLogRelease> ParseReleases(
-        IReadOnlyList<string> lines,
-        int start
-    )
+    private static (
+        ImmutableArray<ChangeLogRelease> Releases,
+        ImmutableArray<string> TrailingLines
+    ) ParseReleases(IReadOnlyList<string> lines, int start)
     {
         List<ChangeLogRelease> releases = [];
         ReleaseParseState state = new();
@@ -152,7 +155,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
 
         state.Flush(releases);
-        return [.. releases];
+        return ([.. releases], [.. state.TrailingLines]);
     }
 
     private static void ProcessReleaseLine(
@@ -162,7 +165,16 @@ internal sealed class ChangeLogParser : IChangeLogParser
         ReleaseParseState state
     )
     {
-        if (line.IsVersionHeader() && !Unreleased.IsUnreleasedHeader(line))
+        if (state.InTrailerMode)
+        {
+            state.TrailingLines.Add(line);
+        }
+        else if (line.IsComparisonLink())
+        {
+            state.EnterTrailerMode();
+            state.TrailingLines.Add(line);
+        }
+        else if (line.IsVersionHeader() && !Unreleased.IsUnreleasedHeader(line))
         {
             state.Flush(releases);
             state.StartRelease(line: line, lineNumber: lineIndex + 1);
@@ -202,12 +214,28 @@ internal sealed class ChangeLogParser : IChangeLogParser
         public string? CurrentSectionName { get; set; }
         public int CurrentSectionLine { get; set; }
         public List<string> CurrentEntries { get; } = [];
+        public List<string> TrailingLines { get; } = [];
+        public bool InTrailerMode { get; private set; }
         private List<ChangeLogSection> CurrentSections { get; } = [];
 
         public void StartRelease(string line, int lineNumber)
         {
+            this.InTrailerMode = false;
+            this.TrailingLines.Clear();
             (this.CurrentVersion, this.CurrentDate) = ParseVersionHeader(line);
             this.CurrentReleaseLineNumber = lineNumber;
+        }
+
+        public void EnterTrailerMode()
+        {
+            while (
+                this.CurrentEntries.Count > 0 && string.IsNullOrWhiteSpace(this.CurrentEntries[^1])
+            )
+            {
+                this.CurrentEntries.RemoveAt(this.CurrentEntries.Count - 1);
+            }
+
+            this.InTrailerMode = true;
         }
 
         private static (string Version, string Date) ParseVersionHeader(string line)

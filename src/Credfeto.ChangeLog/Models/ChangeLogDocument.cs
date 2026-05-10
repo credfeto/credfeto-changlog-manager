@@ -7,5 +7,6 @@ namespace Credfeto.ChangeLog.Models;
 public sealed record ChangeLogDocument(
     ImmutableArray<string> HeaderLines,
     ChangeLogUnreleased? Unreleased,
-    ImmutableArray<ChangeLogRelease> Releases
+    ImmutableArray<ChangeLogRelease> Releases,
+    ImmutableArray<string> TrailingLines
 );

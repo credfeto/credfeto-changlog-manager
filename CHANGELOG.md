@@ -13,6 +13,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Mock-based unit tests for ChangeLogReader, ChangeLogFixer, ChangeLogLinter, ChangeLogUpdater services using NSubstitute
 - DI registration tests in ChangeLogSetupTests verifying all services are resolvable via AddChangeLog
 - Ensure preamble is inserted on every changelog edit operation (AddEntry, RemoveEntry, CreateRelease, EnsureUnreleasedSections), not only during Fix
+- Support comparison links in version footers - parse and round-trip reference-style links at the bottom of CHANGELOG files
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
