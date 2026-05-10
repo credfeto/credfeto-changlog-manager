@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -7,21 +7,6 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[SuppressMessage(
-    category: "Meziantou.Analyzer",
-    checkId: "MA0045:Use async overload",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.VisualStudio.Threading.Analyzers",
-    checkId: "VSTHRD002",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.Reliability",
-    checkId: "CA2012:UseValueTasksCorrectly",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
 public sealed class ChangeLogUpdaterPreambleTests : TestBase
 {
     private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
@@ -51,16 +36,16 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-    private static ChangeLogDocument Parse(string content)
+    private static ValueTask<ChangeLogDocument> ParseAsync(string content)
     {
         ChangeLogParser parser = new();
-        return parser.ParseAsync(content, default).GetAwaiter().GetResult();
+        return parser.ParseAsync(content, default);
     }
 
-    private static string Serialise(ChangeLogDocument document)
+    private static ValueTask<string> SerialiseAsync(ChangeLogDocument document)
     {
         ChangeLogSerialiser serialiser = new();
-        return serialiser.SerialiseAsync(document, default).GetAwaiter().GetResult();
+        return serialiser.SerialiseAsync(document, default);
     }
 
     private static void AssertContainsPreamble(string result)
@@ -78,11 +63,15 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     }
 
     [Fact]
-    public void AddEntry_WithMissingPreamble_PreambleIsAdded()
+    public async Task AddEntry_WithMissingPreamble_PreambleIsAdded()
     {
-        string result = Serialise(
+        string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
-                ChangeLogUpdater.AddEntry(Parse(ChangeLogWithoutPreamble), "Added", "Another entry")
+                ChangeLogUpdater.AddEntry(
+                    await ParseAsync(ChangeLogWithoutPreamble),
+                    "Added",
+                    "Another entry"
+                )
             )
         );
 
@@ -90,12 +79,12 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     }
 
     [Fact]
-    public void RemoveEntry_WithMissingPreamble_PreambleIsAdded()
+    public async Task RemoveEntry_WithMissingPreamble_PreambleIsAdded()
     {
-        string result = Serialise(
+        string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
                 ChangeLogUpdater.RemoveEntry(
-                    Parse(ChangeLogWithoutPreamble),
+                    await ParseAsync(ChangeLogWithoutPreamble),
                     "Added",
                     "Existing entry"
                 )
@@ -106,12 +95,12 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     }
 
     [Fact]
-    public void CreateRelease_WithMissingPreamble_PreambleIsAdded()
+    public async Task CreateRelease_WithMissingPreamble_PreambleIsAdded()
     {
-        string result = Serialise(
+        string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
                 ChangeLogUpdater.CreateRelease(
-                    Parse(ChangeLogWithoutPreamble),
+                    await ParseAsync(ChangeLogWithoutPreamble),
                     "1.0.0",
                     pending: true,
                     Language
@@ -123,11 +112,14 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     }
 
     [Fact]
-    public void EnsureUnreleasedSections_WithMissingPreamble_PreambleIsAdded()
+    public async Task EnsureUnreleasedSections_WithMissingPreamble_PreambleIsAdded()
     {
-        string result = Serialise(
+        string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
-                ChangeLogUpdater.EnsureUnreleasedSections(Parse(ChangeLogWithoutPreamble), Language)
+                ChangeLogUpdater.EnsureUnreleasedSections(
+                    await ParseAsync(ChangeLogWithoutPreamble),
+                    Language
+                )
             )
         );
 
