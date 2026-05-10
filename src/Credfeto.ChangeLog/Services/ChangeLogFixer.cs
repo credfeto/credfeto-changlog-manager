@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -82,14 +81,17 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
             commentStart >= 0 ? headerLines[..commentStart] : headerLines;
         ImmutableArray<string> after = commentStart >= 0 ? headerLines[commentStart..] : [];
 
-        List<string> result = TrimTrailingBlanks([.. before]);
-        result.Add(string.Empty);
-        result.Add(TemplateFile.PreambleLine1);
-        result.Add(TemplateFile.PreambleLine2);
-        result.Add(string.Empty);
-        result.AddRange(after);
+        ImmutableArray<string> trimmed = TrimTrailingBlanks(before);
 
-        return [.. result];
+        return
+        [
+            .. trimmed,
+            string.Empty,
+            TemplateFile.PreambleLine1,
+            TemplateFile.PreambleLine2,
+            string.Empty,
+            .. after,
+        ];
     }
 
     private static int FindHtmlCommentStart(in ImmutableArray<string> headerLines)
@@ -108,14 +110,16 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         return -1;
     }
 
-    private static List<string> TrimTrailingBlanks(List<string> lines)
+    private static ImmutableArray<string> TrimTrailingBlanks(in ImmutableArray<string> lines)
     {
-        while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1]))
+        int end = lines.Length;
+
+        while (end > 0 && string.IsNullOrWhiteSpace(lines[end - 1]))
         {
-            lines.RemoveAt(lines.Count - 1);
+            end--;
         }
 
-        return lines;
+        return end == lines.Length ? lines : lines[..end];
     }
 
     private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
