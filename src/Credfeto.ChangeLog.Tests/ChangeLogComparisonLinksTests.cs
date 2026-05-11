@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using FunFair.Test.Common;
@@ -6,21 +6,6 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[SuppressMessage(
-    category: "Meziantou.Analyzer",
-    checkId: "MA0045:Use async overload",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.VisualStudio.Threading.Analyzers",
-    checkId: "VSTHRD002",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.Reliability",
-    checkId: "CA2012:UseValueTasksCorrectly",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
 public sealed class ChangeLogComparisonLinksTests : TestBase
 {
     private const string ChangeLogWithComparisonLinks = """
@@ -58,22 +43,22 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
         [1.0.0]: https://github.com/owner/repo/releases/tag/v1.0.0
         """;
 
-    private static ChangeLogDocument Parse(string content)
+    private static ValueTask<ChangeLogDocument> ParseAsync(string content)
     {
         ChangeLogParser parser = new();
-        return parser.ParseAsync(content, default).GetAwaiter().GetResult();
+        return parser.ParseAsync(content, default);
     }
 
-    private static string Serialise(ChangeLogDocument document)
+    private static ValueTask<string> SerialiseAsync(ChangeLogDocument document)
     {
         ChangeLogSerialiser serialiser = new();
-        return serialiser.SerialiseAsync(document, default).GetAwaiter().GetResult();
+        return serialiser.SerialiseAsync(document, default);
     }
 
     [Fact]
-    public void ParseCapturesComparisonLinksInTrailingLines()
+    public async Task ParseCapturesComparisonLinksInTrailingLinesAsync()
     {
-        ChangeLogDocument document = Parse(ChangeLogWithComparisonLinks);
+        ChangeLogDocument document = await ParseAsync(ChangeLogWithComparisonLinks);
 
         Assert.Equal(expected: 3, actual: document.TrailingLines.Length);
         Assert.Contains(
@@ -91,9 +76,9 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
     }
 
     [Fact]
-    public void ComparisonLinksAreNotIncludedInReleaseSections()
+    public async Task ComparisonLinksAreNotIncludedInReleaseSectionsAsync()
     {
-        ChangeLogDocument document = Parse(ChangeLogWithComparisonLinks);
+        ChangeLogDocument document = await ParseAsync(ChangeLogWithComparisonLinks);
 
         foreach (ChangeLogRelease release in document.Releases)
         {
@@ -114,9 +99,9 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
     }
 
     [Fact]
-    public void RoundTripPreservesComparisonLinks()
+    public async Task RoundTripPreservesComparisonLinksAsync()
     {
-        string serialised = Serialise(Parse(ChangeLogWithComparisonLinks));
+        string serialised = await SerialiseAsync(await ParseAsync(ChangeLogWithComparisonLinks));
 
         Assert.Contains(
             "[unreleased]: https://github.com/owner/repo/compare/v1.1.0...HEAD",
@@ -136,10 +121,10 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
     }
 
     [Fact]
-    public void RoundTripWithBlankLineBeforeLinksPreservesLinks()
+    public async Task RoundTripWithBlankLineBeforeLinksPreservesLinksAsync()
     {
-        ChangeLogDocument document = Parse(ChangeLogWithComparisonLinksAndBlankLine);
-        string serialised = Serialise(document);
+        ChangeLogDocument document = await ParseAsync(ChangeLogWithComparisonLinksAndBlankLine);
+        string serialised = await SerialiseAsync(document);
 
         Assert.Contains(
             "[unreleased]: https://github.com/owner/repo/compare/v1.0.0...HEAD",
@@ -154,7 +139,7 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
     }
 
     [Fact]
-    public void DocumentWithoutComparisonLinksHasEmptyTrailingLines()
+    public async Task DocumentWithoutComparisonLinksHasEmptyTrailingLinesAsync()
     {
         const string changeLogWithoutLinks = """
             # Changelog
@@ -169,15 +154,15 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
 
             """;
 
-        ChangeLogDocument document = Parse(changeLogWithoutLinks);
+        ChangeLogDocument document = await ParseAsync(changeLogWithoutLinks);
 
         Assert.Empty(document.TrailingLines);
     }
 
     [Fact]
-    public void ComparisonLinksAppearAfterAllReleasesInSerialisedOutput()
+    public async Task ComparisonLinksAppearAfterAllReleasesInSerialisedOutputAsync()
     {
-        string serialised = Serialise(Parse(ChangeLogWithComparisonLinks));
+        string serialised = await SerialiseAsync(await ParseAsync(ChangeLogWithComparisonLinks));
 
         int lastReleasePos = serialised.LastIndexOf(
             "## [1.0.0]",
