@@ -37,6 +37,8 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
             SerialiseRelease(release, lines);
         }
 
+        lines.AddRange(document.TrailingLines);
+
         return lines.LinesToText();
     }
 
