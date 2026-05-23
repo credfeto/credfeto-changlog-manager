@@ -41,6 +41,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Maintain the keepachangelog.com and semver.org preamble URLs in changelog headers when fixing
 - replace CountOccurrences helper with source-generated regex in ChangeLogFixerTests
 - Replaced System.Linq LINQ .Where() with ZLinq .AsValueEnumerable().Where() to eliminate heap allocation of enumerators
+- Replaced System.Linq .Where() with ZLinq .AsValueEnumerable().Where() to eliminate per-call heap allocations in enumeration hot paths
 ### Deprecated
 ### Removed
 ### Deployment Changes
