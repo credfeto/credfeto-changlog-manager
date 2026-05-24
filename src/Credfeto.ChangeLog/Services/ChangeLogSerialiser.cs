@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Extensions;
@@ -17,10 +16,8 @@ namespace Credfeto.ChangeLog.Services;
 )]
 internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 {
-    public ValueTask<string> SerialiseAsync(
-        ChangeLogDocument document,
-        CancellationToken cancellationToken
-    ) => ValueTask.FromResult(Serialise(document));
+    public ValueTask<string> SerialiseAsync(ChangeLogDocument document, CancellationToken cancellationToken) =>
+        ValueTask.FromResult(Serialise(document));
 
     private static string Serialise(ChangeLogDocument document)
     {
@@ -67,9 +64,12 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
 
         lines.Add(header);
 
-        foreach (ChangeLogSection section in release.Sections.Where(s => s.Entries.Length > 0))
+        foreach (ChangeLogSection section in release.Sections)
         {
-            SerialiseSection(section, lines);
+            if (section.Entries.Length > 0)
+            {
+                SerialiseSection(section, lines);
+            }
         }
 
         lines.Add(string.Empty);
@@ -102,9 +102,7 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
         return [.. result];
     }
 
-    private static Dictionary<string, ChangeLogSection> BuildSectionMap(
-        in ImmutableArray<ChangeLogSection> sections
-    )
+    private static Dictionary<string, ChangeLogSection> BuildSectionMap(in ImmutableArray<ChangeLogSection> sections)
     {
         Dictionary<string, ChangeLogSection> map = new(System.StringComparer.Ordinal);
 
@@ -123,10 +121,11 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
         return map;
     }
 
-    private static ChangeLogSection MergeSections(
-        ChangeLogSection first,
-        ChangeLogSection second
-    ) => first with { Entries = [.. first.Entries, .. second.Entries] };
+    private static ChangeLogSection MergeSections(ChangeLogSection first, ChangeLogSection second) =>
+        first with
+        {
+            Entries = [.. first.Entries, .. second.Entries],
+        };
 
     private static void AddUnknownSections(
         in ImmutableArray<ChangeLogSection> sections,
@@ -134,13 +133,13 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
         List<ChangeLogSection> result
     )
     {
-        HashSet<string> known = new(sectionOrder.AsEnumerable(), System.StringComparer.Ordinal);
+        HashSet<string> known = new(sectionOrder, System.StringComparer.Ordinal);
         HashSet<string> added = new(System.StringComparer.Ordinal);
 
         foreach (
-            ChangeLogSection section in sections.Where(s =>
-                !known.Contains(s.Name) && added.Add(s.Name)
-            )
+            ChangeLogSection section in sections
+                .AsValueEnumerable()
+                .Where(s => !known.Contains(s.Name) && added.Add(s.Name))
         )
         {
             result.Add(section);

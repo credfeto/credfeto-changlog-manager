@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -30,18 +30,12 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument document = await this._storage.LoadAsync(
-            changeLogFileName,
-            cancellationToken
-        );
+        ChangeLogDocument document = await this._storage.LoadAsync(changeLogFileName, cancellationToken);
 
         return Lint(document: document, language: language);
     }
 
-    internal static IReadOnlyList<LintError> Lint(
-        ChangeLogDocument document,
-        ChangeLogLanguage language
-    )
+    internal static IReadOnlyList<LintError> Lint(ChangeLogDocument document, ChangeLogLanguage language)
     {
         List<LintError> errors = [];
         CheckUnreleased(document: document, errors: errors, language: language);
@@ -49,11 +43,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         return errors;
     }
 
-    private static void CheckUnreleased(
-        ChangeLogDocument document,
-        List<LintError> errors,
-        ChangeLogLanguage language
-    )
+    private static void CheckUnreleased(ChangeLogDocument document, List<LintError> errors, ChangeLogLanguage language)
     {
         if (document.Unreleased is null)
         {
@@ -61,11 +51,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
             return;
         }
 
-        CheckUnreleasedSections(
-            unreleased: document.Unreleased,
-            errors: errors,
-            language: language
-        );
+        CheckUnreleasedSections(unreleased: document.Unreleased, errors: errors, language: language);
     }
 
     private static void CheckUnreleasedSections(
@@ -85,14 +71,11 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         CheckBlankLinesAfterHeadings(sections: unreleased.Sections, errors: errors);
     }
 
-    private static void CheckDuplicateSections(
-        in ImmutableArray<ChangeLogSection> sections,
-        List<LintError> errors
-    )
+    private static void CheckDuplicateSections(in ImmutableArray<ChangeLogSection> sections, List<LintError> errors)
     {
         HashSet<string> seen = new(StringComparer.Ordinal);
 
-        foreach (ChangeLogSection section in sections.Where(s => !seen.Add(s.Name)))
+        foreach (ChangeLogSection section in sections.AsValueEnumerable().Where(s => !seen.Add(s.Name)))
         {
             errors.Add(
                 new(
@@ -110,16 +93,13 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
     )
     {
         foreach (
-            ChangeLogSection section in sections.Where(s =>
-                !language.SectionOrder.AsValueEnumerable().Any(n => n.EqualsOrdinal(s.Name))
-            )
+            ChangeLogSection section in sections
+                .AsValueEnumerable()
+                .Where(s => !language.SectionOrder.AsValueEnumerable().Any(n => n.EqualsOrdinal(s.Name)))
         )
         {
             errors.Add(
-                new(
-                    LineNumber: section.LineNumber,
-                    Message: $"Unknown section '### {section.Name}' in [Unreleased]"
-                )
+                new(LineNumber: section.LineNumber, Message: $"Unknown section '### {section.Name}' in [Unreleased]")
             );
         }
     }
@@ -197,14 +177,9 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         List<LintError> errors
     )
     {
-        foreach (ChangeLogSection section in sections.Where(HasLeadingBlank))
+        foreach (ChangeLogSection section in sections.AsValueEnumerable().Where(HasLeadingBlank))
         {
-            errors.Add(
-                new(
-                    LineNumber: section.LineNumber,
-                    Message: $"Blank line after heading '### {section.Name}'"
-                )
-            );
+            errors.Add(new(LineNumber: section.LineNumber, Message: $"Blank line after heading '### {section.Name}'"));
         }
     }
 
@@ -213,10 +188,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         && string.IsNullOrWhiteSpace(section.Entries[0])
         && section.Entries.AsValueEnumerable().Any(e => !string.IsNullOrWhiteSpace(e));
 
-    private static void CheckVersionHeaders(
-        in ImmutableArray<ChangeLogRelease> releases,
-        List<LintError> errors
-    )
+    private static void CheckVersionHeaders(in ImmutableArray<ChangeLogRelease> releases, List<LintError> errors)
     {
         List<(Version Parsed, int LineNumber, string Original)> valid = [];
 
@@ -234,10 +206,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         List<LintError> errors
     )
     {
-        if (
-            !Version.TryParse(input: release.Version, result: out Version? parsed)
-            || parsed.Build < 0
-        )
+        if (!Version.TryParse(input: release.Version, result: out Version? parsed) || parsed.Build < 0)
         {
             errors.Add(
                 new(

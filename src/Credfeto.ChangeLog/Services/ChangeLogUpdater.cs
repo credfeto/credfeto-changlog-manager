@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -34,11 +35,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
     )
     {
         ChangeLogDocument empty = BuildEmptyDocument(language);
-        return this._storage.SaveAsync(
-            changeLogFileName,
-            document: empty,
-            cancellationToken: cancellationToken
-        );
+        return this._storage.SaveAsync(changeLogFileName, document: empty, cancellationToken: cancellationToken);
     }
 
     public async Task AddEntryAsync(
@@ -56,11 +53,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         );
         ChangeLogDocument updated = AddEntry(document: document, type: type, message: message);
         ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
-        await this._storage.SaveAsync(
-            changeLogFileName,
-            document: withPreamble,
-            cancellationToken: cancellationToken
-        );
+        await this._storage.SaveAsync(changeLogFileName, document: withPreamble, cancellationToken: cancellationToken);
     }
 
     public async Task RemoveEntryAsync(
@@ -78,11 +71,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         );
         ChangeLogDocument updated = RemoveEntry(document: document, type: type, message: message);
         ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
-        await this._storage.SaveAsync(
-            changeLogFileName,
-            document: withPreamble,
-            cancellationToken: cancellationToken
-        );
+        await this._storage.SaveAsync(changeLogFileName, document: withPreamble, cancellationToken: cancellationToken);
     }
 
     public async Task CreateReleaseAsync(
@@ -93,10 +82,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument document = await this._storage.LoadAsync(
-            changeLogFileName,
-            cancellationToken
-        );
+        ChangeLogDocument document = await this._storage.LoadAsync(changeLogFileName, cancellationToken);
         ChangeLogDocument updated = CreateRelease(
             document: document,
             version: version,
@@ -104,11 +90,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             language: language
         );
         ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
-        await this._storage.SaveAsync(
-            changeLogFileName,
-            document: withPreamble,
-            cancellationToken: cancellationToken
-        );
+        await this._storage.SaveAsync(changeLogFileName, document: withPreamble, cancellationToken: cancellationToken);
     }
 
     public async ValueTask EnsureUnreleasedSectionsAsync(
@@ -122,23 +104,12 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             language: language,
             cancellationToken: cancellationToken
         );
-        ChangeLogDocument updated = EnsureUnreleasedSections(
-            document: document,
-            language: language
-        );
+        ChangeLogDocument updated = EnsureUnreleasedSections(document: document, language: language);
         ChangeLogDocument withPreamble = ChangeLogFixer.EnsurePreamble(updated);
-        await this._storage.SaveAsync(
-            changeLogFileName,
-            document: withPreamble,
-            cancellationToken: cancellationToken
-        );
+        await this._storage.SaveAsync(changeLogFileName, document: withPreamble, cancellationToken: cancellationToken);
     }
 
-    internal static ChangeLogDocument AddEntry(
-        ChangeLogDocument document,
-        string type,
-        string message
-    )
+    internal static ChangeLogDocument AddEntry(ChangeLogDocument document, string type, string message)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
@@ -153,20 +124,16 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
     }
 
-    internal static ChangeLogDocument RemoveEntry(
-        ChangeLogDocument document,
-        string type,
-        string message
-    )
+    internal static ChangeLogDocument RemoveEntry(ChangeLogDocument document, string type, string message)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
         string prefix = "- " + message;
         ImmutableArray<string> filtered =
         [
-            .. section.Entries.Where(e =>
-                !e.StartsWith(value: prefix, comparisonType: StringComparison.Ordinal)
-            ),
+            .. section
+                .Entries.AsValueEnumerable()
+                .Where(e => !e.StartsWith(value: prefix, comparisonType: StringComparison.Ordinal)),
         ];
         ChangeLogSection updated = section with { Entries = filtered };
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
@@ -181,9 +148,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ValidateVersionNotExists(releases: document.Releases, version: version);
-        ImmutableArray<ChangeLogSection> releaseSections = BuildReleaseSections(
-            unreleased.Sections
-        );
+        ImmutableArray<ChangeLogSection> releaseSections = BuildReleaseSections(unreleased.Sections);
 
         if (releaseSections.IsEmpty)
         {
@@ -191,21 +156,13 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         }
 
         string date = pending ? "TBD" : CurrentDate(language);
-        ChangeLogRelease newRelease = new(
-            Version: version,
-            Date: date,
-            LineNumber: 0,
-            Sections: releaseSections
-        );
+        ChangeLogRelease newRelease = new(Version: version, Date: date, LineNumber: 0, Sections: releaseSections);
         ImmutableArray<ChangeLogRelease> releases = [newRelease, .. document.Releases];
         ChangeLogUnreleased cleared = ClearUnreleasedEntries(unreleased);
         return document with { Unreleased = cleared, Releases = releases };
     }
 
-    internal static ChangeLogDocument EnsureUnreleasedSections(
-        ChangeLogDocument document,
-        ChangeLogLanguage language
-    )
+    internal static ChangeLogDocument EnsureUnreleasedSections(ChangeLogDocument document, ChangeLogLanguage language)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ImmutableArray<ChangeLogSection> ordered = ChangeLogSerialiser.OrderSections(
@@ -219,19 +176,10 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
     {
         ImmutableArray<ChangeLogSection> sections =
         [
-            .. language.SectionOrder.Select(name => new ChangeLogSection(
-                Name: name,
-                LineNumber: 0,
-                Entries: []
-            )),
+            .. language.SectionOrder.Select(name => new ChangeLogSection(Name: name, LineNumber: 0, Entries: [])),
         ];
         ChangeLogUnreleased unreleased = new(LineNumber: 0, Sections: sections, TrailingLines: []);
-        return new ChangeLogDocument(
-            HeaderLines: [],
-            Unreleased: unreleased,
-            Releases: [],
-            TrailingLines: []
-        );
+        return new ChangeLogDocument(HeaderLines: [], Unreleased: unreleased, Releases: [], TrailingLines: []);
     }
 
     private async ValueTask<ChangeLogDocument> LoadOrCreateAsync(
@@ -242,11 +190,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
     {
         if (!File.Exists(changeLogFileName))
         {
-            await this.CreateEmptyAsync(
-                changeLogFileName,
-                language: language,
-                cancellationToken: cancellationToken
-            );
+            await this.CreateEmptyAsync(changeLogFileName, language: language, cancellationToken: cancellationToken);
         }
 
         return await this._storage.LoadAsync(changeLogFileName, cancellationToken);
@@ -318,10 +262,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         checkId: "S3267",
         Justification = "Projection not applicable: full release object needed for exception messages"
     )]
-    private static void ValidateVersionNotExists(
-        in ImmutableArray<ChangeLogRelease> releases,
-        string version
-    )
+    private static void ValidateVersionNotExists(in ImmutableArray<ChangeLogRelease> releases, string version)
     {
         foreach (ChangeLogRelease release in releases)
         {
@@ -343,29 +284,26 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         }
     }
 
-    private static ImmutableArray<ChangeLogSection> BuildReleaseSections(
-        in ImmutableArray<ChangeLogSection> sections
-    )
+    private static ImmutableArray<ChangeLogSection> BuildReleaseSections(in ImmutableArray<ChangeLogSection> sections)
     {
-        return
-        [
-            .. sections
-                .Select(s =>
-                    s with
-                    {
-                        Entries = [.. s.Entries.Where(e => !string.IsNullOrEmpty(e))],
-                    }
-                )
-                .Where(s => s.Entries.Length > 0),
-        ];
+        List<ChangeLogSection> result = [];
+
+        foreach (ChangeLogSection s in sections)
+        {
+            ImmutableArray<string> entries = [.. s.Entries.AsValueEnumerable().Where(e => !string.IsNullOrEmpty(e))];
+
+            if (entries.Length > 0)
+            {
+                result.Add(s with { Entries = entries });
+            }
+        }
+
+        return [.. result];
     }
 
     private static ChangeLogUnreleased ClearUnreleasedEntries(ChangeLogUnreleased unreleased)
     {
-        ImmutableArray<ChangeLogSection> cleared =
-        [
-            .. unreleased.Sections.Select(s => s with { Entries = [] }),
-        ];
+        ImmutableArray<ChangeLogSection> cleared = [.. unreleased.Sections.Select(s => s with { Entries = [] })];
         return unreleased with { Sections = cleared };
     }
 

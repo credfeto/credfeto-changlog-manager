@@ -40,6 +40,7 @@
     <PackageReleaseNotes>$(ReleaseNotes)</PackageReleaseNotes>
     <PackageTags>Changelog, tool, command line</PackageTags>
     <Product>Changelog management tool</Product>
+    <PublishAot>false</PublishAot>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/credfeto/changelog-manager</RepositoryUrl>
     <RunAOTCompilation>false</RunAOTCompilation>
