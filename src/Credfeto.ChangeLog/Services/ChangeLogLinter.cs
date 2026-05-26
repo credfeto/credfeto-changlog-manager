@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Extensions;
@@ -40,6 +41,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         List<LintError> errors = [];
         CheckUnreleased(document: document, errors: errors, language: language);
         CheckVersionHeaders(releases: document.Releases, errors: errors);
+        CheckReleaseDates(releases: document.Releases, errors: errors, language: language);
         return errors;
     }
 
@@ -236,6 +238,49 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
                     )
                 );
             }
+        }
+    }
+
+    private static void CheckReleaseDates(
+        in ImmutableArray<ChangeLogRelease> releases,
+        List<LintError> errors,
+        ChangeLogLanguage language
+    )
+    {
+        foreach (ChangeLogRelease release in releases.AsValueEnumerable())
+        {
+            CheckReleaseDate(release: release, language: language, errors: errors);
+        }
+    }
+
+    private static void CheckReleaseDate(ChangeLogRelease release, ChangeLogLanguage language, List<LintError> errors)
+    {
+        if (string.IsNullOrWhiteSpace(release.Date))
+        {
+            return;
+        }
+
+        if (
+            DateTime.TryParseExact(
+                release.Date,
+                language.DateFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out _
+            )
+        )
+        {
+            return;
+        }
+
+        if (DateTime.TryParse(release.Date, CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+        {
+            errors.Add(
+                new(
+                    LineNumber: release.LineNumber,
+                    Message: $"Release date '{release.Date}' for version '{release.Version}' is not in the expected format '{language.DateFormat}'"
+                )
+            );
         }
     }
 }
