@@ -15,6 +15,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Ensure preamble is inserted on every changelog edit operation (AddEntry, RemoveEntry, CreateRelease, EnsureUnreleasedSections), not only during Fix
 - Support yanked releases (## [version] - date [YANKED]) per Keep a Changelog 1.1.0 spec
 - Support comparison links in version footers - parse and round-trip reference-style links at the bottom of CHANGELOG files
+- Added date format validation to changelog linter to detect incorrectly formatted release dates (#296)
 ### Fixed
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
