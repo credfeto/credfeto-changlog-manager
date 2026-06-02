@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -151,11 +150,7 @@ internal static class Program
                 fixer: services.GetRequiredService<IChangeLogFixer>(),
                 cancellationToken: cancellationToken
             );
-
-            return;
         }
-
-        throw new InvalidOptionsException();
     }
 
     private static ChangeLogLanguage WithAdditionalSections(
@@ -235,11 +230,7 @@ internal static class Program
     {
         Console.WriteLine("Applying fixes...");
 
-        await fixer.FixAsync(
-            changeLogFileName: changeLog,
-            language: language,
-            cancellationToken: cancellationToken
-        );
+        await fixer.FixAsync(changeLogFileName: changeLog, language: language, cancellationToken: cancellationToken);
 
         Console.WriteLine("Fixed. Re-linting...");
 
@@ -294,7 +285,7 @@ internal static class Program
         in CancellationToken cancellationToken
     )
     {
-        string releaseVersion = GetCreateRelease(options);
+        string releaseVersion = options.CreateRelease ?? string.Empty;
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
         Console.WriteLine($"Release Version: {releaseVersion}");
@@ -308,12 +299,6 @@ internal static class Program
         );
     }
 
-    private static string GetCreateRelease(Options options)
-    {
-        return options.CreateRelease
-            ?? throw new InvalidOptionsException(nameof(options.CreateRelease) + " is null");
-    }
-
     private static async Task CheckInsertPositionAsync(
         Options options,
         IChangeLogDetector detector,
@@ -321,7 +306,7 @@ internal static class Program
         CancellationToken cancellationToken
     )
     {
-        string originBranchName = GetCheckInsert(options);
+        string originBranchName = options.CheckInsert ?? string.Empty;
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
         Console.WriteLine($"Branch: {originBranchName}");
@@ -341,12 +326,6 @@ internal static class Program
         throw new ChangeLogInvalidFailedException("Changelog modified in released section");
     }
 
-    private static string GetCheckInsert(Options options)
-    {
-        return options.CheckInsert
-            ?? throw new InvalidOptionsException(nameof(options.CheckInsert) + " is null");
-    }
-
     private static Task AddEntryToUnreleasedChangelogAsync(
         Options options,
         IChangeLogDetector detector,
@@ -355,8 +334,8 @@ internal static class Program
         in CancellationToken cancellationToken
     )
     {
-        string changeType = GetAdd(options);
-        string message = GetMessage(options);
+        string changeType = options.Add ?? string.Empty;
+        string message = options.Message ?? string.Empty;
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
         Console.WriteLine($"Change Type: {changeType}");
@@ -371,11 +350,6 @@ internal static class Program
         );
     }
 
-    private static string GetAdd(Options options)
-    {
-        return options.Add ?? throw new InvalidOptionsException(nameof(options.Add) + " is null");
-    }
-
     private static Task RemoveEntryFromUnreleasedChangelogAsync(
         Options options,
         IChangeLogDetector detector,
@@ -384,8 +358,8 @@ internal static class Program
         in CancellationToken cancellationToken
     )
     {
-        string changeType = GetChangeType(options);
-        string message = GetMessage(options);
+        string changeType = options.Remove ?? string.Empty;
+        string message = options.Message ?? string.Empty;
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
         Console.WriteLine($"Change Type: {changeType}");
@@ -400,18 +374,6 @@ internal static class Program
         );
     }
 
-    private static string GetChangeType(Options options)
-    {
-        return options.Remove
-            ?? throw new InvalidOptionsException(nameof(options.Remove) + " is null");
-    }
-
-    private static string GetMessage(Options options)
-    {
-        return options.Message
-            ?? throw new InvalidOptionsException(nameof(options.Message) + " is null");
-    }
-
     private static async Task ExtractChangeLogTextForVersionAsync(
         Options options,
         IChangeLogDetector detector,
@@ -419,8 +381,8 @@ internal static class Program
         CancellationToken cancellationToken
     )
     {
-        string outputFileName = GetExtract(options);
-        string version = GetVersion(options);
+        string outputFileName = options.Extract ?? string.Empty;
+        string version = options.Version ?? string.Empty;
         string changeLog = FindChangeLog(options, detector);
         Console.WriteLine($"Using Changelog {changeLog}");
         Console.WriteLine($"Version {version}");
@@ -439,18 +401,6 @@ internal static class Program
         );
     }
 
-    private static string GetVersion(Options options)
-    {
-        return options.Version
-            ?? throw new InvalidOptionsException(nameof(options.Version) + " is null");
-    }
-
-    private static string GetExtract(Options options)
-    {
-        return options.Extract
-            ?? throw new InvalidOptionsException(nameof(options.Extract) + " is null");
-    }
-
     private static void NotParsed(IEnumerable<Error> errors)
     {
         Console.WriteLine("Errors:");
@@ -461,27 +411,22 @@ internal static class Program
         }
     }
 
-    private static async Task<int> Main(string[] args)
+    internal static async Task<int> Main(string[] args)
     {
         Console.WriteLine($"{VersionInformation.Product} {VersionInformation.Version}");
 
+        await using ServiceProvider serviceProvider = BuildServiceProvider();
+
         try
         {
-            await using (ServiceProvider serviceProvider = BuildServiceProvider())
-            {
-                ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
+            ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
 
-                return parser.Tag == ParserResultType.Parsed ? SUCCESS : ERROR;
-            }
+            return parser.Tag == ParserResultType.Parsed ? SUCCESS : ERROR;
         }
         catch (Exception exception)
         {
             Console.WriteLine($"ERROR: {exception.Message}");
-
-            if (exception.StackTrace is not null)
-            {
-                Console.WriteLine(exception.StackTrace);
-            }
+            Console.WriteLine(exception.StackTrace);
 
             return ERROR;
         }
