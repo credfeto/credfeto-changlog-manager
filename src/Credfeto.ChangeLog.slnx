@@ -9,6 +9,7 @@
   </Folder>
   <Project Path="Credfeto.ChangeLog.BenchMark.Tests/Credfeto.ChangeLog.BenchMark.Tests.csproj" />
   <Project Path="Credfeto.ChangeLog.Cmd/Credfeto.ChangeLog.Cmd.csproj" />
+  <Project Path="Credfeto.ChangeLog.Cmd.Tests/Credfeto.ChangeLog.Cmd.Tests.csproj" />
   <Project Path="Credfeto.ChangeLog.Tests/Credfeto.ChangeLog.Tests.csproj" />
   <Project Path="Credfeto.ChangeLog/Credfeto.ChangeLog.csproj" />
 </Solution>
