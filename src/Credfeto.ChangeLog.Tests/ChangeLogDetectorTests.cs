@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
+[Collection("Sequential")]
 public sealed class ChangeLogDetectorTests : TestBase
 {
     private static readonly DateTimeOffset FIXED_COMMIT_TIME = new(
@@ -38,10 +39,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         ChangeLogDetector detector = new();
 
         // Verify the method completes without throwing even when called from any directory
-        bool result = detector.TryFindChangeLog(out _);
-
-        // We can't assert a specific value — just assert the bool is a valid bool
-        Assert.True(result || !result, userMessage: "TryFindChangeLog should return a valid bool");
+        detector.TryFindChangeLog(out _);
     }
 
     [Fact]
