@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Exceptions;
 using Credfeto.ChangeLog.Services;
+using Credfeto.ChangeLog.Tests.TestHelpers;
 using FunFair.Test.Common;
 using LibGit2Sharp;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,7 +90,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -136,7 +138,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -165,23 +167,21 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
     [Fact]
-    public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenChangeLogNotModifiedSinceOrigin()
+    public async Task ChangeLogNotInDiffReturnsTrueForReleaseSectionCheck()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
         try
         {
-            (string changeLogPath, string originBranchName, Repository repo) = await CreateRepoWithOriginBranchAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
 
             using (repo)
             {
@@ -203,7 +203,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -215,11 +215,9 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
         try
         {
-            (string changeLogPath, string originBranchName, Repository repo) = await CreateRepoWithOriginBranchAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
 
             using (repo)
             {
@@ -258,7 +256,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -270,11 +268,9 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
         try
         {
-            (string changeLogPath, string originBranchName, Repository repo) = await CreateRepoWithOriginBranchAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
 
             using (repo)
             {
@@ -316,7 +312,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -328,11 +324,9 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
         try
         {
-            (string changeLogPath, string originBranchName, Repository repo) = await CreateRepoWithOriginBranchAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
 
             using (repo)
             {
@@ -375,7 +369,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -387,11 +381,9 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
         try
         {
-            (string changeLogPath, string originBranchName, Repository repo) = await CreateRepoWithOriginBranchAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
 
             using (repo)
             {
@@ -423,7 +415,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -438,8 +430,9 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
             // Initial content WITH trailing newline (to establish baseline)
             const string INITIAL_CHANGE_LOG =
                 "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created\n";
+            byte[] initialBytes = Encoding.UTF8.GetBytes(INITIAL_CHANGE_LOG);
             (string changeLogPath, string originBranchName, Repository repo) =
-                await CreateRepoWithOriginBranchForContentAsync(tempDir, INITIAL_CHANGE_LOG, cancellationToken);
+                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, initialBytes, cancellationToken);
 
             using (repo)
             {
@@ -466,8 +459,34 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
+    }
+
+    // ─── ChangeLogChecker internal method tests ────────────────────────────────
+
+    [Fact]
+    public void RemoveLastLineIfBlankDoesNothingOnEmptyList()
+    {
+        List<string> lines = [];
+        ChangeLogChecker.RemoveLastLineIfBlank(lines);
+        Assert.Empty(lines);
+    }
+
+    [Fact]
+    public void CompareHunkThrowsDiffExceptionForUnknownDiffLinePrefix()
+    {
+        // A line that doesn't start with +, -, or \ triggers the default case
+        List<string> lines = ["@@ -1,1 +1,1 @@", "?unexpected line"];
+        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
+    }
+
+    [Fact]
+    public void CompareHunkThrowsDiffExceptionForNonStandardBackslashLine()
+    {
+        // A line starting with \ that's not "\ No newline at end of file"
+        List<string> lines = ["@@ -1,1 +1,1 @@", @"\ Some other message"];
+        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
     }
 
     /// <summary>
@@ -496,97 +515,5 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
         string branchName = repo.Head.FriendlyName;
         return (changeLogPath, branchName);
-    }
-
-    /// <summary>
-    /// Creates a temp git repo with an initial commit, then creates a named "origin" branch
-    /// pointing to that commit. Returns an open Repository so the caller can add more commits.
-    /// HEAD stays on the original branch (master/main).
-    /// </summary>
-    private static async Task<(
-        string ChangeLogPath,
-        string OriginBranchName,
-        Repository Repo
-    )> CreateRepoWithOriginBranchAsync(string tempDir, string changeLogContent, CancellationToken cancellationToken)
-    {
-        Directory.CreateDirectory(tempDir);
-        string changeLogPath = Path.Combine(tempDir, "CHANGELOG.md");
-        await File.WriteAllTextAsync(changeLogPath, changeLogContent, Encoding.UTF8, cancellationToken);
-
-        string repoPath = Repository.Init(tempDir);
-
-        Repository repo = new(repoPath);
-        repo.Config.Set("user.name", "Test User");
-        repo.Config.Set("user.email", "test@example.com");
-
-        Commands.Stage(repo, changeLogPath);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
-        Commit initialCommit = repo.Commit("Initial commit", author, author);
-
-        const string ORIGIN_BRANCH_NAME = "origin/main";
-        repo.Branches.Add(ORIGIN_BRANCH_NAME, initialCommit);
-
-        return (changeLogPath, ORIGIN_BRANCH_NAME, repo);
-    }
-
-    /// <summary>
-    /// Creates a temp git repo using raw bytes for the initial changelog content.
-    /// </summary>
-    private static async Task<(
-        string ChangeLogPath,
-        string OriginBranchName,
-        Repository Repo
-    )> CreateRepoWithOriginBranchForContentAsync(
-        string tempDir,
-        string changeLogContent,
-        CancellationToken cancellationToken
-    )
-    {
-        Directory.CreateDirectory(tempDir);
-        string changeLogPath = Path.Combine(tempDir, "CHANGELOG.md");
-        byte[] initialBytes = Encoding.UTF8.GetBytes(changeLogContent);
-        await File.WriteAllBytesAsync(changeLogPath, initialBytes, cancellationToken);
-
-        string repoPath = Repository.Init(tempDir);
-
-        Repository repo = new(repoPath);
-        repo.Config.Set("user.name", "Test User");
-        repo.Config.Set("user.email", "test@example.com");
-
-        Commands.Stage(repo, changeLogPath);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
-        Commit initialCommit = repo.Commit("Initial commit", author, author);
-
-        const string ORIGIN_BRANCH_NAME = "origin/main";
-        repo.Branches.Add(ORIGIN_BRANCH_NAME, initialCommit);
-
-        return (changeLogPath, ORIGIN_BRANCH_NAME, repo);
-    }
-
-    private static void DeleteDirectoryIfExists(string path)
-    {
-        if (!Directory.Exists(path))
-        {
-            return;
-        }
-
-        ForceDeleteDirectory(path);
-    }
-
-    private static void ForceDeleteDirectory(string path)
-    {
-        DirectoryInfo di = new(path);
-
-        foreach (FileInfo file in di.GetFiles("*", SearchOption.AllDirectories))
-        {
-            file.Attributes = FileAttributes.Normal;
-        }
-
-        foreach (DirectoryInfo dir in di.GetDirectories("*", SearchOption.AllDirectories))
-        {
-            dir.Attributes = FileAttributes.Normal;
-        }
-
-        di.Delete(true);
     }
 }
