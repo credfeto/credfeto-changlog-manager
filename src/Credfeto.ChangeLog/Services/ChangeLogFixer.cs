@@ -107,14 +107,9 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
 
     private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
     {
-        if (document.Unreleased is null)
-        {
-            return document;
-        }
-
         return document with
         {
-            Unreleased = RemoveBlankLinesFromSections(document.Unreleased),
+            Unreleased = document.Unreleased is not null ? RemoveBlankLinesFromSections(document.Unreleased) : null,
         };
     }
 
