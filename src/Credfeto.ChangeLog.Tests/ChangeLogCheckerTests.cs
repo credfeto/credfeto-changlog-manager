@@ -427,6 +427,49 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         }
     }
 
+    [Fact]
+    public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenOnlyUnreleasedSectionAddedAndTrailingNewlineRemoved()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+
+        try
+        {
+            // Initial content WITH trailing newline (to establish baseline)
+            const string INITIAL_CHANGE_LOG =
+                "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created\n";
+            (string changeLogPath, string originBranchName, Repository repo) =
+                await CreateRepoWithOriginBranchForContentAsync(tempDir, INITIAL_CHANGE_LOG, cancellationToken);
+
+            using (repo)
+            {
+                // Updated content WITHOUT trailing newline, with an extra item in unreleased
+                const string UPDATED_CHANGE_LOG =
+                    "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n- Extra item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created";
+                byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG);
+                await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
+                Commands.Stage(repo, changeLogPath);
+                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                repo.Commit("Add item and remove trailing newline", author, author);
+            }
+
+            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+                changeLogFileName: changeLogPath,
+                originBranchName: originBranchName,
+                cancellationToken: cancellationToken
+            );
+
+            Assert.True(
+                result,
+                userMessage: "Expected true when unreleased section modified and trailing newline removed"
+            );
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(tempDir);
+        }
+    }
+
     /// <summary>
     /// Creates a temp git repo with a changelog. HEAD == origin tip (same commit).
     /// Returns changelog path and the branch name to use as originBranchName.
@@ -469,6 +512,40 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         Directory.CreateDirectory(tempDir);
         string changeLogPath = Path.Combine(tempDir, "CHANGELOG.md");
         await File.WriteAllTextAsync(changeLogPath, changeLogContent, Encoding.UTF8, cancellationToken);
+
+        string repoPath = Repository.Init(tempDir);
+
+        Repository repo = new(repoPath);
+        repo.Config.Set("user.name", "Test User");
+        repo.Config.Set("user.email", "test@example.com");
+
+        Commands.Stage(repo, changeLogPath);
+        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Commit initialCommit = repo.Commit("Initial commit", author, author);
+
+        const string ORIGIN_BRANCH_NAME = "origin/main";
+        repo.Branches.Add(ORIGIN_BRANCH_NAME, initialCommit);
+
+        return (changeLogPath, ORIGIN_BRANCH_NAME, repo);
+    }
+
+    /// <summary>
+    /// Creates a temp git repo using raw bytes for the initial changelog content.
+    /// </summary>
+    private static async Task<(
+        string ChangeLogPath,
+        string OriginBranchName,
+        Repository Repo
+    )> CreateRepoWithOriginBranchForContentAsync(
+        string tempDir,
+        string changeLogContent,
+        CancellationToken cancellationToken
+    )
+    {
+        Directory.CreateDirectory(tempDir);
+        string changeLogPath = Path.Combine(tempDir, "CHANGELOG.md");
+        byte[] initialBytes = Encoding.UTF8.GetBytes(changeLogContent);
+        await File.WriteAllBytesAsync(changeLogPath, initialBytes, cancellationToken);
 
         string repoPath = Repository.Init(tempDir);
 
