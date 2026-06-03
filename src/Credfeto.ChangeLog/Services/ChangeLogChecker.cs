@@ -207,6 +207,10 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
             {
                 before.Add(line[1..]);
             }
+            else if (line[0] == '\\')
+            {
+                // "\ No newline at end of file" — skip silently
+            }
         }
 
         return (before, after);
