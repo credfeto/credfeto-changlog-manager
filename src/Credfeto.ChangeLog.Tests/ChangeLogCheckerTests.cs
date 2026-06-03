@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -14,12 +14,13 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-public sealed class ChangeLogCheckerTests : TestBase, IDisposable
+public sealed class ChangeLogCheckerTests : LoggingFolderCleanupTestBase, IDisposable
 {
     private readonly ServiceProvider _serviceProvider;
     private readonly IChangeLogChecker _checker;
 
-    public ChangeLogCheckerTests()
+    public ChangeLogCheckerTests(ITestOutputHelper output)
+        : base(output)
     {
         ServiceCollection services = new();
         services.AddChangeLog();
@@ -60,28 +61,20 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
     public async Task ChangeLogModifiedInReleaseSectionReturnsFalseWhenNoReleasesExist()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-        try
-        {
-            (string changeLogPath, string branchName) = await CreateRepoWithChangeLogAsync(
-                tempDir,
-                CHANGE_LOG_ONLY_UNRELEASED,
-                cancellationToken
-            );
+        (string changeLogPath, string branchName) = await CreateRepoWithChangeLogAsync(
+            this.TempFolder,
+            CHANGE_LOG_ONLY_UNRELEASED,
+            cancellationToken
+        );
 
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: branchName,
-                cancellationToken: cancellationToken
-            );
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: branchName,
+            cancellationToken: cancellationToken
+        );
 
-            Assert.False(result, userMessage: "Expected false when changelog has no releases");
-        }
-        finally
-        {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
-        }
+        Assert.False(result, userMessage: "Expected false when changelog has no releases");
     }
 
     [Fact]
@@ -107,350 +100,302 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
     public async Task ChangeLogModifiedInReleaseSectionReturnsFalseWhenHeadIsAtSameShaAsOrigin()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-        try
-        {
-            (string changeLogPath, string branchName) = await CreateRepoWithChangeLogAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
-            );
+        (string changeLogPath, string branchName) = await CreateRepoWithChangeLogAsync(
+            this.TempFolder,
+            CHANGE_LOG_WITH_RELEASES,
+            cancellationToken
+        );
 
-            // HEAD equals origin tip → should return false
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: branchName,
-                cancellationToken: cancellationToken
-            );
+        // HEAD equals origin tip → should return false
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: branchName,
+            cancellationToken: cancellationToken
+        );
 
-            Assert.False(result, userMessage: "Expected false when HEAD is at the same SHA as origin branch");
-        }
-        finally
-        {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
-        }
+        Assert.False(result, userMessage: "Expected false when HEAD is at the same SHA as origin branch");
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionThrowsWhenBranchDoesNotExist()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-        try
+        (string changeLogPath, _) = await CreateRepoWithChangeLogAsync(
+            this.TempFolder,
+            CHANGE_LOG_WITH_RELEASES,
+            cancellationToken
+        );
+
+        await Assert.ThrowsAsync<BranchMissingException>(async () =>
         {
-            (string changeLogPath, _) = await CreateRepoWithChangeLogAsync(
-                tempDir,
-                CHANGE_LOG_WITH_RELEASES,
-                cancellationToken
+            await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+                changeLogFileName: changeLogPath,
+                originBranchName: "nonexistent/branch",
+                cancellationToken: cancellationToken
             );
-
-            await Assert.ThrowsAsync<BranchMissingException>(async () =>
-            {
-                await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                    changeLogFileName: changeLogPath,
-                    originBranchName: "nonexistent/branch",
-                    cancellationToken: cancellationToken
-                );
-            });
-        }
-        finally
-        {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
-        }
+        });
     }
 
     [Fact]
     public async Task ChangeLogNotInDiffReturnsTrueForReleaseSectionCheck()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
-        try
-        {
-            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
-
-            using (repo)
-            {
-                // Add a second commit that changes a different file (not the changelog)
-                string readmePath = Path.Combine(tempDir, "README.md");
-                await File.WriteAllTextAsync(readmePath, "# Updated README", Encoding.UTF8, cancellationToken);
-                Commands.Stage(repo, readmePath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Add README", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                changeLogBytes,
+                cancellationToken
             );
 
-            Assert.True(result, userMessage: "Expected true when changelog was not modified at all since origin");
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            // Add a second commit that changes a different file (not the changelog)
+            string readmePath = Path.Combine(this.TempFolder, "README.md");
+            await File.WriteAllTextAsync(readmePath, "# Updated README", Encoding.UTF8, cancellationToken);
+            Commands.Stage(repo, readmePath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Add README", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        Assert.True(result, userMessage: "Expected true when changelog was not modified at all since origin");
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenOnlyUnreleasedSectionChanged()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
-        try
-        {
-            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
-
-            using (repo)
-            {
-                const string UPDATED_CHANGE_LOG = """
-                    # Changelog
-                    All notable changes to this project will be documented in this file.
-
-                    ## [Unreleased]
-                    ### Added
-                    - Some unreleased item
-                    - Another unreleased item
-
-                    ## [1.0.0] - 2024-01-01
-                    ### Added
-                    - First release item
-
-                    ## [0.0.0] - Project created
-                    """;
-
-                await File.WriteAllTextAsync(changeLogPath, UPDATED_CHANGE_LOG, Encoding.UTF8, cancellationToken);
-                Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Add unreleased item", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                changeLogBytes,
+                cancellationToken
             );
 
-            Assert.True(
-                result,
-                userMessage: "Expected true (no release-section modification) when only the unreleased section was changed"
-            );
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            const string UPDATED_CHANGE_LOG = """
+                # Changelog
+                All notable changes to this project will be documented in this file.
+
+                ## [Unreleased]
+                ### Added
+                - Some unreleased item
+                - Another unreleased item
+
+                ## [1.0.0] - 2024-01-01
+                ### Added
+                - First release item
+
+                ## [0.0.0] - Project created
+                """;
+
+            await File.WriteAllTextAsync(changeLogPath, UPDATED_CHANGE_LOG, Encoding.UTF8, cancellationToken);
+            Commands.Stage(repo, changeLogPath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Add unreleased item", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        Assert.True(
+            result,
+            userMessage: "Expected true (no release-section modification) when only the unreleased section was changed"
+        );
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionReturnsFalseWhenReleaseSectionModified()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
-        try
-        {
-            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
-
-            using (repo)
-            {
-                // Modify the RELEASE section (lines after ## [1.0.0])
-                const string UPDATED_CHANGE_LOG_RELEASE_MODIFIED = """
-                    # Changelog
-                    All notable changes to this project will be documented in this file.
-
-                    ## [Unreleased]
-                    ### Added
-                    - Some unreleased item
-
-                    ## [1.0.0] - 2024-01-01
-                    ### Added
-                    - First release item
-                    - Sneaked in item
-
-                    ## [0.0.0] - Project created
-                    """;
-
-                await File.WriteAllTextAsync(
-                    changeLogPath,
-                    UPDATED_CHANGE_LOG_RELEASE_MODIFIED,
-                    Encoding.UTF8,
-                    cancellationToken
-                );
-                Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Modify release section", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                changeLogBytes,
+                cancellationToken
             );
 
-            Assert.False(result, userMessage: "Expected false when the release section was modified");
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            // Modify the RELEASE section (lines after ## [1.0.0])
+            const string UPDATED_CHANGE_LOG_RELEASE_MODIFIED = """
+                # Changelog
+                All notable changes to this project will be documented in this file.
+
+                ## [Unreleased]
+                ### Added
+                - Some unreleased item
+
+                ## [1.0.0] - 2024-01-01
+                ### Added
+                - First release item
+                - Sneaked in item
+
+                ## [0.0.0] - Project created
+                """;
+
+            await File.WriteAllTextAsync(
+                changeLogPath,
+                UPDATED_CHANGE_LOG_RELEASE_MODIFIED,
+                Encoding.UTF8,
+                cancellationToken
+            );
+            Commands.Stage(repo, changeLogPath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Modify release section", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        Assert.False(result, userMessage: "Expected false when the release section was modified");
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenUnreleasedItemRemoved()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
-        try
-        {
-            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
-
-            using (repo)
-            {
-                // Remove the unreleased item (- line in diff)
-                const string UPDATED_CHANGE_LOG_ITEM_REMOVED = """
-                    # Changelog
-                    All notable changes to this project will be documented in this file.
-
-                    ## [Unreleased]
-                    ### Added
-
-                    ## [1.0.0] - 2024-01-01
-                    ### Added
-                    - First release item
-
-                    ## [0.0.0] - Project created
-                    """;
-
-                await File.WriteAllTextAsync(
-                    changeLogPath,
-                    UPDATED_CHANGE_LOG_ITEM_REMOVED,
-                    Encoding.UTF8,
-                    cancellationToken
-                );
-                Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Remove unreleased item", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                changeLogBytes,
+                cancellationToken
             );
 
-            Assert.True(
-                result,
-                userMessage: "Expected true (no release-section modification) when an unreleased item was removed"
-            );
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            // Remove the unreleased item (- line in diff)
+            const string UPDATED_CHANGE_LOG_ITEM_REMOVED = """
+                # Changelog
+                All notable changes to this project will be documented in this file.
+
+                ## [Unreleased]
+                ### Added
+
+                ## [1.0.0] - 2024-01-01
+                ### Added
+                - First release item
+
+                ## [0.0.0] - Project created
+                """;
+
+            await File.WriteAllTextAsync(
+                changeLogPath,
+                UPDATED_CHANGE_LOG_ITEM_REMOVED,
+                Encoding.UTF8,
+                cancellationToken
+            );
+            Commands.Stage(repo, changeLogPath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Remove unreleased item", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        Assert.True(
+            result,
+            userMessage: "Expected true (no release-section modification) when an unreleased item was removed"
+        );
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenChangelogModifiedWithoutTrailingNewline()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-
-        try
-        {
-            byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, changeLogBytes, cancellationToken);
-
-            using (repo)
-            {
-                // Write file without trailing newline - this triggers "\ No newline at end of file" in git diff
-                const string UPDATED_CHANGE_LOG_NO_NEWLINE =
-                    "# Changelog\nAll notable changes to this project will be documented in this file.\n\n"
-                    + "## [Unreleased]\n### Added\n- Some unreleased item\n- Another item\n\n"
-                    + "## [1.0.0] - 2024-01-01\n### Added\n- First release item\n\n"
-                    + "## [0.0.0] - Project created";
-
-                byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG_NO_NEWLINE);
-                await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
-                Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Update changelog without trailing newline", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        byte[] changeLogBytes = Encoding.UTF8.GetBytes(CHANGE_LOG_WITH_RELEASES);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                changeLogBytes,
+                cancellationToken
             );
 
-            // The change is in the unreleased section, should return true (OK)
-            Assert.True(
-                result,
-                userMessage: "Expected true when changelog modification is in unreleased section (no trailing newline case)"
-            );
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            // Write file without trailing newline - this triggers "\ No newline at end of file" in git diff
+            const string UPDATED_CHANGE_LOG_NO_NEWLINE =
+                "# Changelog\nAll notable changes to this project will be documented in this file.\n\n"
+                + "## [Unreleased]\n### Added\n- Some unreleased item\n- Another item\n\n"
+                + "## [1.0.0] - 2024-01-01\n### Added\n- First release item\n\n"
+                + "## [0.0.0] - Project created";
+
+            byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG_NO_NEWLINE);
+            await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
+            Commands.Stage(repo, changeLogPath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Update changelog without trailing newline", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        // The change is in the unreleased section, should return true (OK)
+        Assert.True(
+            result,
+            userMessage: "Expected true when changelog modification is in unreleased section (no trailing newline case)"
+        );
     }
 
     [Fact]
     public async Task ChangeLogModifiedInReleaseSectionReturnsTrueWhenOnlyUnreleasedSectionAddedAndTrailingNewlineRemoved()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
-        try
-        {
-            // Initial content WITH trailing newline (to establish baseline)
-            const string INITIAL_CHANGE_LOG =
-                "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created\n";
-            byte[] initialBytes = Encoding.UTF8.GetBytes(INITIAL_CHANGE_LOG);
-            (string changeLogPath, string originBranchName, Repository repo) =
-                await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(tempDir, initialBytes, cancellationToken);
-
-            using (repo)
-            {
-                // Updated content WITHOUT trailing newline, with an extra item in unreleased
-                const string UPDATED_CHANGE_LOG =
-                    "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n- Extra item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created";
-                byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG);
-                await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
-                Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
-                repo.Commit("Add item and remove trailing newline", author, author);
-            }
-
-            bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
-                changeLogFileName: changeLogPath,
-                originBranchName: originBranchName,
-                cancellationToken: cancellationToken
+        // Initial content WITH trailing newline (to establish baseline)
+        const string INITIAL_CHANGE_LOG =
+            "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created\n";
+        byte[] initialBytes = Encoding.UTF8.GetBytes(INITIAL_CHANGE_LOG);
+        (string changeLogPath, string originBranchName, Repository repo) =
+            await GitRepositoryHelpers.CreateRepoWithOriginBranchAsync(
+                this.TempFolder,
+                initialBytes,
+                cancellationToken
             );
 
-            Assert.True(
-                result,
-                userMessage: "Expected true when unreleased section modified and trailing newline removed"
-            );
-        }
-        finally
+        using (repo)
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            // Updated content WITHOUT trailing newline, with an extra item in unreleased
+            const string UPDATED_CHANGE_LOG =
+                "# Changelog\n\n## [Unreleased]\n### Added\n- Item\n- Extra item\n\n## [1.0.0] - 2024-01-01\n### Added\n- First\n\n## [0.0.0] - Created";
+            byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG);
+            await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
+            Commands.Stage(repo, changeLogPath);
+            Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+            repo.Commit("Add item and remove trailing newline", author, author);
         }
+
+        bool result = await this._checker.ChangeLogModifiedInReleaseSectionAsync(
+            changeLogFileName: changeLogPath,
+            originBranchName: originBranchName,
+            cancellationToken: cancellationToken
+        );
+
+        Assert.True(result, userMessage: "Expected true when unreleased section modified and trailing newline removed");
     }
 
     /// <summary>
