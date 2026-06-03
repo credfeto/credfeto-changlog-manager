@@ -199,28 +199,13 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
         foreach (string line in lines.Skip(lastHunk + 1))
         {
-            switch (line[0])
+            if (line[0] == '+')
             {
-                case '+':
-                    after.Add(line[1..]);
-
-                    break;
-
-                case '-':
-                    before.Add(line[1..]);
-
-                    break;
-
-                case '\\':
-                    if (line.EqualsOrdinal(@"\ No newline at end of file"))
-                    {
-                        break;
-                    }
-
-                    return Throws.CouldNotProcessDiffLine(line);
-
-                default:
-                    return Throws.CouldNotProcessDiffLine(line);
+                after.Add(line[1..]);
+            }
+            else if (line[0] == '-')
+            {
+                before.Add(line[1..]);
             }
         }
 
