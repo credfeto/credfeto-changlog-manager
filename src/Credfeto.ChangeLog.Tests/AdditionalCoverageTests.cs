@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
+using Credfeto.ChangeLog.Exceptions;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Helpers;
 using Credfeto.ChangeLog.Models;
@@ -375,15 +376,11 @@ public sealed class AdditionalCoverageTests : TestBase, IDisposable
         );
     }
 
-    // ─── ChangeLogFixer.RemoveBlankLinesAfterHeadings (document without unreleased section) ─
+    // ─── ChangeLogFixer.RemoveBlankLinesAfterHeadings - null Unreleased ─────────
 
     [Fact]
-    public void RemoveBlankLinesAfterHeadingsDoesNotCrashOnDocumentWithoutUnreleased()
+    public void RemoveBlankLinesAfterHeadingsReturnsDocumentUnchangedWhenUnreleasedIsNull()
     {
-        // RemoveBlankLinesAfterHeadings specifically handles null Unreleased gracefully
-        // The public Fix method requires Unreleased to exist - we test the branch
-        // by calling with a document whose Unreleased is null.
-        // ChangeLogFixer.Fix would throw; test by using EnsurePreamble only.
         const string changeLog = """
             # Changelog
 
@@ -393,10 +390,12 @@ public sealed class AdditionalCoverageTests : TestBase, IDisposable
             """;
 
         ChangeLogDocument document = Parse(changeLog);
+        Assert.Null(document.Unreleased);
 
-        // EnsurePreamble handles null Unreleased gracefully
-        ChangeLogDocument result = ChangeLogFixer.EnsurePreamble(document);
+        // Directly test RemoveBlankLinesAfterHeadings with null Unreleased
+        ChangeLogDocument result = ChangeLogFixer.RemoveBlankLinesAfterHeadings(document);
         Assert.Null(result.Unreleased);
+        Assert.Same(expected: document, actual: result);
     }
 
     // ─── RemoveEntryAsync via real file I/O ───────────────────────────────────────
@@ -451,6 +450,34 @@ public sealed class AdditionalCoverageTests : TestBase, IDisposable
                 File.Delete(fileName);
             }
         }
+    }
+
+    // ─── ChangeLogChecker.RemoveLastLineIfBlank - empty list ─────────────────────
+
+    [Fact]
+    public void RemoveLastLineIfBlankDoesNothingOnEmptyList()
+    {
+        List<string> lines = [];
+        ChangeLogChecker.RemoveLastLineIfBlank(lines);
+        Assert.Empty(lines);
+    }
+
+    // ─── ChangeLogChecker.CompareHunk - defensive throws ─────────────────────────
+
+    [Fact]
+    public void CompareHunkThrowsDiffExceptionForUnknownDiffLinePrefix()
+    {
+        // A line that doesn't start with +, -, or \ triggers the default case
+        List<string> lines = ["@@ -1,1 +1,1 @@", "?unexpected line"];
+        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
+    }
+
+    [Fact]
+    public void CompareHunkThrowsDiffExceptionForNonStandardBackslashLine()
+    {
+        // A line starting with \ that's not "\ No newline at end of file"
+        List<string> lines = ["@@ -1,1 +1,1 @@", @"\ Some other message"];
+        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
     }
 
     // ─── RegexTimeouts static class ───────────────────────────────────────────────
