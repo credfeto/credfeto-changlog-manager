@@ -1,24 +1,14 @@
-﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FunFair.Test.Common.Mocks;
 using LibGit2Sharp;
 
 namespace Credfeto.ChangeLog.Tests.TestHelpers;
 
 internal static class GitRepositoryHelpers
 {
-    private static readonly DateTimeOffset FixedCommitTime = new(
-        year: 2024,
-        month: 1,
-        day: 1,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        offset: TimeSpan.Zero
-    );
-
     public static void DeleteDirectoryIfExists(string path)
     {
         if (!Directory.Exists(path))
@@ -69,7 +59,7 @@ internal static class GitRepositoryHelpers
         repo.Config.Set("user.email", "test@example.com");
 
         Commands.Stage(repo, changeLogPath);
-        Signature author = new("Test User", "test@example.com", FixedCommitTime);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         Commit initialCommit = repo.Commit("Initial commit", author, author);
 
         const string ORIGIN_BRANCH_NAME = "origin/main";
