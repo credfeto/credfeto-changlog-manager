@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Services;
+using Credfeto.ChangeLog.Tests.TestHelpers;
 using FunFair.Test.Common;
 using LibGit2Sharp;
 using Xunit;
@@ -77,7 +78,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -112,7 +113,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -147,7 +148,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -182,7 +183,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -216,7 +217,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         }
         finally
         {
-            DeleteDirectoryIfExists(tempDir);
+            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
     }
 
@@ -314,32 +315,5 @@ public sealed class ChangeLogDetectorTests : TestBase
         Commands.Stage(repo, changeLog2);
         Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
         repo.Commit("Initial commit", author, author);
-    }
-
-    private static void DeleteDirectoryIfExists(string path)
-    {
-        if (!Directory.Exists(path))
-        {
-            return;
-        }
-
-        ForceDeleteDirectory(path);
-    }
-
-    private static void ForceDeleteDirectory(string path)
-    {
-        DirectoryInfo di = new(path);
-
-        foreach (FileInfo file in di.GetFiles("*", SearchOption.AllDirectories))
-        {
-            file.Attributes = FileAttributes.Normal;
-        }
-
-        foreach (DirectoryInfo dir in di.GetDirectories("*", SearchOption.AllDirectories))
-        {
-            dir.Attributes = FileAttributes.Normal;
-        }
-
-        di.Delete(true);
     }
 }
