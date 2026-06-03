@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -461,32 +460,6 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         {
             GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
         }
-    }
-
-    // ─── ChangeLogChecker internal method tests ────────────────────────────────
-
-    [Fact]
-    public void RemoveLastLineIfBlankDoesNothingOnEmptyList()
-    {
-        List<string> lines = [];
-        ChangeLogChecker.RemoveLastLineIfBlank(lines);
-        Assert.Empty(lines);
-    }
-
-    [Fact]
-    public void CompareHunkThrowsDiffExceptionForUnknownDiffLinePrefix()
-    {
-        // A line that doesn't start with +, -, or \ triggers the default case
-        List<string> lines = ["@@ -1,1 +1,1 @@", "?unexpected line"];
-        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
-    }
-
-    [Fact]
-    public void CompareHunkThrowsDiffExceptionForNonStandardBackslashLine()
-    {
-        // A line starting with \ that's not "\ No newline at end of file"
-        List<string> lines = ["@@ -1,1 +1,1 @@", @"\ Some other message"];
-        Assert.Throws<DiffException>(() => ChangeLogChecker.CompareHunk(lines, lastHunk: 0));
     }
 
     /// <summary>

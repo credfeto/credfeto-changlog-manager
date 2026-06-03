@@ -105,7 +105,7 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         return end == lines.Length ? lines : lines[..end];
     }
 
-    internal static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
+    private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
     {
         if (document.Unreleased is null)
         {
