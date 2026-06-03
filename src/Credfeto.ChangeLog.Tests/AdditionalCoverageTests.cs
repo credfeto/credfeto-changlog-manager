@@ -116,7 +116,7 @@ public sealed class AdditionalCoverageTests : TestBase, IDisposable
             """;
 
         ChangeLogDocument document = Parse(simpleChangeLog);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
@@ -169,7 +169,7 @@ public sealed class AdditionalCoverageTests : TestBase, IDisposable
             """;
 
         ChangeLogDocument document = Parse(simpleChangeLog);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
