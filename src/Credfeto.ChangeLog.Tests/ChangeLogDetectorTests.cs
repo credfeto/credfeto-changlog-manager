@@ -6,24 +6,14 @@ using System.Threading.Tasks;
 using Credfeto.ChangeLog.Services;
 using Credfeto.ChangeLog.Tests.TestHelpers;
 using FunFair.Test.Common;
+using FunFair.Test.Common.Mocks;
 using LibGit2Sharp;
 using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[Collection("Sequential")]
 public sealed class ChangeLogDetectorTests : TestBase
 {
-    private static readonly DateTimeOffset FIXED_COMMIT_TIME = new(
-        year: 2024,
-        month: 1,
-        day: 1,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        offset: TimeSpan.Zero
-    );
-
     private const string SIMPLE_CHANGE_LOG = """
         # Changelog
         All notable changes to this project will be documented in this file.
@@ -238,7 +228,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         repo.Config.Set("user.email", "test@example.com");
 
         Commands.Stage(repo, changeLogPath);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
     }
 
@@ -255,7 +245,7 @@ public sealed class ChangeLogDetectorTests : TestBase
         repo.Config.Set("user.email", "test@example.com");
 
         Commands.Stage(repo, readmePath);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
     }
 
@@ -283,7 +273,7 @@ public sealed class ChangeLogDetectorTests : TestBase
 
         Commands.Stage(repo, rootChangeLog);
         Commands.Stage(repo, subChangeLog);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
     }
 
@@ -313,7 +303,7 @@ public sealed class ChangeLogDetectorTests : TestBase
 
         Commands.Stage(repo, changeLog1);
         Commands.Stage(repo, changeLog2);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
     }
 }
