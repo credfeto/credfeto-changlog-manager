@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using Credfeto.ChangeLog.Tests.TestHelpers;
@@ -9,21 +9,6 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-[SuppressMessage(
-    category: "Meziantou.Analyzer",
-    checkId: "MA0045:Use async overload",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.VisualStudio.Threading.Analyzers",
-    checkId: "VSTHRD002",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
-[SuppressMessage(
-    category: "Microsoft.Reliability",
-    checkId: "CA2012:UseValueTasksCorrectly",
-    Justification = "Helpers synchronously wrap pure parse/serialise ValueTasks"
-)]
 public sealed class ChangeLogSerialiserTests : TestBase
 {
     private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
@@ -31,7 +16,7 @@ public sealed class ChangeLogSerialiserTests : TestBase
     );
 
     [Fact]
-    public void OrderSectionsMergesDuplicateSectionsWithSameName()
+    public async Task OrderSectionsMergesDuplicateSectionsWithSameName()
     {
         const string changeLog = """
             # Changelog
@@ -48,7 +33,7 @@ public sealed class ChangeLogSerialiserTests : TestBase
             ## [0.0.0] - Project created
             """;
 
-        ChangeLogDocument document = ChangeLogTestHelper.Parse(changeLog);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(changeLog);
         ImmutableArray<ChangeLogSection> sections = document.Unreleased?.Sections ?? [];
 
         // OrderSections will merge duplicate "Added" sections

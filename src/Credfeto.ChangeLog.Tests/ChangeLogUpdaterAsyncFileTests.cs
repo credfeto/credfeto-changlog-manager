@@ -40,7 +40,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
     }
 
     [Fact]
-    public void CreateReleaseWithPendingFalseUsesCurrentDate()
+    public async Task CreateReleaseWithPendingFalseUsesCurrentDate()
     {
         const string changeLog = """
             # Changelog
@@ -58,7 +58,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
             ## [0.0.0] - Project created
             """;
 
-        ChangeLogDocument document = ChangeLogTestHelper.Parse(changeLog);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(changeLog);
         ChangeLogDocument result = ChangeLogUpdater.CreateRelease(
             document: document,
             version: "1.0.0",
@@ -96,7 +96,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
             ## [0.0.0] - Project created
             """;
 
-        ChangeLogDocument document = ChangeLogTestHelper.Parse(simpleChangeLog);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(simpleChangeLog);
         IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
@@ -147,7 +147,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
             ## [0.0.0] - Project created
             """;
 
-        ChangeLogDocument document = ChangeLogTestHelper.Parse(simpleChangeLog);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(simpleChangeLog);
         IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
