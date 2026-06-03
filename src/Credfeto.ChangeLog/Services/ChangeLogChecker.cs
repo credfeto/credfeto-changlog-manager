@@ -192,7 +192,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return string.Join(separator: Environment.NewLine, values: lines);
     }
 
-    internal static (List<string> before, List<string> after) CompareHunk(List<string> lines, int lastHunk)
+    private static (List<string> before, List<string> after) CompareHunk(List<string> lines, int lastHunk)
     {
         List<string> before = [];
         List<string> after = [];
@@ -227,7 +227,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return (before, after);
     }
 
-    internal static void RemoveLastLineIfBlank(List<string> lines)
+    private static void RemoveLastLineIfBlank(List<string> lines)
     {
         int lastLine = lines.Count - 1;
 
