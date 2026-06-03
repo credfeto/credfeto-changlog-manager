@@ -231,11 +231,6 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
     {
         int lastLine = lines.Count - 1;
 
-        if (lastLine < 0)
-        {
-            return;
-        }
-
         if (string.IsNullOrEmpty(lines[lastLine]))
         {
             lines.RemoveAt(lastLine);
