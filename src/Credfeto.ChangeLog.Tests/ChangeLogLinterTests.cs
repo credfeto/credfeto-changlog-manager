@@ -417,4 +417,91 @@ public sealed class ChangeLogLinterTests : TestBase
                 && e.Message.Contains(value: "descending order", comparisonType: StringComparison.Ordinal)
         );
     }
+
+    [Fact]
+    public void SectionOutOfOrder_ReturnsError()
+    {
+        const string changeLog = """
+            # Changelog
+
+            ## [Unreleased]
+            ### Added
+            ### Security
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [0.0.0] - Project created
+            """;
+
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
+
+        Assert.Contains(
+            errors,
+            e => e.Message.Contains(value: "out of order", comparisonType: StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void TbdDateInRelease_ReturnsNoDateFormatError()
+    {
+        const string changeLog = """
+            # Changelog
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [1.0.0] - TBD
+            ### Added
+            - Initial release
+
+            ## [0.0.0] - Project created
+            """;
+
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
+
+        Assert.DoesNotContain(
+            errors,
+            e => e.Message.Contains(value: "not in the expected format", comparisonType: StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void CheckReleaseDateWithBlankDateReturnsNoError()
+    {
+        // A release with an empty date (just version, no date) should not produce a date format error
+        const string changeLog = """
+            # Changelog
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+            ### Fixed
+            ### Changed
+            ### Deprecated
+            ### Removed
+            ### Deployment Changes
+
+            ## [1.0.0]
+            ### Added
+            - Initial release
+
+            ## [0.0.0] - Project created
+            """;
+
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(changeLog), Language);
+
+        Assert.DoesNotContain(
+            errors,
+            e => e.Message.Contains(value: "not in the expected format", comparisonType: StringComparison.Ordinal)
+        );
+    }
 }

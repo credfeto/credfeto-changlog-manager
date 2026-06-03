@@ -223,6 +223,25 @@ public sealed partial class ChangeLogFixerTests : TestBase
         Assert.True(preambleIndex < commentIndex, "Preamble should appear before HTML comment");
     }
 
+    [Fact]
+    public void RemoveBlankLinesAfterHeadingsReturnsDocumentUnchangedWhenUnreleasedIsNull()
+    {
+        const string changeLog = """
+            # Changelog
+
+            ## [1.0.0] - 2024-01-01
+            ### Added
+            - Initial release
+            """;
+
+        ChangeLogDocument document = Parse(changeLog);
+        Assert.Null(document.Unreleased);
+
+        ChangeLogDocument result = ChangeLogFixer.RemoveBlankLinesAfterHeadings(document);
+        Assert.Null(result.Unreleased);
+        Assert.Same(expected: document, actual: result);
+    }
+
     [GeneratedRegex(
         pattern: @"The format is based on \[Keep a Changelog\]\(https://keepachangelog\.com/en/1\.1\.0/\),",
         options: RegexOptions.None,
