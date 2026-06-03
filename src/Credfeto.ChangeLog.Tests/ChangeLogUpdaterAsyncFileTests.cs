@@ -19,7 +19,7 @@ namespace Credfeto.ChangeLog.Tests;
     checkId: "CA2012:UseValueTasksCorrectly",
     Justification = "NSubstitute .Returns() for ValueTask is idiomatic test pattern"
 )]
-public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
+public sealed class ChangeLogUpdaterAsyncFileTests : LoggingFolderCleanupTestBase, IDisposable
 {
     private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
         ChangeLogLanguageFactory.English
@@ -27,7 +27,8 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
 
     private readonly ServiceProvider _serviceProvider;
 
-    public ChangeLogUpdaterAsyncFileTests()
+    public ChangeLogUpdaterAsyncFileTests(ITestOutputHelper output)
+        : base(output)
     {
         ServiceCollection services = new();
         services.AddChangeLog();
@@ -105,22 +106,16 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
 
         ChangeLogUpdater updater = new(storage);
 
-        string tempFile = Path.GetTempFileName();
+        string tempFile = Path.Combine(this.TempFolder, "test.md");
+        await File.WriteAllTextAsync(tempFile, string.Empty, cancellationTokenSource.Token);
 
-        try
-        {
-            await updater.RemoveEntryAsync(
-                changeLogFileName: tempFile,
-                language: Language,
-                type: "Added",
-                message: "Item to remove",
-                cancellationToken: cancellationTokenSource.Token
-            );
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
+        await updater.RemoveEntryAsync(
+            changeLogFileName: tempFile,
+            language: Language,
+            type: "Added",
+            message: "Item to remove",
+            cancellationToken: cancellationTokenSource.Token
+        );
 
         await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
         await storage.Received(1).SaveAsync(tempFile, Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
@@ -156,22 +151,15 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
 
         ChangeLogUpdater updater = new(storage);
 
-        string tempFile = Path.GetTempFileName();
+        string tempFile = Path.Combine(this.TempFolder, "test-release.md");
 
-        try
-        {
-            await updater.CreateReleaseAsync(
-                changeLogFileName: tempFile,
-                language: Language,
-                version: "1.0.0",
-                pending: true,
-                cancellationToken: cancellationTokenSource.Token
-            );
-        }
-        finally
-        {
-            File.Delete(tempFile);
-        }
+        await updater.CreateReleaseAsync(
+            changeLogFileName: tempFile,
+            language: Language,
+            version: "1.0.0",
+            pending: true,
+            cancellationToken: cancellationTokenSource.Token
+        );
 
         await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
         await storage.Received(1).SaveAsync(tempFile, Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
@@ -182,32 +170,22 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
-        string fileName = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.md");
+        string fileName = Path.Combine(this.TempFolder, $"{Guid.NewGuid():N}.md");
 
-        try
-        {
-            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+        IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
 
-            await updater.CreateEmptyAsync(
-                changeLogFileName: fileName,
-                language: Language,
-                cancellationToken: cancellationTokenSource.Token
-            );
+        await updater.CreateEmptyAsync(
+            changeLogFileName: fileName,
+            language: Language,
+            cancellationToken: cancellationTokenSource.Token
+        );
 
-            Assert.True(File.Exists(fileName), userMessage: "Expected changelog file to be created");
-            string content = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
-            Assert.True(
-                content.Contains("[Unreleased]", StringComparison.Ordinal),
-                userMessage: $"Expected empty changelog to contain [Unreleased] section, got:{Environment.NewLine}{content}"
-            );
-        }
-        finally
-        {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-        }
+        Assert.True(File.Exists(fileName), userMessage: "Expected changelog file to be created");
+        string content = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+        Assert.True(
+            content.Contains("[Unreleased]", StringComparison.Ordinal),
+            userMessage: $"Expected empty changelog to contain [Unreleased] section, got:{Environment.NewLine}{content}"
+        );
     }
 
     [Fact]
@@ -231,34 +209,24 @@ public sealed class ChangeLogUpdaterAsyncFileTests : TestBase, IDisposable
             ## [0.0.0] - Project created
             """;
 
-        string fileName = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.md");
+        string fileName = Path.Combine(this.TempFolder, $"{Guid.NewGuid():N}.md");
 
-        try
-        {
-            await File.WriteAllTextAsync(fileName, changeLog, Encoding.UTF8, cancellationTokenSource.Token);
+        await File.WriteAllTextAsync(fileName, changeLog, Encoding.UTF8, cancellationTokenSource.Token);
 
-            IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+        IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
 
-            await updater.RemoveEntryAsync(
-                changeLogFileName: fileName,
-                language: Language,
-                type: "Added",
-                message: "Item to remove",
-                cancellationToken: cancellationTokenSource.Token
-            );
+        await updater.RemoveEntryAsync(
+            changeLogFileName: fileName,
+            language: Language,
+            type: "Added",
+            message: "Item to remove",
+            cancellationToken: cancellationTokenSource.Token
+        );
 
-            string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
-            Assert.False(
-                result.Contains("Item to remove", StringComparison.Ordinal),
-                userMessage: $"Expected entry to be removed, but content was:{Environment.NewLine}{result}"
-            );
-        }
-        finally
-        {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-        }
+        string result = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+        Assert.False(
+            result.Contains("Item to remove", StringComparison.Ordinal),
+            userMessage: $"Expected entry to be removed, but content was:{Environment.NewLine}{result}"
+        );
     }
 }

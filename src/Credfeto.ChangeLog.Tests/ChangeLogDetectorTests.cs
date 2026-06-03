@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -12,8 +12,11 @@ using Xunit;
 
 namespace Credfeto.ChangeLog.Tests;
 
-public sealed class ChangeLogDetectorTests : TestBase
+public sealed class ChangeLogDetectorTests : LoggingFolderCleanupTestBase
 {
+    public ChangeLogDetectorTests(ITestOutputHelper output)
+        : base(output) { }
+
     private const string SIMPLE_CHANGE_LOG = """
         # Changelog
         All notable changes to this project will be documented in this file.
@@ -37,38 +40,29 @@ public sealed class ChangeLogDetectorTests : TestBase
     public async Task TryFindChangeLogReturnsTrueAndChangeLogPathWhenChangeLogExistsAtRepoRoot()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        await CreateRepoWithChangeLogAtRootAsync(this.TempFolder, SIMPLE_CHANGE_LOG, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
 
         try
         {
-            await CreateRepoWithChangeLogAtRootAsync(tempDir, SIMPLE_CHANGE_LOG, cancellationToken);
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
 
-            string originalDir = Environment.CurrentDirectory;
-
-            try
-            {
-                Environment.CurrentDirectory = tempDir;
-                ChangeLogDetector detector = new();
-                bool found = detector.TryFindChangeLog(out string? changeLogFileName);
-
-                Assert.True(
-                    found,
-                    userMessage: "Expected TryFindChangeLog to return true when CHANGELOG.md exists at repo root"
-                );
-                Assert.NotNull(changeLogFileName);
-                Assert.True(
-                    File.Exists(changeLogFileName),
-                    userMessage: $"Expected changelog to exist at: {changeLogFileName}"
-                );
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalDir;
-            }
+            Assert.True(
+                found,
+                userMessage: "Expected TryFindChangeLog to return true when CHANGELOG.md exists at repo root"
+            );
+            Assert.NotNull(changeLogFileName);
+            Assert.True(
+                File.Exists(changeLogFileName),
+                userMessage: $"Expected changelog to exist at: {changeLogFileName}"
+            );
         }
         finally
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            Environment.CurrentDirectory = originalDir;
         }
     }
 
@@ -76,34 +70,22 @@ public sealed class ChangeLogDetectorTests : TestBase
     public async Task TryFindChangeLogReturnsFalseWhenNoChangeLogInRepo()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        await CreateRepoWithReadmeOnlyAsync(this.TempFolder, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
 
         try
         {
-            await CreateRepoWithReadmeOnlyAsync(tempDir, cancellationToken);
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
 
-            string originalDir = Environment.CurrentDirectory;
-
-            try
-            {
-                Environment.CurrentDirectory = tempDir;
-                ChangeLogDetector detector = new();
-                bool found = detector.TryFindChangeLog(out string? changeLogFileName);
-
-                Assert.False(
-                    found,
-                    userMessage: "Expected TryFindChangeLog to return false when no CHANGELOG.md exists"
-                );
-                Assert.Null(changeLogFileName);
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalDir;
-            }
+            Assert.False(found, userMessage: "Expected TryFindChangeLog to return false when no CHANGELOG.md exists");
+            Assert.Null(changeLogFileName);
         }
         finally
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            Environment.CurrentDirectory = originalDir;
         }
     }
 
@@ -111,34 +93,25 @@ public sealed class ChangeLogDetectorTests : TestBase
     public async Task TryFindChangeLogReturnsTrueWhenMultipleChangeLogsAndOneAtRoot()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        await CreateRepoWithRootAndSubChangeLogAsync(this.TempFolder, SIMPLE_CHANGE_LOG, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
 
         try
         {
-            await CreateRepoWithRootAndSubChangeLogAsync(tempDir, SIMPLE_CHANGE_LOG, cancellationToken);
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
 
-            string originalDir = Environment.CurrentDirectory;
-
-            try
-            {
-                Environment.CurrentDirectory = tempDir;
-                ChangeLogDetector detector = new();
-                bool found = detector.TryFindChangeLog(out string? changeLogFileName);
-
-                Assert.True(
-                    found,
-                    userMessage: "Expected TryFindChangeLog to return true when root CHANGELOG.md exists among multiple changelogs"
-                );
-                Assert.NotNull(changeLogFileName);
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalDir;
-            }
+            Assert.True(
+                found,
+                userMessage: "Expected TryFindChangeLog to return true when root CHANGELOG.md exists among multiple changelogs"
+            );
+            Assert.NotNull(changeLogFileName);
         }
         finally
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            Environment.CurrentDirectory = originalDir;
         }
     }
 
@@ -146,34 +119,25 @@ public sealed class ChangeLogDetectorTests : TestBase
     public async Task TryFindChangeLogReturnsFalseWhenMultipleChangeLogsAndNoneAtRoot()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        await CreateRepoWithSubdirectoryChangeLogsOnlyAsync(this.TempFolder, SIMPLE_CHANGE_LOG, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
 
         try
         {
-            await CreateRepoWithSubdirectoryChangeLogsOnlyAsync(tempDir, SIMPLE_CHANGE_LOG, cancellationToken);
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
 
-            string originalDir = Environment.CurrentDirectory;
-
-            try
-            {
-                Environment.CurrentDirectory = tempDir;
-                ChangeLogDetector detector = new();
-                bool found = detector.TryFindChangeLog(out string? changeLogFileName);
-
-                Assert.False(
-                    found,
-                    userMessage: "Expected TryFindChangeLog to return false when no CHANGELOG.md at repo root"
-                );
-                Assert.Null(changeLogFileName);
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalDir;
-            }
+            Assert.False(
+                found,
+                userMessage: "Expected TryFindChangeLog to return false when no CHANGELOG.md at repo root"
+            );
+            Assert.Null(changeLogFileName);
         }
         finally
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            Environment.CurrentDirectory = originalDir;
         }
     }
 
@@ -181,33 +145,23 @@ public sealed class ChangeLogDetectorTests : TestBase
     public async Task TryFindChangeLogReturnsFalseWhenDirectoryIsNotAGitRepo()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        string tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        string changeLogPath = Path.Combine(this.TempFolder, "CHANGELOG.md");
+        await File.WriteAllTextAsync(changeLogPath, SIMPLE_CHANGE_LOG, Encoding.UTF8, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
 
         try
         {
-            Directory.CreateDirectory(tempDir);
-            string changeLogPath = Path.Combine(tempDir, "CHANGELOG.md");
-            await File.WriteAllTextAsync(changeLogPath, SIMPLE_CHANGE_LOG, Encoding.UTF8, cancellationToken);
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
 
-            string originalDir = Environment.CurrentDirectory;
-
-            try
-            {
-                Environment.CurrentDirectory = tempDir;
-                ChangeLogDetector detector = new();
-                bool found = detector.TryFindChangeLog(out string? changeLogFileName);
-
-                Assert.False(found, userMessage: "Expected TryFindChangeLog to return false when not in a git repo");
-                Assert.Null(changeLogFileName);
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalDir;
-            }
+            Assert.False(found, userMessage: "Expected TryFindChangeLog to return false when not in a git repo");
+            Assert.Null(changeLogFileName);
         }
         finally
         {
-            GitRepositoryHelpers.DeleteDirectoryIfExists(tempDir);
+            Environment.CurrentDirectory = originalDir;
         }
     }
 
