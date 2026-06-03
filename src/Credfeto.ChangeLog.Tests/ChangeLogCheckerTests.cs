@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -7,6 +7,7 @@ using Credfeto.ChangeLog.Exceptions;
 using Credfeto.ChangeLog.Services;
 using Credfeto.ChangeLog.Tests.TestHelpers;
 using FunFair.Test.Common;
+using FunFair.Test.Common.Mocks;
 using LibGit2Sharp;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -15,16 +16,6 @@ namespace Credfeto.ChangeLog.Tests;
 
 public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 {
-    private static readonly DateTimeOffset FIXED_COMMIT_TIME = new(
-        year: 2024,
-        month: 1,
-        day: 1,
-        hour: 0,
-        minute: 0,
-        second: 0,
-        offset: TimeSpan.Zero
-    );
-
     private readonly ServiceProvider _serviceProvider;
     private readonly IChangeLogChecker _checker;
 
@@ -188,7 +179,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
                 string readmePath = Path.Combine(tempDir, "README.md");
                 await File.WriteAllTextAsync(readmePath, "# Updated README", Encoding.UTF8, cancellationToken);
                 Commands.Stage(repo, readmePath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Add README", author, author);
             }
 
@@ -238,7 +229,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
 
                 await File.WriteAllTextAsync(changeLogPath, UPDATED_CHANGE_LOG, Encoding.UTF8, cancellationToken);
                 Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Add unreleased item", author, author);
             }
 
@@ -297,7 +288,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
                     cancellationToken
                 );
                 Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Modify release section", author, author);
             }
 
@@ -351,7 +342,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
                     cancellationToken
                 );
                 Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Remove unreleased item", author, author);
             }
 
@@ -396,7 +387,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
                 byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG_NO_NEWLINE);
                 await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
                 Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Update changelog without trailing newline", author, author);
             }
 
@@ -441,7 +432,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
                 byte[] bytes = Encoding.UTF8.GetBytes(UPDATED_CHANGE_LOG);
                 await File.WriteAllBytesAsync(changeLogPath, bytes, cancellationToken);
                 Commands.Stage(repo, changeLogPath);
-                Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+                Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
                 repo.Commit("Add item and remove trailing newline", author, author);
             }
 
@@ -483,7 +474,7 @@ public sealed class ChangeLogCheckerTests : TestBase, IDisposable
         repo.Config.Set("user.email", "test@example.com");
 
         Commands.Stage(repo, changeLogPath);
-        Signature author = new("Test User", "test@example.com", FIXED_COMMIT_TIME);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
 
         string branchName = repo.Head.FriendlyName;
