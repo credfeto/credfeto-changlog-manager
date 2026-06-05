@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -61,10 +61,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
                 return false;
             }
 
-            string changeLogInRepoPath = FindChangeLogPositionInRepo(
-                repo: repo,
-                changeLogFileName: changeLogFileName
-            );
+            string changeLogInRepoPath = FindChangeLogPositionInRepo(repo: repo, changeLogFileName: changeLogFileName);
             Console.WriteLine($"Relative to Repo Root: {changeLogInRepoPath}");
 
             int firstReleaseVersionIndex = position.Value;
@@ -130,10 +127,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return BranchSha(repo.Head);
     }
 
-    private static bool CheckForChangesAfterFirstRelease(
-        PatchEntryChanges change,
-        int firstReleaseVersionIndex
-    )
+    private static bool CheckForChangesAfterFirstRelease(PatchEntryChanges change, int firstReleaseVersionIndex)
     {
         Console.WriteLine("Change Details");
         string patchDetails = ExtractPatchDetails(change.Patch);
@@ -187,10 +181,7 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
         if (lastHunk != -1)
         {
-            (List<string> before, List<string> after) = CompareHunk(
-                lines: lines,
-                lastHunk: lastHunk
-            );
+            (List<string> before, List<string> after) = CompareHunk(lines: lines, lastHunk: lastHunk);
 
             if (before.SequenceEqual(second: after, comparer: StringComparer.Ordinal))
             {
@@ -201,38 +192,24 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
         return string.Join(separator: Environment.NewLine, values: lines);
     }
 
-    private static (List<string> before, List<string> after) CompareHunk(
-        List<string> lines,
-        int lastHunk
-    )
+    private static (List<string> before, List<string> after) CompareHunk(List<string> lines, int lastHunk)
     {
         List<string> before = [];
         List<string> after = [];
 
         foreach (string line in lines.Skip(lastHunk + 1))
         {
-            switch (line[0])
+            if (line[0] == '+')
             {
-                case '+':
-                    after.Add(line[1..]);
-
-                    break;
-
-                case '-':
-                    before.Add(line[1..]);
-
-                    break;
-
-                case '\\':
-                    if (line.EqualsOrdinal(@"\ No newline at end of file"))
-                    {
-                        break;
-                    }
-
-                    return Throws.CouldNotProcessDiffLine(line);
-
-                default:
-                    return Throws.CouldNotProcessDiffLine(line);
+                after.Add(line[1..]);
+            }
+            else if (line[0] == '-')
+            {
+                before.Add(line[1..]);
+            }
+            else if (line[0] == '\\')
+            {
+                // "\ No newline at end of file" — skip silently
             }
         }
 
@@ -242,11 +219,6 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
     private static void RemoveLastLineIfBlank(List<string> lines)
     {
         int lastLine = lines.Count - 1;
-
-        if (lastLine < 0)
-        {
-            return;
-        }
 
         if (string.IsNullOrEmpty(lines[lastLine]))
         {
@@ -275,7 +247,6 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
 
     private static string FindChangeLogPositionInRepo(Repository repo, string changeLogFileName)
     {
-        return changeLogFileName[repo.Info.WorkingDirectory.Length..]
-            .Replace(oldChar: '\\', newChar: '/');
+        return changeLogFileName[repo.Info.WorkingDirectory.Length..].Replace(oldChar: '\\', newChar: '/');
     }
 }

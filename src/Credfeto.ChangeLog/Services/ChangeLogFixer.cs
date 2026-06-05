@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,24 +28,14 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument document = await this._storage.LoadAsync(
-            changeLogFileName,
-            cancellationToken
-        );
+        ChangeLogDocument document = await this._storage.LoadAsync(changeLogFileName, cancellationToken);
         ChangeLogDocument corrected = Fix(document: document, language: language);
-        await this._storage.SaveAsync(
-            changeLogFileName,
-            document: corrected,
-            cancellationToken: cancellationToken
-        );
+        await this._storage.SaveAsync(changeLogFileName, document: corrected, cancellationToken: cancellationToken);
     }
 
     internal static ChangeLogDocument Fix(ChangeLogDocument document, ChangeLogLanguage language)
     {
-        ChangeLogDocument ensured = ChangeLogUpdater.EnsureUnreleasedSections(
-            document: document,
-            language: language
-        );
+        ChangeLogDocument ensured = ChangeLogUpdater.EnsureUnreleasedSections(document: document, language: language);
         ChangeLogDocument withPreamble = EnsurePreamble(ensured);
         return RemoveBlankLinesAfterHeadings(withPreamble);
     }
@@ -67,18 +57,14 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         headerLines
             .AsValueEnumerable()
             .Any(line =>
-                line.Contains(
-                    value: TemplateFile.PreambleLine1,
-                    comparisonType: System.StringComparison.Ordinal
-                )
+                line.Contains(value: TemplateFile.PreambleLine1, comparisonType: System.StringComparison.Ordinal)
             );
 
     private static ImmutableArray<string> InsertPreamble(in ImmutableArray<string> headerLines)
     {
         int commentStart = FindHtmlCommentStart(headerLines);
 
-        ImmutableArray<string> before =
-            commentStart >= 0 ? headerLines[..commentStart] : headerLines;
+        ImmutableArray<string> before = commentStart >= 0 ? headerLines[..commentStart] : headerLines;
         ImmutableArray<string> after = commentStart >= 0 ? headerLines[commentStart..] : [];
 
         ImmutableArray<string> trimmed = TrimTrailingBlanks(before);
@@ -98,10 +84,7 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
     {
         for (int i = 0; i < headerLines.Length; i++)
         {
-            if (
-                headerLines[i]
-                    .StartsWith(value: "<!--", comparisonType: System.StringComparison.Ordinal)
-            )
+            if (headerLines[i].StartsWith(value: "<!--", comparisonType: System.StringComparison.Ordinal))
             {
                 return i;
             }
@@ -124,21 +107,17 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
 
     private static ChangeLogDocument RemoveBlankLinesAfterHeadings(ChangeLogDocument document)
     {
-        if (document.Unreleased is null)
-        {
-            return document;
-        }
-
         return document with
         {
-            Unreleased = RemoveBlankLinesFromSections(document.Unreleased),
+            Unreleased = document.Unreleased is not null ? RemoveBlankLinesFromSections(document.Unreleased) : null,
         };
     }
 
     private static ChangeLogUnreleased RemoveBlankLinesFromSections(ChangeLogUnreleased unreleased)
     {
-        ImmutableArray<ChangeLogSection>.Builder builder =
-            ImmutableArray.CreateBuilder<ChangeLogSection>(unreleased.Sections.Length);
+        ImmutableArray<ChangeLogSection>.Builder builder = ImmutableArray.CreateBuilder<ChangeLogSection>(
+            unreleased.Sections.Length
+        );
 
         foreach (ChangeLogSection section in unreleased.Sections)
         {
