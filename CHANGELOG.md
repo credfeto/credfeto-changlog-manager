@@ -47,6 +47,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - replace CountOccurrences helper with source-generated regex in ChangeLogFixerTests
 - Replaced System.Linq LINQ .Where() with ZLinq .AsValueEnumerable().Where() to eliminate heap allocation of enumerators
 - Replaced System.Linq .Where() with ZLinq .AsValueEnumerable().Where() to eliminate per-call heap allocations in enumeration hot paths
+- Exceptions now use Credfeto.Exceptions.SourceGenerator source generator to reduce boilerplate
 ### Deprecated
 ### Removed
 ### Deployment Changes
