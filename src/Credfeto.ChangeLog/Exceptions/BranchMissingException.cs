@@ -1,15 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace Credfeto.ChangeLog.Exceptions;
 
-public sealed class BranchMissingException : Exception
-{
-    public BranchMissingException()
-        : this("Could not find branch") { }
-
-    public BranchMissingException(string message)
-        : base(message) { }
-
-    public BranchMissingException(string message, Exception innerException)
-        : base(message: message, innerException: innerException) { }
-}
+[Description("Could not find branch")]
+public sealed partial class BranchMissingException : Exception;

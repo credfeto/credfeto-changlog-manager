@@ -176,5 +176,6 @@
       PrivateAssets="All"
       ExcludeAssets="runtime"
     />
+    <PackageReference Include="Credfeto.Exceptions.SourceGenerator" Version="0.0.2.35-named-parameter" PrivateAssets="All" ExcludeAssets="runtime" />
   </ItemGroup>
 </Project>
