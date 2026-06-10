@@ -51,4 +51,11 @@
     <PropertyGroup Condition="$(IsPacking) == 'True' AND $(IsProduction) == 'True'">
         <EnableSbom>true</EnableSbom>
     </PropertyGroup>
+
+    <!-- Ensure that SolutionDir is defined, as some build environments (e.g. dotnet watch) do not set it by default -->
+    <PropertyGroup>
+        <!-- Acts as a fallback or primary source for SolutionDir -->
+        <SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildThisFileDirectory)</SolutionDir>
+    </PropertyGroup>
+    
 </Project>
