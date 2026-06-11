@@ -27,7 +27,6 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Extracted shared changelog heading extension methods and reused them in reader/linter.
 - Dependencies - Updated Meziantou.Analyzer to 2.0.219
 - Dotnet 10
-- SDK - Updated DotNet SDK to 10.0.200
 - Reduced heap allocations in EnsureUnreleasedSections by pre-computing section heading strings in ChangeLogSections rather than concatenating them on every call
 - Refined changelog section linting and related updater/fixer command behaviour.
 - Extracted shared changelog heading extension methods and reused them in reader/linter.
@@ -48,6 +47,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Replaced System.Linq LINQ .Where() with ZLinq .AsValueEnumerable().Where() to eliminate heap allocation of enumerators
 - Replaced System.Linq .Where() with ZLinq .AsValueEnumerable().Where() to eliminate per-call heap allocations in enumeration hot paths
 - Exceptions now use Credfeto.Exceptions.SourceGenerator source generator to reduce boilerplate
+- SDK - Updated DotNet SDK to 10.0.301
 ### Deprecated
 ### Removed
 ### Deployment Changes
