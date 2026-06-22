@@ -11,8 +11,5 @@ public interface IChangeLogReader
         CancellationToken cancellationToken
     );
 
-    ValueTask<int?> FindFirstReleaseVersionPositionAsync(
-        string changeLogFileName,
-        CancellationToken cancellationToken
-    );
+    ValueTask<int?> FindFirstReleaseVersionPositionAsync(string changeLogFileName, CancellationToken cancellationToken);
 }
