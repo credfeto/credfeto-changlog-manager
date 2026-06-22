@@ -19,21 +19,17 @@ public sealed class EnsureUnreleasedSectionsBenchmarkTests : LoggingTestBase
     [Fact]
     public void RunBenchmark()
     {
-        (Summary summary, AccumulationLogger logger) =
-            Benchmark<EnsureUnreleasedSectionsBenchmark>();
+        (Summary summary, AccumulationLogger logger) = Benchmark<EnsureUnreleasedSectionsBenchmark>();
 
         this.Output.WriteLine(logger.GetLog());
 
         foreach (BenchmarkReport report in summary.Reports)
         {
-            long? allocatedBytes = report.GcStats.GetBytesAllocatedPerOperation(
-                report.BenchmarkCase
-            );
+            long? allocatedBytes = report.GcStats.GetBytesAllocatedPerOperation(report.BenchmarkCase);
             string methodName = report.BenchmarkCase.Descriptor.WorkloadMethod.Name;
             string allocationText = allocatedBytes.HasValue
-                ? allocatedBytes.Value.ToString(
-                    provider: System.Globalization.CultureInfo.InvariantCulture
-                ) + " bytes/op"
+                ? allocatedBytes.Value.ToString(provider: System.Globalization.CultureInfo.InvariantCulture)
+                    + " bytes/op"
                 : "N/A";
             this.Output.WriteLine(methodName + ": " + allocationText);
 
@@ -54,9 +50,8 @@ public sealed class EnsureUnreleasedSectionsBenchmarkTests : LoggingTestBase
         {
             nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_AllSectionsCorrect) =>
                 MAX_ALLOCATED_BYTES_ALL_SECTIONS_CORRECT,
-            nameof(
-                EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_OutOfOrderAndMissing
-            ) => MAX_ALLOCATED_BYTES_OUT_OF_ORDER_AND_MISSING,
+            nameof(EnsureUnreleasedSectionsBenchmark.EnsureUnreleasedSections_OutOfOrderAndMissing) =>
+                MAX_ALLOCATED_BYTES_OUT_OF_ORDER_AND_MISSING,
             _ => long.MaxValue,
         };
     }
