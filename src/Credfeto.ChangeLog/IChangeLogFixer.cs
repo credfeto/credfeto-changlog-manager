@@ -5,9 +5,5 @@ namespace Credfeto.ChangeLog;
 
 public interface IChangeLogFixer
 {
-    ValueTask FixAsync(
-        string changeLogFileName,
-        ChangeLogLanguage language,
-        CancellationToken cancellationToken
-    );
+    ValueTask FixAsync(string changeLogFileName, ChangeLogLanguage language, CancellationToken cancellationToken);
 }
