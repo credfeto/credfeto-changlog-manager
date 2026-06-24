@@ -8,11 +8,7 @@ namespace Credfeto.ChangeLog.BenchMark.Tests.Bench;
 
 [SimpleJob]
 [MemoryDiagnoser(false)]
-[SuppressMessage(
-    category: "codecracker.CSharp",
-    checkId: "CC0091:MarkMembersAsStatic",
-    Justification = "Benchmark"
-)]
+[SuppressMessage(category: "codecracker.CSharp", checkId: "CC0091:MarkMembersAsStatic", Justification = "Benchmark")]
 [SuppressMessage(
     category: "FunFair.CodeAnalysis",
     checkId: "FFS0012: Make sealed static or abstract",
@@ -68,29 +64,19 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
         ChangeLogLanguageFactory.English
     );
 
-    private static readonly ChangeLogDocument CorrectOrderDocument = ParseSync(
-        CORRECT_ORDER_CHANGELOG
-    );
-    private static readonly ChangeLogDocument OutOfOrderDocument = ParseSync(
-        OUT_OF_ORDER_CHANGELOG
-    );
+    private static readonly ChangeLogDocument CorrectOrderDocument = ParseSync(CORRECT_ORDER_CHANGELOG);
+    private static readonly ChangeLogDocument OutOfOrderDocument = ParseSync(OUT_OF_ORDER_CHANGELOG);
 
     [Benchmark]
     public ChangeLogDocument EnsureUnreleasedSections_AllSectionsCorrect()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(
-            document: CorrectOrderDocument,
-            language: Language
-        );
+        return ChangeLogUpdater.EnsureUnreleasedSections(document: CorrectOrderDocument, language: Language);
     }
 
     [Benchmark]
     public ChangeLogDocument EnsureUnreleasedSections_OutOfOrderAndMissing()
     {
-        return ChangeLogUpdater.EnsureUnreleasedSections(
-            document: OutOfOrderDocument,
-            language: Language
-        );
+        return ChangeLogUpdater.EnsureUnreleasedSections(document: OutOfOrderDocument, language: Language);
     }
 
     [SuppressMessage(
