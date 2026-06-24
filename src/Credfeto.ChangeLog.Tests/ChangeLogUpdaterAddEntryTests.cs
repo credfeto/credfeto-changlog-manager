@@ -43,9 +43,7 @@ public sealed class ChangeLogUpdaterAddEntryTests : TestBase
     [Fact]
     public void AddToEmptyChangelog()
     {
-        string result = Serialise(
-            ChangeLogUpdater.AddEntry(ParseOrCreate(string.Empty), "Added", "Added a new entry")
-        );
+        string result = Serialise(ChangeLogUpdater.AddEntry(ParseOrCreate(string.Empty), "Added", "Added a new entry"));
 
         const string expected =
             @"# Changelog
@@ -100,9 +98,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Another entry")
-        );
+        string result = Serialise(ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Another entry"));
 
         const string expected =
             @"# Changelog
@@ -153,9 +149,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Added a new entry")
-        );
+        string result = Serialise(ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Added a new entry"));
 
         const string expected =
             @"# Changelog
@@ -206,9 +200,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Another entry")
-        );
+        string result = Serialise(ChangeLogUpdater.AddEntry(ParseOrCreate(existing), "Added", "Another entry"));
 
         const string expected =
             @"# Changelog
