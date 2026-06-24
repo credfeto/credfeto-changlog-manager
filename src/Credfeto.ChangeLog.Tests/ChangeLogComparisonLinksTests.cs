@@ -65,14 +65,8 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
             document.TrailingLines,
             line => line.StartsWith("[unreleased]:", System.StringComparison.Ordinal)
         );
-        Assert.Contains(
-            document.TrailingLines,
-            line => line.StartsWith("[1.1.0]:", System.StringComparison.Ordinal)
-        );
-        Assert.Contains(
-            document.TrailingLines,
-            line => line.StartsWith("[1.0.0]:", System.StringComparison.Ordinal)
-        );
+        Assert.Contains(document.TrailingLines, line => line.StartsWith("[1.1.0]:", System.StringComparison.Ordinal));
+        Assert.Contains(document.TrailingLines, line => line.StartsWith("[1.0.0]:", System.StringComparison.Ordinal));
     }
 
     [Fact]
@@ -87,10 +81,7 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
                 foreach (string entry in section.Entries)
                 {
                     Assert.False(
-                        entry.StartsWith(
-                            "[unreleased]:",
-                            System.StringComparison.OrdinalIgnoreCase
-                        ),
+                        entry.StartsWith("[unreleased]:", System.StringComparison.OrdinalIgnoreCase),
                         userMessage: $"Comparison link found in section entries: {entry}"
                     );
                 }
@@ -164,14 +155,8 @@ public sealed class ChangeLogComparisonLinksTests : TestBase
     {
         string serialised = await SerialiseAsync(await ParseAsync(ChangeLogWithComparisonLinks));
 
-        int lastReleasePos = serialised.LastIndexOf(
-            "## [1.0.0]",
-            comparisonType: System.StringComparison.Ordinal
-        );
-        int firstLinkPos = serialised.IndexOf(
-            "[unreleased]:",
-            comparisonType: System.StringComparison.Ordinal
-        );
+        int lastReleasePos = serialised.LastIndexOf("## [1.0.0]", comparisonType: System.StringComparison.Ordinal);
+        int firstLinkPos = serialised.IndexOf("[unreleased]:", comparisonType: System.StringComparison.Ordinal);
 
         Assert.True(
             lastReleasePos < firstLinkPos,
