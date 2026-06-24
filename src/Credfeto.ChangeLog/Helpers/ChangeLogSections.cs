@@ -28,7 +28,5 @@ public static class ChangeLogSections
         "### Deployment Changes",
     ];
 
-    public static readonly FrozenSet<string> KnownSections = Order.ToFrozenSet(
-        StringComparer.Ordinal
-    );
+    public static readonly FrozenSet<string> KnownSections = Order.ToFrozenSet(StringComparer.Ordinal);
 }
