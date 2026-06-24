@@ -241,9 +241,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     [Theory]
     [InlineData("")]
     [InlineData("1.0.0.1-master")]
-    public void ReadUnReleasedSectionWithJustDeploymentChangesReturnsDeploymentChangesSectionOnly(
-        string version
-    )
+    public void ReadUnReleasedSectionWithJustDeploymentChangesReturnsDeploymentChangesSectionOnly(string version)
     {
         const string changeLog =
             @"# Changelog
