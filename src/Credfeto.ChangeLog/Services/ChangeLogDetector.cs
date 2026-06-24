@@ -19,14 +19,9 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
     {
         try
         {
-            using (
-                Repository repository = GitRepository.OpenRepository(Environment.CurrentDirectory)
-            )
+            using (Repository repository = GitRepository.OpenRepository(Environment.CurrentDirectory))
             {
-                return TryFindChangeLogInRepository(
-                    repository: repository,
-                    changeLogFileName: out changeLogFileName
-                );
+                return TryFindChangeLogInRepository(repository: repository, changeLogFileName: out changeLogFileName);
             }
         }
         catch (Exception)
@@ -64,17 +59,9 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
 
             default:
             {
-                string changeLogAtRepoRoot = Path.Combine(
-                    path1: repoRoot,
-                    path2: FileConstants.ChangeLogFileName
-                );
+                string changeLogAtRepoRoot = Path.Combine(path1: repoRoot, path2: FileConstants.ChangeLogFileName);
 
-                if (
-                    changelogs.Contains(
-                        value: changeLogAtRepoRoot,
-                        comparer: StringComparer.Ordinal
-                    )
-                )
+                if (changelogs.Contains(value: changeLogAtRepoRoot, comparer: StringComparer.Ordinal))
                 {
                     changeLogFileName = changeLogAtRepoRoot;
 
