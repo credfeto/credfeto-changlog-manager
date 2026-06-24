@@ -67,11 +67,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     {
         string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
-                ChangeLogUpdater.AddEntry(
-                    await ParseAsync(ChangeLogWithoutPreamble),
-                    "Added",
-                    "Another entry"
-                )
+                ChangeLogUpdater.AddEntry(await ParseAsync(ChangeLogWithoutPreamble), "Added", "Another entry")
             )
         );
 
@@ -83,11 +79,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     {
         string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
-                ChangeLogUpdater.RemoveEntry(
-                    await ParseAsync(ChangeLogWithoutPreamble),
-                    "Added",
-                    "Existing entry"
-                )
+                ChangeLogUpdater.RemoveEntry(await ParseAsync(ChangeLogWithoutPreamble), "Added", "Existing entry")
             )
         );
 
@@ -116,10 +108,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
     {
         string result = await SerialiseAsync(
             ChangeLogFixer.EnsurePreamble(
-                ChangeLogUpdater.EnsureUnreleasedSections(
-                    await ParseAsync(ChangeLogWithoutPreamble),
-                    Language
-                )
+                ChangeLogUpdater.EnsureUnreleasedSections(await ParseAsync(ChangeLogWithoutPreamble), Language)
             )
         );
 
