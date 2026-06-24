@@ -29,10 +29,7 @@ internal sealed class ChangeLogReader : IChangeLogReader
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument document = await this._storage.LoadAsync(
-            changeLogFileName,
-            cancellationToken
-        );
+        ChangeLogDocument document = await this._storage.LoadAsync(changeLogFileName, cancellationToken);
 
         return FormatSections(FindSections(document: document, version: version));
     }
@@ -42,10 +39,7 @@ internal sealed class ChangeLogReader : IChangeLogReader
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument document = await this._storage.LoadAsync(
-            changeLogFileName,
-            cancellationToken
-        );
+        ChangeLogDocument document = await this._storage.LoadAsync(changeLogFileName, cancellationToken);
 
         return document.Releases.IsEmpty ? null : document.Releases[0].LineNumber;
     }
@@ -55,10 +49,7 @@ internal sealed class ChangeLogReader : IChangeLogReader
         return FormatSections(FindSections(document: document, version: version));
     }
 
-    private static ImmutableArray<ChangeLogSection> FindSections(
-        ChangeLogDocument document,
-        string version
-    )
+    private static ImmutableArray<ChangeLogSection> FindSections(ChangeLogDocument document, string version)
     {
         Version? releaseVersion = BuildNumberHelpers.DetermineVersionForChangeLog(version);
 
@@ -67,18 +58,12 @@ internal sealed class ChangeLogReader : IChangeLogReader
             return document.Unreleased?.Sections ?? [];
         }
 
-        ChangeLogRelease? release = FindRelease(
-            releases: document.Releases,
-            version: releaseVersion
-        );
+        ChangeLogRelease? release = FindRelease(releases: document.Releases, version: releaseVersion);
 
         return release?.Sections ?? [];
     }
 
-    private static ChangeLogRelease? FindRelease(
-        in ImmutableArray<ChangeLogRelease> releases,
-        Version version
-    )
+    private static ChangeLogRelease? FindRelease(in ImmutableArray<ChangeLogRelease> releases, Version version)
     {
         foreach (ChangeLogRelease release in releases)
         {
@@ -99,9 +84,7 @@ internal sealed class ChangeLogReader : IChangeLogReader
         int requestedBuild = requested.Build is 0 or -1 ? 0 : requested.Build;
         int parsedBuild = parsed.Build is 0 or -1 ? 0 : parsed.Build;
 
-        return parsed.Major == requested.Major
-            && parsed.Minor == requested.Minor
-            && parsedBuild == requestedBuild;
+        return parsed.Major == requested.Major && parsed.Minor == requested.Minor && parsedBuild == requestedBuild;
     }
 
     private static string FormatSections(in ImmutableArray<ChangeLogSection> sections)
