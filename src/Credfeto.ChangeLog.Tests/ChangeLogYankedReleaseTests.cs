@@ -69,10 +69,7 @@ public sealed class ChangeLogYankedReleaseTests : TestBase
     {
         ChangeLogDocument document = Parse(YANKED_CHANGE_LOG);
 
-        Assert.True(
-            document.Releases[0].IsYanked,
-            userMessage: "Expected release 1.1.0 to have IsYanked = true"
-        );
+        Assert.True(document.Releases[0].IsYanked, userMessage: "Expected release 1.1.0 to have IsYanked = true");
     }
 
     [Fact]
@@ -88,10 +85,7 @@ public sealed class ChangeLogYankedReleaseTests : TestBase
     {
         ChangeLogDocument document = Parse(YANKED_CHANGE_LOG);
 
-        Assert.False(
-            document.Releases[1].IsYanked,
-            userMessage: "Expected release 1.0.0 to have IsYanked = false"
-        );
+        Assert.False(document.Releases[1].IsYanked, userMessage: "Expected release 1.0.0 to have IsYanked = false");
     }
 
     [Theory]
@@ -179,10 +173,7 @@ public sealed class ChangeLogYankedReleaseTests : TestBase
             errors,
             e =>
                 e.Message.Contains(value: "1.1.0", comparisonType: StringComparison.Ordinal)
-                && e.Message.Contains(
-                    value: "Invalid version",
-                    comparisonType: StringComparison.Ordinal
-                )
+                && e.Message.Contains(value: "Invalid version", comparisonType: StringComparison.Ordinal)
         );
     }
 
@@ -193,11 +184,7 @@ public sealed class ChangeLogYankedReleaseTests : TestBase
 
         Assert.DoesNotContain(
             errors,
-            e =>
-                e.Message.Contains(
-                    value: "descending order",
-                    comparisonType: StringComparison.Ordinal
-                )
+            e => e.Message.Contains(value: "descending order", comparisonType: StringComparison.Ordinal)
         );
     }
 }
