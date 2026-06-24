@@ -6,13 +6,11 @@ internal static class RegexSettings
 {
     public const short TimeoutMilliseconds = 1000;
 
-    public const RegexOptions RemoveCommentsOptions =
-        RegexOptions.Compiled | RegexOptions.Multiline;
+    public const RegexOptions RemoveCommentsOptions = RegexOptions.Compiled | RegexOptions.Multiline;
 
     public const string RemoveCommentsRegex = "<!--[\\s\\S]*?-->";
 
-    public const RegexOptions VersionHeaderOptions =
-        RegexOptions.Compiled | RegexOptions.ExplicitCapture;
+    public const RegexOptions VersionHeaderOptions = RegexOptions.Compiled | RegexOptions.ExplicitCapture;
 
     public const string VersionHeaderRegex =
         @"^##\s\[(?<version>\d+(.\d+)+)\](\s+-\s+(?<date>[^\[]+?))?(\s+\[(?<yanked>YANKED)\])?$";
