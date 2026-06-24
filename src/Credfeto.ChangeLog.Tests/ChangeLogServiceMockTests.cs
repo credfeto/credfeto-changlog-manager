@@ -62,9 +62,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
 
@@ -98,9 +96,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(changeLog);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
 
@@ -139,15 +135,9 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(contentWithBlankLines);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
-        storage
-            .SaveAsync(
-                Arg.Any<string>(),
-                Arg.Any<ChangeLogDocument>(),
-                Arg.Any<CancellationToken>()
-            )
+            .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
         ChangeLogFixer fixer = new(storage);
@@ -159,9 +149,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         );
 
         await storage.Received(1).LoadAsync("CHANGELOG.md", Arg.Any<CancellationToken>());
-        await storage
-            .Received(1)
-            .SaveAsync("CHANGELOG.md", Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
+        await storage.Received(1).SaveAsync("CHANGELOG.md", Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
     }
 
     // ─── ChangeLogLinter ──────────────────────────────────────────────────────────
@@ -173,9 +161,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogLinter linter = new(storage);
 
@@ -201,9 +187,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(invalidContent);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
-        storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogLinter linter = new(storage);
 
@@ -227,15 +211,9 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
-        storage
-            .SaveAsync(
-                Arg.Any<string>(),
-                Arg.Any<ChangeLogDocument>(),
-                Arg.Any<CancellationToken>()
-            )
+            .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
         ChangeLogUpdater updater = new(storage);
@@ -259,11 +237,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
         await storage
             .Received(1)
-            .SaveAsync(
-                tempFile,
-                Arg.Is<ChangeLogDocument>(d => d.Unreleased is object),
-                Arg.Any<CancellationToken>()
-            );
+            .SaveAsync(tempFile, Arg.Is<ChangeLogDocument>(d => d.Unreleased is object), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -273,15 +247,9 @@ public sealed class ChangeLogServiceMockTests : TestBase
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
         IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
-            .LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(ValueTask.FromResult(document));
-        storage
-            .SaveAsync(
-                Arg.Any<string>(),
-                Arg.Any<ChangeLogDocument>(),
-                Arg.Any<CancellationToken>()
-            )
+            .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
         ChangeLogUpdater updater = new(storage);
@@ -301,8 +269,6 @@ public sealed class ChangeLogServiceMockTests : TestBase
         }
 
         await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
-        await storage
-            .Received(1)
-            .SaveAsync(tempFile, Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
+        await storage.Received(1).SaveAsync(tempFile, Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>());
     }
 }
