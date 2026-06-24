@@ -17,10 +17,8 @@ namespace Credfeto.ChangeLog.Services;
 )]
 internal sealed class ChangeLogParser : IChangeLogParser
 {
-    public ValueTask<ChangeLogDocument> ParseAsync(
-        string content,
-        CancellationToken cancellationToken
-    ) => ValueTask.FromResult(Parse(content.SplitToLines()));
+    public ValueTask<ChangeLogDocument> ParseAsync(string content, CancellationToken cancellationToken) =>
+        ValueTask.FromResult(Parse(content.SplitToLines()));
 
     private static ChangeLogDocument Parse(IReadOnlyList<string> lines)
     {
@@ -31,8 +29,10 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
 
         int unreleasedEnd = lines.FindUnreleasedEnd(unreleasedStart);
-        (ImmutableArray<ChangeLogRelease> releases, ImmutableArray<string> trailingLines) =
-            ParseReleases(lines, start: unreleasedEnd);
+        (ImmutableArray<ChangeLogRelease> releases, ImmutableArray<string> trailingLines) = ParseReleases(
+            lines,
+            start: unreleasedEnd
+        );
         return new(
             HeaderLines: CollectLines(lines, start: 0, end: unreleasedStart),
             Unreleased: ParseUnreleased(lines, start: unreleasedStart, end: unreleasedEnd),
@@ -41,11 +41,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
         );
     }
 
-    private static ChangeLogUnreleased ParseUnreleased(
-        IReadOnlyList<string> lines,
-        int start,
-        int end
-    )
+    private static ChangeLogUnreleased ParseUnreleased(IReadOnlyList<string> lines, int start, int end)
     {
         List<ChangeLogSection> sections = [];
         List<string> trailer = [];
@@ -107,11 +103,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
         return true;
     }
 
-    private static void FlushSection(
-        List<ChangeLogSection> sections,
-        string? name,
-        List<string> entries
-    )
+    private static void FlushSection(List<ChangeLogSection> sections, string? name, List<string> entries)
     {
         if (name is not null)
         {
@@ -128,12 +120,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static void CollectTrailer(
-        IReadOnlyList<string> lines,
-        int from,
-        int to,
-        List<string> trailer
-    )
+    private static void CollectTrailer(IReadOnlyList<string> lines, int from, int to, List<string> trailer)
     {
         for (int j = from; j < to; j++)
         {
@@ -141,10 +128,10 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static (
-        ImmutableArray<ChangeLogRelease> Releases,
-        ImmutableArray<string> TrailingLines
-    ) ParseReleases(IReadOnlyList<string> lines, int start)
+    private static (ImmutableArray<ChangeLogRelease> Releases, ImmutableArray<string> TrailingLines) ParseReleases(
+        IReadOnlyList<string> lines,
+        int start
+    )
     {
         List<ChangeLogRelease> releases = [];
         ReleaseParseState state = new();
@@ -191,11 +178,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
-    private static ImmutableArray<string> CollectLines(
-        IReadOnlyList<string> lines,
-        int start,
-        int end
-    )
+    private static ImmutableArray<string> CollectLines(IReadOnlyList<string> lines, int start, int end)
     {
         ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>(end - start);
         for (int i = start; i < end; i++)
@@ -224,17 +207,13 @@ internal sealed class ChangeLogParser : IChangeLogParser
         {
             this.InTrailerMode = false;
             this.TrailingLines.Clear();
-            (this.CurrentVersion, this.CurrentDate, this.CurrentIsYanked) = ParseVersionHeader(
-                line
-            );
+            (this.CurrentVersion, this.CurrentDate, this.CurrentIsYanked) = ParseVersionHeader(line);
             this.CurrentReleaseLineNumber = lineNumber;
         }
 
         public void EnterTrailerMode()
         {
-            while (
-                this.CurrentEntries.Count > 0 && string.IsNullOrWhiteSpace(this.CurrentEntries[^1])
-            )
+            while (this.CurrentEntries.Count > 0 && string.IsNullOrWhiteSpace(this.CurrentEntries[^1]))
             {
                 this.CurrentEntries.RemoveAt(this.CurrentEntries.Count - 1);
             }
@@ -248,10 +227,7 @@ internal sealed class ChangeLogParser : IChangeLogParser
             string version = line[4..closeBracket];
             string raw = closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
 
-            bool isYanked = raw.EndsWith(
-                value: " [YANKED]",
-                comparisonType: StringComparison.OrdinalIgnoreCase
-            );
+            bool isYanked = raw.EndsWith(value: " [YANKED]", comparisonType: StringComparison.OrdinalIgnoreCase);
             string date = isYanked ? raw[..^" [YANKED]".Length] : raw;
 
             return (version, date, isYanked);
