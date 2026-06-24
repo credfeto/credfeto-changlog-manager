@@ -124,8 +124,7 @@ public sealed class ChangeLogSetupTests : TestBase
 
         using ServiceProvider provider = services.BuildServiceProvider();
 
-        IChangeLogLanguageFactory factory =
-            provider.GetRequiredService<IChangeLogLanguageFactory>();
+        IChangeLogLanguageFactory factory = provider.GetRequiredService<IChangeLogLanguageFactory>();
         ChangeLogLanguage language = factory.Get(ChangeLogLanguageFactory.English);
         Assert.NotNull(language);
     }
