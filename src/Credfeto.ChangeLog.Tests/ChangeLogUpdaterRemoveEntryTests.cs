@@ -104,9 +104,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me")
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -162,9 +160,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me")
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -215,9 +211,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me")
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -271,9 +265,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me")
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
@@ -329,9 +321,7 @@ Releases that have at least been deployed to staging, BUT NOT necessarily releas
 -->
 ## [0.0.0] - Project created";
 
-        string result = Serialise(
-            ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me")
-        );
+        string result = Serialise(ChangeLogUpdater.RemoveEntry(ParseOrCreate(existing), "Added", "Remove Me"));
 
         const string expected =
             @"# Changelog
