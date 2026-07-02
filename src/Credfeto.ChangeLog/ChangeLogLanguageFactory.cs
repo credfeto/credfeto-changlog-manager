@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog;
 
@@ -31,7 +30,7 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [Czech] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Danish] = new(
@@ -43,37 +42,37 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [English] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [German] = new(
             DocumentTitle: "CHANGELOG",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Spanish] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [French] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Italian] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Dutch] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Polish] = new(
@@ -154,13 +153,13 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [ChineseSimplified] = new(
             DocumentTitle: "更新日志",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [ChineseTraditional] = new(
             DocumentTitle: "更新日誌",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ChangeLogSections.Order,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
     }.ToFrozenDictionary(StringComparer.Ordinal);
