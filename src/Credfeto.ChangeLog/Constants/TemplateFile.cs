@@ -1,3 +1,6 @@
+using System.Text;
+using Credfeto.ChangeLog;
+
 namespace Credfeto.ChangeLog.Constants;
 
 internal static class TemplateFile
@@ -10,34 +13,44 @@ internal static class TemplateFile
     public const string PreambleLine2 =
         "and this project adheres to [Semantic Versioning](" + SEMANTIC_VERSIONING + ").";
 
-    public const string Initial =
-        @"# Changelog
-All notable changes to this project will be documented in this file.
+    public static readonly string Initial = BuildInitialContent();
 
-The format is based on [Keep a Changelog]("
-        + KEEP_A_CHANGELOG
-        + @"),
-and this project adheres to [Semantic Versioning]("
-        + SEMANTIC_VERSIONING
-        + @").
+    private static string BuildInitialContent()
+    {
+        StringBuilder sb = new();
+        sb.Append("# Changelog\n");
+        sb.Append("All notable changes to this project will be documented in this file.\n");
+        sb.Append('\n');
+        sb.Append("The format is based on [Keep a Changelog](");
+        sb.Append(KEEP_A_CHANGELOG);
+        sb.Append("),\n");
+        sb.Append("and this project adheres to [Semantic Versioning](");
+        sb.Append(SEMANTIC_VERSIONING);
+        sb.Append(").\n");
+        sb.Append('\n');
+        sb.Append("<!--\n");
+        sb.Append("Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release\n");
+        sb.Append("-->\n");
+        sb.Append('\n');
+        sb.Append("## [");
+        sb.Append(FileConstants.Unreleased);
+        sb.Append("]\n");
 
-<!--
-Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
--->
+        foreach (string section in ChangeLogLanguageFactory.DefaultSectionOrder)
+        {
+            sb.Append("### ");
+            sb.Append(section);
+            sb.Append('\n');
+        }
 
-## ["
-        + FileConstants.Unreleased
-        + @"]
-### Security
-### Added
-### Fixed
-### Changed
-### Deprecated
-### Removed
-### Deployment Changes
+        sb.Append('\n');
+        sb.Append("<!--\n");
+        sb.Append(
+            "Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch\n"
+        );
+        sb.Append("-->\n");
+        sb.Append("## [0.0.0] - Project created");
 
-<!--
-Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
--->
-## [0.0.0] - Project created";
+        return sb.ToString();
+    }
 }
