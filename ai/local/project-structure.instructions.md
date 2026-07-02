@@ -35,7 +35,7 @@ Examples: `ChangeLogHeadingExtensions` (extensions on `string` for changelog hea
 
 Internal static utility classes that are not extension methods. Permitted contents: constants, frozen/static lookup data, regex definitions, pure computation helpers, and throw-site helpers.
 
-Examples: `ChangeLogSections` (frozen section name sets), `CommonRegex`, `Constants`, `GitRepository`, `RegexSettings`, `RegexTimeouts`, `Throws`, `Unreleased`.
+Examples: `CommonRegex`, `Constants`, `GitRepository`, `RegexSettings`, `RegexTimeouts`, `Throws`, `Unreleased`.
 
 Classes here must not depend on anything in `Services/` — they are lower-level utilities.
 
