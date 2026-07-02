@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Credfeto.ChangeLog;
 
@@ -22,6 +23,17 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
     public const string ChineseSimplified = "zh-CN";
     public const string ChineseTraditional = "zh-TW";
 
+    internal static readonly ImmutableArray<string> DefaultSectionOrder =
+    [
+        "Security",
+        "Added",
+        "Fixed",
+        "Changed",
+        "Deprecated",
+        "Removed",
+        "Deployment Changes",
+    ];
+
     private static readonly FrozenDictionary<string, ChangeLogLanguage> Languages = new Dictionary<
         string,
         ChangeLogLanguage
@@ -30,7 +42,7 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [Czech] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [Danish] = new(
@@ -42,37 +54,37 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [English] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [German] = new(
             DocumentTitle: "CHANGELOG",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [Spanish] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [French] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [Italian] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [Dutch] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [Polish] = new(
@@ -153,13 +165,13 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [ChineseSimplified] = new(
             DocumentTitle: "更新日志",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
         [ChineseTraditional] = new(
             DocumentTitle: "更新日誌",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
+            SectionOrder: DefaultSectionOrder,
             DateFormat: "yyyy-MM-dd"
         ),
     }.ToFrozenDictionary(StringComparer.Ordinal);
