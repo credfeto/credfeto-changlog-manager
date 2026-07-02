@@ -21,12 +21,10 @@ internal static class TemplateFile
         sb.Append("# Changelog\n");
         sb.Append("All notable changes to this project will be documented in this file.\n");
         sb.Append('\n');
-        sb.Append("The format is based on [Keep a Changelog](");
-        sb.Append(KEEP_A_CHANGELOG);
-        sb.Append("),\n");
-        sb.Append("and this project adheres to [Semantic Versioning](");
-        sb.Append(SEMANTIC_VERSIONING);
-        sb.Append(").\n");
+        sb.Append(PreambleLine1);
+        sb.Append('\n');
+        sb.Append(PreambleLine2);
+        sb.Append('\n');
         sb.Append('\n');
         sb.Append("<!--\n");
         sb.Append("Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release\n");
