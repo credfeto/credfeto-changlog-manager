@@ -50,7 +50,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - SDK - Updated DotNet SDK to 10.0.301
 ### Deprecated
 ### Removed
-- Removed ChangeLogSections helper class; section order arrays are now inlined per language in ChangeLogLanguageFactory
+- Removed ChangeLogSections helper class; languages that share the English section order now reference a single DefaultSectionOrder constant in ChangeLogLanguageFactory
 ### Deployment Changes
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
