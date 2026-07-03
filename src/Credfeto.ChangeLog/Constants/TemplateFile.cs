@@ -1,5 +1,6 @@
 using System.Text;
 using Credfeto.ChangeLog;
+using Credfeto.ChangeLog.Extensions;
 
 namespace Credfeto.ChangeLog.Constants;
 
@@ -36,8 +37,7 @@ internal static class TemplateFile
 
         foreach (string section in ChangeLogLanguageFactory.DefaultSectionOrder)
         {
-            sb.Append("### ");
-            sb.Append(section);
+            sb.Append(section.AsChangeTypeHeading());
             sb.Append('\n');
         }
 
