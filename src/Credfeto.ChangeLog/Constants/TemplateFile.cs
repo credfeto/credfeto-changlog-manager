@@ -14,41 +14,32 @@ internal static class TemplateFile
     public const string PreambleLine2 =
         "and this project adheres to [Semantic Versioning](" + SEMANTIC_VERSIONING + ").";
 
-    public static readonly string Initial = BuildInitialContent();
-
-    private static string BuildInitialContent()
+    public static string Build(ChangeLogLanguage language)
     {
-        StringBuilder sb = new();
-        sb.Append("# Changelog\n");
-        sb.Append("All notable changes to this project will be documented in this file.\n");
-        sb.Append('\n');
-        sb.Append(PreambleLine1);
-        sb.Append('\n');
-        sb.Append(PreambleLine2);
-        sb.Append('\n');
-        sb.Append('\n');
-        sb.Append("<!--\n");
-        sb.Append("Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release\n");
-        sb.Append("-->\n");
-        sb.Append('\n');
-        sb.Append("## [");
-        sb.Append(FileConstants.Unreleased);
-        sb.Append("]\n");
-
-        foreach (string section in ChangeLogLanguageFactory.DefaultSectionOrder)
-        {
-            sb.Append(section.AsChangeTypeHeading());
-            sb.Append('\n');
-        }
-
-        sb.Append('\n');
-        sb.Append("<!--\n");
-        sb.Append(
-            "Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch\n"
-        );
-        sb.Append("-->\n");
-        sb.Append("## [0.0.0] - Project created");
-
-        return sb.ToString();
+        return new StringBuilder()
+            .Append("# Changelog\n")
+            .Append("All notable changes to this project will be documented in this file.\n")
+            .Append('\n')
+            .Append(PreambleLine1)
+            .Append('\n')
+            .Append(PreambleLine2)
+            .Append('\n')
+            .Append('\n')
+            .Append("<!--\n")
+            .Append("Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release\n")
+            .Append("-->\n")
+            .Append('\n')
+            .Append("## [")
+            .Append(FileConstants.Unreleased)
+            .Append("]\n")
+            .AppendSectionHeadings(language.SectionOrder)
+            .Append('\n')
+            .Append("<!--\n")
+            .Append(
+                "Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch\n"
+            )
+            .Append("-->\n")
+            .Append("## [0.0.0] - Project created")
+            .ToString();
     }
 }

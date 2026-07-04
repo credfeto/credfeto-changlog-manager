@@ -33,7 +33,7 @@ public sealed class ChangeLogUpdaterEnsureUnreleasedSectionsTests : TestBase
     {
         ChangeLogParser parser = new();
         return parser
-            .ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Initial : content, default)
+            .ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Build(Language) : content, default)
             .GetAwaiter()
             .GetResult();
     }
