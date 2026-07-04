@@ -24,11 +24,15 @@ namespace Credfeto.ChangeLog.Tests;
 )]
 public sealed class ChangeLogUpdaterRemoveEntryTests : TestBase
 {
+    private static readonly ChangeLogLanguage Language = new ChangeLogLanguageFactory().Get(
+        ChangeLogLanguageFactory.English
+    );
+
     private static ChangeLogDocument ParseOrCreate(string content)
     {
         ChangeLogParser parser = new();
         return parser
-            .ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Initial : content, default)
+            .ParseAsync(string.IsNullOrEmpty(content) ? TemplateFile.Build(Language) : content, default)
             .GetAwaiter()
             .GetResult();
     }
