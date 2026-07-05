@@ -21,6 +21,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Increase code coverage to 100% for Credfeto.ChangeLog
 ### Fixed
 - Fixed Pull Request workflow failing when pull_request_target jobs used local composite actions without a prior workspace checkout
+- Provide properly translated section names and unreleased section labels for Czech, Danish, German, Spanish, French, Italian, Dutch, Chinese Simplified, and Chinese Traditional — these were incorrectly using English section order
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 - Refined changelog section linting and related updater/fixer command behaviour.
