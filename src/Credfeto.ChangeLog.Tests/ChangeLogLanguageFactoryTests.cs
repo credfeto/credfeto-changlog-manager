@@ -181,6 +181,29 @@ public sealed class ChangeLogLanguageFactoryTests : TestBase
         Assert.Equal(expected: "Deployment Changes", actual: language.SectionOrder[^1]);
     }
 
+    [Theory]
+    [InlineData(ChangeLogLanguageFactory.Czech, "Bezpečnost")]
+    [InlineData(ChangeLogLanguageFactory.Danish, "Sikkerhed")]
+    [InlineData(ChangeLogLanguageFactory.English, "Security")]
+    [InlineData(ChangeLogLanguageFactory.German, "Sicherheit")]
+    [InlineData(ChangeLogLanguageFactory.Spanish, "Seguridad")]
+    [InlineData(ChangeLogLanguageFactory.French, "Sécurité")]
+    [InlineData(ChangeLogLanguageFactory.Italian, "Sicurezza")]
+    [InlineData(ChangeLogLanguageFactory.Dutch, "Beveiliging")]
+    [InlineData(ChangeLogLanguageFactory.Polish, "Bezpieczeństwo")]
+    [InlineData(ChangeLogLanguageFactory.BrazilianPortuguese, "Segurança")]
+    [InlineData(ChangeLogLanguageFactory.Russian, "Безопасность")]
+    [InlineData(ChangeLogLanguageFactory.Turkish, "Güvenlik")]
+    [InlineData(ChangeLogLanguageFactory.Ukrainian, "Безпека")]
+    [InlineData(ChangeLogLanguageFactory.ChineseSimplified, "安全性")]
+    [InlineData(ChangeLogLanguageFactory.ChineseTraditional, "安全性")]
+    public void Get_KnownLanguageCode_FirstSectionIsSecurityEquivalent(string languageCode, string expectedFirstSection)
+    {
+        ChangeLogLanguage language = Factory.Get(languageCode);
+
+        Assert.Equal(expected: expectedFirstSection, actual: language.SectionOrder[0]);
+    }
+
     [Fact]
     public void Get_UnknownLanguageCode_ThrowsArgumentException()
     {
