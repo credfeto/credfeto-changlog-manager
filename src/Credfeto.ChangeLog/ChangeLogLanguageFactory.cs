@@ -42,22 +42,13 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [Czech] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Nevydáno",
-            SectionOrder:
-            [
-                "Bezpečnost",
-                "Přidáno",
-                "Opraveno",
-                "Změněno",
-                "Zastaralé",
-                "Odebráno",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Bezpečnost", "Přidáno", "Opraveno", "Změněno", "Zastaralé", "Odebráno"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Danish] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Ikke frigivet",
-            SectionOrder: ["Sikkerhed", "Tilføjet", "Rettet", "Ændret", "Udfaset", "Fjernet", "Deployment Changes"],
+            SectionOrder: ["Sikkerhed", "Tilføjet", "Rettet", "Ændret", "Udfaset", "Fjernet"],
             DateFormat: "yyyy-MM-dd"
         ),
         [English] = new(
@@ -69,154 +60,73 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [German] = new(
             DocumentTitle: "CHANGELOG",
             UnreleasedSectionName: "Unveröffentlicht",
-            SectionOrder:
-            [
-                "Sicherheit",
-                "Hinzugefügt",
-                "Behoben",
-                "Geändert",
-                "Veraltet",
-                "Entfernt",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Sicherheit", "Hinzugefügt", "Behoben", "Geändert", "Veraltet", "Entfernt"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Spanish] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Sin publicar",
-            SectionOrder:
-            [
-                "Seguridad",
-                "Añadido",
-                "Corregido",
-                "Cambiado",
-                "Obsoleto",
-                "Eliminado",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Seguridad", "Añadido", "Corregido", "Cambiado", "Obsoleto", "Eliminado"],
             DateFormat: "yyyy-MM-dd"
         ),
         [French] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Non publié",
-            SectionOrder: ["Sécurité", "Ajouté", "Corrigé", "Modifié", "Déprécié", "Supprimé", "Deployment Changes"],
+            SectionOrder: ["Sécurité", "Ajouté", "Corrigé", "Modifié", "Déprécié", "Supprimé"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Italian] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Non pubblicato",
-            SectionOrder:
-            [
-                "Sicurezza",
-                "Aggiunto",
-                "Corretto",
-                "Modificato",
-                "Deprecato",
-                "Rimosso",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Sicurezza", "Aggiunto", "Corretto", "Modificato", "Deprecato", "Rimosso"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Dutch] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Niet gepubliceerd",
-            SectionOrder:
-            [
-                "Beveiliging",
-                "Toegevoegd",
-                "Opgelost",
-                "Gewijzigd",
-                "Verouderd",
-                "Verwijderd",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Beveiliging", "Toegevoegd", "Opgelost", "Gewijzigd", "Verouderd", "Verwijderd"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Polish] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Niewydane",
-            SectionOrder:
-            [
-                "Bezpieczeństwo",
-                "Dodane",
-                "Naprawione",
-                "Zmienione",
-                "Zdezaprobowane",
-                "Usunięte",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Bezpieczeństwo", "Dodane", "Naprawione", "Zmienione", "Zdezaprobowane", "Usunięte"],
             DateFormat: "yyyy-MM-dd"
         ),
         [BrazilianPortuguese] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Não publicado",
-            SectionOrder:
-            [
-                "Segurança",
-                "Adicionado",
-                "Corrigido",
-                "Modificado",
-                "Obsoleto",
-                "Removido",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Segurança", "Adicionado", "Corrigido", "Modificado", "Obsoleto", "Removido"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Russian] = new(
             DocumentTitle: "Лог изменений",
             UnreleasedSectionName: "Новое",
-            SectionOrder:
-            [
-                "Безопасность",
-                "Добавлено",
-                "Исправлено",
-                "Изменено",
-                "Устарело",
-                "Удалено",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Безопасность", "Добавлено", "Исправлено", "Изменено", "Устарело", "Удалено"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Turkish] = new(
             DocumentTitle: "Değişiklik kaydı",
             UnreleasedSectionName: "Yayımlanmadı",
-            SectionOrder:
-            [
-                "Güvenlik",
-                "Eklendi",
-                "Düzeltildi",
-                "Değişti",
-                "Rafa kalktı",
-                "Kaldırıldı",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Güvenlik", "Eklendi", "Düzeltildi", "Değişti", "Rafa kalktı", "Kaldırıldı"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Ukrainian] = new(
             DocumentTitle: "Лог змін",
             UnreleasedSectionName: "Нове",
-            SectionOrder:
-            [
-                "Безпека",
-                "Додано",
-                "Виправлення",
-                "Змінено",
-                "Застаріло",
-                "Видалено",
-                "Deployment Changes",
-            ],
+            SectionOrder: ["Безпека", "Додано", "Виправлення", "Змінено", "Застаріло", "Видалено"],
             DateFormat: "yyyy-MM-dd"
         ),
         [ChineseSimplified] = new(
             DocumentTitle: "更新日志",
             UnreleasedSectionName: "未发布",
-            SectionOrder: ["安全性", "新增", "修复", "变更", "废弃", "移除", "Deployment Changes"],
+            SectionOrder: ["安全性", "新增", "修复", "变更", "废弃", "移除"],
             DateFormat: "yyyy-MM-dd"
         ),
         [ChineseTraditional] = new(
             DocumentTitle: "更新日誌",
             UnreleasedSectionName: "未發布",
-            SectionOrder: ["安全性", "新增", "修正", "變更", "廢棄", "移除", "Deployment Changes"],
+            SectionOrder: ["安全性", "新增", "修正", "變更", "廢棄", "移除"],
             DateFormat: "yyyy-MM-dd"
         ),
     }.ToFrozenDictionary(StringComparer.Ordinal);

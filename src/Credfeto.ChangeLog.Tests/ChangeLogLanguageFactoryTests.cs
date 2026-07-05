@@ -83,10 +83,17 @@ public sealed class ChangeLogLanguageFactoryTests : TestBase
         );
     }
 
+    [Fact]
+    public void Get_English_ReturnsSevenSections()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.English);
+
+        Assert.Equal(expected: 7, actual: language.SectionOrder.Length);
+    }
+
     [Theory]
     [InlineData(ChangeLogLanguageFactory.Czech)]
     [InlineData(ChangeLogLanguageFactory.Danish)]
-    [InlineData(ChangeLogLanguageFactory.English)]
     [InlineData(ChangeLogLanguageFactory.German)]
     [InlineData(ChangeLogLanguageFactory.Spanish)]
     [InlineData(ChangeLogLanguageFactory.French)]
@@ -99,11 +106,11 @@ public sealed class ChangeLogLanguageFactoryTests : TestBase
     [InlineData(ChangeLogLanguageFactory.Ukrainian)]
     [InlineData(ChangeLogLanguageFactory.ChineseSimplified)]
     [InlineData(ChangeLogLanguageFactory.ChineseTraditional)]
-    public void Get_KnownLanguageCode_ReturnsSevenSections(string languageCode)
+    public void Get_KnownLanguageCode_ReturnsSixSections(string languageCode)
     {
         ChangeLogLanguage language = Factory.Get(languageCode);
 
-        Assert.Equal(expected: 7, actual: language.SectionOrder.Length);
+        Assert.Equal(expected: 6, actual: language.SectionOrder.Length);
     }
 
     [Theory]
@@ -158,27 +165,34 @@ public sealed class ChangeLogLanguageFactoryTests : TestBase
         Assert.Equal(expected: "yyyy-MM-dd", actual: language.DateFormat);
     }
 
+    [Fact]
+    public void Get_English_LastSectionIsDeploymentChanges()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.English);
+
+        Assert.Equal(expected: "Deployment Changes", actual: language.SectionOrder[^1]);
+    }
+
     [Theory]
-    [InlineData(ChangeLogLanguageFactory.Czech)]
-    [InlineData(ChangeLogLanguageFactory.Danish)]
-    [InlineData(ChangeLogLanguageFactory.English)]
-    [InlineData(ChangeLogLanguageFactory.German)]
-    [InlineData(ChangeLogLanguageFactory.Spanish)]
-    [InlineData(ChangeLogLanguageFactory.French)]
-    [InlineData(ChangeLogLanguageFactory.Italian)]
-    [InlineData(ChangeLogLanguageFactory.Dutch)]
-    [InlineData(ChangeLogLanguageFactory.Polish)]
-    [InlineData(ChangeLogLanguageFactory.BrazilianPortuguese)]
-    [InlineData(ChangeLogLanguageFactory.Russian)]
-    [InlineData(ChangeLogLanguageFactory.Turkish)]
-    [InlineData(ChangeLogLanguageFactory.Ukrainian)]
-    [InlineData(ChangeLogLanguageFactory.ChineseSimplified)]
-    [InlineData(ChangeLogLanguageFactory.ChineseTraditional)]
-    public void Get_KnownLanguageCode_LastSectionIsDeploymentChanges(string languageCode)
+    [InlineData(ChangeLogLanguageFactory.Czech, "Odebráno")]
+    [InlineData(ChangeLogLanguageFactory.Danish, "Fjernet")]
+    [InlineData(ChangeLogLanguageFactory.German, "Entfernt")]
+    [InlineData(ChangeLogLanguageFactory.Spanish, "Eliminado")]
+    [InlineData(ChangeLogLanguageFactory.French, "Supprimé")]
+    [InlineData(ChangeLogLanguageFactory.Italian, "Rimosso")]
+    [InlineData(ChangeLogLanguageFactory.Dutch, "Verwijderd")]
+    [InlineData(ChangeLogLanguageFactory.Polish, "Usunięte")]
+    [InlineData(ChangeLogLanguageFactory.BrazilianPortuguese, "Removido")]
+    [InlineData(ChangeLogLanguageFactory.Russian, "Удалено")]
+    [InlineData(ChangeLogLanguageFactory.Turkish, "Kaldırıldı")]
+    [InlineData(ChangeLogLanguageFactory.Ukrainian, "Видалено")]
+    [InlineData(ChangeLogLanguageFactory.ChineseSimplified, "移除")]
+    [InlineData(ChangeLogLanguageFactory.ChineseTraditional, "移除")]
+    public void Get_KnownLanguageCode_LastSectionIsRemovedEquivalent(string languageCode, string expectedLastSection)
     {
         ChangeLogLanguage language = Factory.Get(languageCode);
 
-        Assert.Equal(expected: "Deployment Changes", actual: language.SectionOrder[^1]);
+        Assert.Equal(expected: expectedLastSection, actual: language.SectionOrder[^1]);
     }
 
     [Theory]
