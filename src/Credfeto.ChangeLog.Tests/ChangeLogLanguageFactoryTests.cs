@@ -274,4 +274,76 @@ public sealed class ChangeLogLanguageFactoryTests : TestBase
 
         Assert.Equal(expected: "Não publicado", actual: language.UnreleasedSectionName);
     }
+
+    [Fact]
+    public void Get_Czech_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.Czech);
+
+        Assert.Equal(expected: "Nevydáno", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_Danish_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.Danish);
+
+        Assert.Equal(expected: "Ikke frigivet", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_German_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.German);
+
+        Assert.Equal(expected: "Unveröffentlicht", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_Spanish_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.Spanish);
+
+        Assert.Equal(expected: "Sin publicar", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_French_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.French);
+
+        Assert.Equal(expected: "Non publié", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_Italian_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.Italian);
+
+        Assert.Equal(expected: "Non pubblicato", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_Dutch_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.Dutch);
+
+        Assert.Equal(expected: "Niet gepubliceerd", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_ChineseSimplified_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.ChineseSimplified);
+
+        Assert.Equal(expected: "未发布", actual: language.UnreleasedSectionName);
+    }
+
+    [Fact]
+    public void Get_ChineseTraditional_HasExpectedUnreleasedSectionName()
+    {
+        ChangeLogLanguage language = Factory.Get(ChangeLogLanguageFactory.ChineseTraditional);
+
+        Assert.Equal(expected: "未發布", actual: language.UnreleasedSectionName);
+    }
 }

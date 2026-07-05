@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,13 +41,22 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
     {
         [Czech] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Nevydáno",
+            SectionOrder:
+            [
+                "Bezpečnost",
+                "Přidáno",
+                "Opraveno",
+                "Změněno",
+                "Zastaralé",
+                "Odebráno",
+                "Deployment Changes",
+            ],
             DateFormat: "yyyy-MM-dd"
         ),
         [Danish] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
+            UnreleasedSectionName: "Ikke frigivet",
             SectionOrder: ["Sikkerhed", "Tilføjet", "Rettet", "Ændret", "Udfaset", "Fjernet", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
@@ -59,32 +68,68 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         ),
         [German] = new(
             DocumentTitle: "CHANGELOG",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Unveröffentlicht",
+            SectionOrder:
+            [
+                "Sicherheit",
+                "Hinzugefügt",
+                "Behoben",
+                "Geändert",
+                "Veraltet",
+                "Entfernt",
+                "Deployment Changes",
+            ],
             DateFormat: "yyyy-MM-dd"
         ),
         [Spanish] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Sin publicar",
+            SectionOrder:
+            [
+                "Seguridad",
+                "Añadido",
+                "Corregido",
+                "Cambiado",
+                "Obsoleto",
+                "Eliminado",
+                "Deployment Changes",
+            ],
             DateFormat: "yyyy-MM-dd"
         ),
         [French] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Non publié",
+            SectionOrder: ["Sécurité", "Ajouté", "Corrigé", "Modifié", "Déprécié", "Supprimé", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [Italian] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Non pubblicato",
+            SectionOrder:
+            [
+                "Sicurezza",
+                "Aggiunto",
+                "Corretto",
+                "Modificato",
+                "Deprecato",
+                "Rimosso",
+                "Deployment Changes",
+            ],
             DateFormat: "yyyy-MM-dd"
         ),
         [Dutch] = new(
             DocumentTitle: "Changelog",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "Niet gepubliceerd",
+            SectionOrder:
+            [
+                "Beveiliging",
+                "Toegevoegd",
+                "Opgelost",
+                "Gewijzigd",
+                "Verouderd",
+                "Verwijderd",
+                "Deployment Changes",
+            ],
             DateFormat: "yyyy-MM-dd"
         ),
         [Polish] = new(
@@ -164,14 +209,14 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         ),
         [ChineseSimplified] = new(
             DocumentTitle: "更新日志",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "未发布",
+            SectionOrder: ["安全性", "新增", "修复", "变更", "废弃", "移除", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [ChineseTraditional] = new(
             DocumentTitle: "更新日誌",
-            UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            UnreleasedSectionName: "未發布",
+            SectionOrder: ["安全性", "新增", "修正", "變更", "廢棄", "移除", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
     }.ToFrozenDictionary(StringComparer.Ordinal);
