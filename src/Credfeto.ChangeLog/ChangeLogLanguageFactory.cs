@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Credfeto.ChangeLog;
 
@@ -23,17 +22,6 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
     public const string ChineseSimplified = "zh-CN";
     public const string ChineseTraditional = "zh-TW";
 
-    internal static readonly ImmutableArray<string> DefaultSectionOrder =
-    [
-        "Security",
-        "Added",
-        "Fixed",
-        "Changed",
-        "Deprecated",
-        "Removed",
-        "Deployment Changes",
-    ];
-
     private static readonly FrozenDictionary<string, ChangeLogLanguage> Languages = new Dictionary<
         string,
         ChangeLogLanguage
@@ -54,7 +42,7 @@ public sealed class ChangeLogLanguageFactory : IChangeLogLanguageFactory
         [English] = new(
             DocumentTitle: "Changelog",
             UnreleasedSectionName: "Unreleased",
-            SectionOrder: DefaultSectionOrder,
+            SectionOrder: ["Security", "Added", "Fixed", "Changed", "Deprecated", "Removed", "Deployment Changes"],
             DateFormat: "yyyy-MM-dd"
         ),
         [German] = new(
