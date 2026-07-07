@@ -9,7 +9,7 @@ internal static class StringBuilderExtensions
     {
         foreach (string section in sections)
         {
-            sb.Append(section.AsChangeTypeHeading()).Append('\n');
+            sb = sb.Append(section.AsChangeTypeHeading()).Append('\n');
         }
 
         return sb;
