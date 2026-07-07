@@ -21,6 +21,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Increase code coverage to 100% for Credfeto.ChangeLog
 ### Fixed
 - Fixed Pull Request workflow failing when pull_request_target jobs used local composite actions without a prior workspace checkout
+- Provide properly translated section names and unreleased section labels for Czech, Danish, German, Spanish, French, Italian, Dutch, Chinese Simplified, and Chinese Traditional — these were incorrectly using English section order
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 - Refined changelog section linting and related updater/fixer command behaviour.
@@ -50,6 +51,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - SDK - Updated DotNet SDK to 10.0.301
 ### Deprecated
 ### Removed
+- Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
 ### Deployment Changes
 <!--
 Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
