@@ -22,6 +22,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Fixed
 - Fixed Pull Request workflow failing when pull_request_target jobs used local composite actions without a prior workspace checkout
 - Provide properly translated section names and unreleased section labels for Czech, Danish, German, Spanish, French, Italian, Dutch, Chinese Simplified, and Chinese Traditional — these were incorrectly using English section order
+- ChangeLogDetector no longer reports 'changelog not found' due to access errors in nested directories; checks root CHANGELOG.md first without a full directory scan
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 - Refined changelog section linting and related updater/fixer command behaviour.
@@ -49,6 +50,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Replaced System.Linq .Where() with ZLinq .AsValueEnumerable().Where() to eliminate per-call heap allocations in enumeration hot paths
 - Exceptions now use Credfeto.Exceptions.SourceGenerator source generator to reduce boilerplate
 - SDK - Updated DotNet SDK to 10.0.301
+- ChangeLogDetector now skips the .git directory and uses IgnoreInaccessible enumeration when scanning for changelogs in subdirectories
 ### Deprecated
 ### Removed
 - Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
