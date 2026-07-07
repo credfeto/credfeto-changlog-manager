@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Credfeto.ChangeLog.Constants;
@@ -39,39 +38,60 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
     {
         string repoRoot = repository.Info.WorkingDirectory;
 
-        IReadOnlyList<string> changelogs = Directory.GetFiles(
-            path: repoRoot,
-            searchPattern: FileConstants.ChangeLogFileName,
-            searchOption: SearchOption.AllDirectories
-        );
+        string rootChangelog = Path.Combine(repoRoot, FileConstants.ChangeLogFileName);
 
-        switch (changelogs.Count)
+        if (File.Exists(rootChangelog))
         {
-            case 0:
-                changeLogFileName = null;
+            changeLogFileName = rootChangelog;
 
-                return false;
+            return true;
+        }
 
-            case 1:
-                changeLogFileName = changelogs[0];
+        return TryFindSingleNestedChangeLog(repoRoot: repoRoot, changeLogFileName: out changeLogFileName);
+    }
 
-                return true;
+    private static bool TryFindSingleNestedChangeLog(string repoRoot, [NotNullWhen(true)] out string? changeLogFileName)
+    {
+        EnumerationOptions dirOptions = new() { IgnoreInaccessible = true };
 
-            default:
+        EnumerationOptions fileOptions = new()
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = true,
+            AttributesToSkip = FileAttributes.ReparsePoint,
+        };
+
+        string? found = null;
+
+        foreach (string subDir in Directory.EnumerateDirectories(repoRoot, searchPattern: "*", dirOptions))
+        {
+            if (StringComparer.Ordinal.Equals(x: Path.GetFileName(subDir), y: ".git"))
             {
-                string changeLogAtRepoRoot = Path.Combine(path1: repoRoot, path2: FileConstants.ChangeLogFileName);
+                continue;
+            }
 
-                if (changelogs.Contains(value: changeLogAtRepoRoot, comparer: StringComparer.Ordinal))
+            foreach (string file in Directory.EnumerateFiles(subDir, FileConstants.ChangeLogFileName, fileOptions))
+            {
+                if (found is not null)
                 {
-                    changeLogFileName = changeLogAtRepoRoot;
+                    changeLogFileName = null;
 
-                    return true;
+                    return false;
                 }
 
-                changeLogFileName = null;
-
-                return false;
+                found = file;
             }
         }
+
+        if (found is not null)
+        {
+            changeLogFileName = found;
+
+            return true;
+        }
+
+        changeLogFileName = null;
+
+        return false;
     }
 }
