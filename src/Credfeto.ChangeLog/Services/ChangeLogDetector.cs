@@ -14,6 +14,15 @@ namespace Credfeto.ChangeLog.Services;
 )]
 internal sealed class ChangeLogDetector : IChangeLogDetector
 {
+    private static readonly EnumerationOptions DirOptions = new() { IgnoreInaccessible = true };
+
+    private static readonly EnumerationOptions FileOptions = new()
+    {
+        IgnoreInaccessible = true,
+        RecurseSubdirectories = true,
+        AttributesToSkip = FileAttributes.ReparsePoint,
+    };
+
     public bool TryFindChangeLog([NotNullWhen(true)] out string? changeLogFileName)
     {
         try
@@ -52,25 +61,16 @@ internal sealed class ChangeLogDetector : IChangeLogDetector
 
     private static bool TryFindSingleNestedChangeLog(string repoRoot, [NotNullWhen(true)] out string? changeLogFileName)
     {
-        EnumerationOptions dirOptions = new() { IgnoreInaccessible = true };
-
-        EnumerationOptions fileOptions = new()
-        {
-            IgnoreInaccessible = true,
-            RecurseSubdirectories = true,
-            AttributesToSkip = FileAttributes.ReparsePoint,
-        };
-
         string? found = null;
 
-        foreach (string subDir in Directory.EnumerateDirectories(repoRoot, searchPattern: "*", dirOptions))
+        foreach (string subDir in Directory.EnumerateDirectories(repoRoot, searchPattern: "*", DirOptions))
         {
             if (StringComparer.Ordinal.Equals(x: Path.GetFileName(subDir), y: ".git"))
             {
                 continue;
             }
 
-            foreach (string file in Directory.EnumerateFiles(subDir, FileConstants.ChangeLogFileName, fileOptions))
+            foreach (string file in Directory.EnumerateFiles(subDir, FileConstants.ChangeLogFileName, FileOptions))
             {
                 if (found is not null)
                 {
