@@ -116,6 +116,36 @@ public sealed class ChangeLogDetectorTests : LoggingFolderCleanupTestBase
     }
 
     [Fact]
+    public async Task TryFindChangeLogReturnsTrueWhenSingleNestedChangeLogAndNoneAtRoot()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        await CreateRepoWithSingleNestedChangeLogAsync(this.TempFolder, SIMPLE_CHANGE_LOG, cancellationToken);
+
+        string originalDir = Environment.CurrentDirectory;
+
+        try
+        {
+            Environment.CurrentDirectory = this.TempFolder;
+            ChangeLogDetector detector = new();
+            bool found = detector.TryFindChangeLog(out string? changeLogFileName);
+
+            Assert.True(
+                found,
+                userMessage: "Expected TryFindChangeLog to return true when single CHANGELOG.md exists in a subdirectory"
+            );
+            Assert.NotNull(changeLogFileName);
+            Assert.True(
+                File.Exists(changeLogFileName),
+                userMessage: $"Expected changelog to exist at: {changeLogFileName}"
+            );
+        }
+        finally
+        {
+            Environment.CurrentDirectory = originalDir;
+        }
+    }
+
+    [Fact]
     public async Task TryFindChangeLogReturnsFalseWhenMultipleChangeLogsAndNoneAtRoot()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
@@ -227,6 +257,30 @@ public sealed class ChangeLogDetectorTests : LoggingFolderCleanupTestBase
 
         Commands.Stage(repo, rootChangeLog);
         Commands.Stage(repo, subChangeLog);
+        Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
+        repo.Commit("Initial commit", author, author);
+    }
+
+    private static async Task CreateRepoWithSingleNestedChangeLogAsync(
+        string tempDir,
+        string changeLogContent,
+        CancellationToken cancellationToken
+    )
+    {
+        Directory.CreateDirectory(tempDir);
+
+        string subDir = Path.Combine(tempDir, "project");
+        Directory.CreateDirectory(subDir);
+        string changeLog = Path.Combine(subDir, "CHANGELOG.md");
+        await File.WriteAllTextAsync(changeLog, changeLogContent, Encoding.UTF8, cancellationToken);
+
+        string repoPath = Repository.Init(tempDir);
+
+        using Repository repo = new(repoPath);
+        repo.Config.Set("user.name", "Test User");
+        repo.Config.Set("user.email", "test@example.com");
+
+        Commands.Stage(repo, changeLog);
         Signature author = new("Test User", "test@example.com", MockDateTimeSources.Past.GetUtcNow());
         repo.Commit("Initial commit", author, author);
     }
