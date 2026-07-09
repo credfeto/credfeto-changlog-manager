@@ -221,16 +221,32 @@ internal sealed class ChangeLogParser : IChangeLogParser
             this.InTrailerMode = true;
         }
 
+        private const string YANKED_SUFFIX = "[YANKED]";
+
         private static (string Version, string Date, bool IsYanked) ParseVersionHeader(string line)
         {
             int closeBracket = line.IndexOf(value: ']', comparisonType: StringComparison.Ordinal);
+
+            if (closeBracket == -1)
+            {
+                return Throws.MalformedVersionHeader(line);
+            }
+
             string version = line[4..closeBracket];
-            string raw = closeBracket + 4 < line.Length ? line[(closeBracket + 4)..] : string.Empty;
+            string rest = line[(closeBracket + 1)..].Trim();
 
-            bool isYanked = raw.EndsWith(value: " [YANKED]", comparisonType: StringComparison.OrdinalIgnoreCase);
-            string date = isYanked ? raw[..^" [YANKED]".Length] : raw;
+            bool isYanked = rest.EndsWith(value: YANKED_SUFFIX, comparisonType: StringComparison.OrdinalIgnoreCase);
+            if (isYanked)
+            {
+                rest = rest[..^YANKED_SUFFIX.Length].Trim();
+            }
 
-            return (version, date, isYanked);
+            if (rest.StartsWith(value: '-'))
+            {
+                rest = rest[1..].Trim();
+            }
+
+            return (version, rest, isYanked);
         }
 
         public void FlushSection()

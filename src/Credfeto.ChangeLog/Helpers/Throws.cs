@@ -75,4 +75,10 @@ internal static class Throws
     {
         throw new InvalidChangeLogException($"Could not find {changeLogFileName}");
     }
+
+    [DoesNotReturn]
+    public static (string Version, string Date, bool IsYanked) MalformedVersionHeader(string line)
+    {
+        throw new InvalidChangeLogException($"Malformed version header (missing closing bracket): {line}");
+    }
 }
