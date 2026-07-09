@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -387,6 +387,76 @@ public sealed class ProgramTests : TestBase
         try
         {
             int result = await Credfeto.ChangeLog.Cmd.Program.Main(["--changelog", tempFile]);
+            Assert.Equal(expected: 1, actual: result);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public async Task Main_AddWithoutMessage_ReturnsError()
+    {
+        string tempFile = await CreateTempChangeLogAsync(VALID_CHANGELOG);
+
+        try
+        {
+            int result = await Credfeto.ChangeLog.Cmd.Program.Main(["--changelog", tempFile, "--add", "Added"]);
+            Assert.Equal(expected: 1, actual: result);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public async Task Main_RemoveWithoutMessage_ReturnsError()
+    {
+        string tempFile = await CreateTempChangeLogAsync(VALID_CHANGELOG);
+
+        try
+        {
+            int result = await Credfeto.ChangeLog.Cmd.Program.Main(["--changelog", tempFile, "--remove", "Added"]);
+            Assert.Equal(expected: 1, actual: result);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public async Task Main_ExtractWithoutVersion_ReturnsError()
+    {
+        string tempFile = await CreateTempChangeLogAsync(CHANGELOG_WITH_RELEASE);
+        string outputFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".txt");
+
+        try
+        {
+            int result = await Credfeto.ChangeLog.Cmd.Program.Main(["--changelog", tempFile, "--extract", outputFile]);
+            Assert.Equal(expected: 1, actual: result);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+
+            if (File.Exists(outputFile))
+            {
+                File.Delete(outputFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Main_VersionWithoutExtract_ReturnsError()
+    {
+        string tempFile = await CreateTempChangeLogAsync(CHANGELOG_WITH_RELEASE);
+
+        try
+        {
+            int result = await Credfeto.ChangeLog.Cmd.Program.Main(["--changelog", tempFile, "--version", "1.0.0"]);
             Assert.Equal(expected: 1, actual: result);
         }
         finally
