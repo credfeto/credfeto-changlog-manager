@@ -24,6 +24,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Provide properly translated section names and unreleased section labels for Czech, Danish, German, Spanish, French, Italian, Dutch, Chinese Simplified, and Chinese Traditional — these were incorrectly using English section order
 - ChangeLogDetector no longer reports 'changelog not found' due to access errors in nested directories; checks root CHANGELOG.md first without a full directory scan
 - CLI no longer silently exits 0 when required option combinations are incomplete (--add/--remove without --message, --extract without --version, --version without --extract, or no recognised command) — it now throws InvalidOptionsException and exits with a non-zero code.
+- Fix ChangeLogParser crash (ArgumentOutOfRangeException) on version headers with a missing closing bracket or malformed date separator
 ### Changed
 - ChangeLogSections: added static FrozenSet<string> KnownSections pre-built from Order, replacing per-call HashSet allocation in BuildNewUnreleasedContent
 - Refined changelog section linting and related updater/fixer command behaviour.
