@@ -69,12 +69,11 @@ internal sealed class ChangeLogChecker : IChangeLogChecker
             Patch changes = repo.Diff.Compare<Patch>(
                 BranchTree(originBranch),
                 HeadTree(repo),
+                paths: [changeLogInRepoPath],
                 compareOptions: CompareSettings.BuildCompareOptions
             );
 
-            PatchEntryChanges? change = changes.FirstOrDefault(candidate =>
-                candidate.Path.EqualsOrdinal(changeLogInRepoPath)
-            );
+            PatchEntryChanges? change = changes.FirstOrDefault();
 
             if (change is not null)
             {
