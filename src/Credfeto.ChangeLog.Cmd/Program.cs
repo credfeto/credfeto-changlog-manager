@@ -48,8 +48,10 @@ internal static class Program
             .GetRequiredService<IChangeLogLanguageFactory>()
             .Get(ChangeLogLanguageFactory.English);
 
-        if (options.Extract is not null && options.Version is not null)
+        if (options.Extract is not null || options.Version is not null)
         {
+            EnsureExtractOptionsComplete(options);
+
             await ExtractChangeLogTextForVersionAsync(
                 options: options,
                 detector: detector,
@@ -60,8 +62,10 @@ internal static class Program
             return;
         }
 
-        if (options.Add is not null && options.Message is not null)
+        if (options.Add is not null)
         {
+            EnsureMessageProvided(options: options, commandOptionName: "--add");
+
             await AddEntryToUnreleasedChangelogAsync(
                 options: options,
                 detector: detector,
@@ -73,8 +77,10 @@ internal static class Program
             return;
         }
 
-        if (options.Remove is not null && options.Message is not null)
+        if (options.Remove is not null)
         {
+            EnsureMessageProvided(options: options, commandOptionName: "--remove");
+
             await RemoveEntryFromUnreleasedChangelogAsync(
                 options: options,
                 detector: detector,
@@ -93,6 +99,27 @@ internal static class Program
             services: services,
             cancellationToken: cancellationToken
         );
+    }
+
+    private static void EnsureExtractOptionsComplete(Options options)
+    {
+        if (options.Extract is null)
+        {
+            throw new InvalidOptionsException("--version requires --extract");
+        }
+
+        if (options.Version is null)
+        {
+            throw new InvalidOptionsException("--extract requires --version");
+        }
+    }
+
+    private static void EnsureMessageProvided(Options options, string commandOptionName)
+    {
+        if (options.Message is null)
+        {
+            throw new InvalidOptionsException($"{commandOptionName} requires --message");
+        }
     }
 
     private static async Task ParsedOkContinuationAsync(
@@ -150,7 +177,11 @@ internal static class Program
                 fixer: services.GetRequiredService<IChangeLogFixer>(),
                 cancellationToken: cancellationToken
             );
+
+            return;
         }
+
+        throw new InvalidOptionsException("No recognised command was specified");
     }
 
     private static ChangeLogLanguage WithAdditionalSections(
@@ -422,6 +453,12 @@ internal static class Program
             ParserResult<Options> parser = await ParseOptionsAsync(args, serviceProvider);
 
             return parser.Tag == ParserResultType.Parsed ? SUCCESS : ERROR;
+        }
+        catch (InvalidOptionsException exception)
+        {
+            Console.WriteLine($"ERROR: {exception.Message}");
+
+            return ERROR;
         }
         catch (Exception exception)
         {
