@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Exceptions;
 using Credfeto.ChangeLog.Extensions;
 using Credfeto.ChangeLog.Models;
@@ -21,21 +22,23 @@ namespace Credfeto.ChangeLog.Services;
 )]
 internal sealed class ChangeLogUpdater : IChangeLogUpdater
 {
+    private readonly IChangeLogParser _parser;
     private readonly IChangeLogStorage _storage;
 
-    public ChangeLogUpdater(IChangeLogStorage storage)
+    public ChangeLogUpdater(IChangeLogStorage storage, IChangeLogParser parser)
     {
         this._storage = storage;
+        this._parser = parser;
     }
 
-    public ValueTask CreateEmptyAsync(
+    public async ValueTask CreateEmptyAsync(
         string changeLogFileName,
         ChangeLogLanguage language,
         CancellationToken cancellationToken
     )
     {
-        ChangeLogDocument empty = BuildEmptyDocument(language);
-        return this._storage.SaveAsync(changeLogFileName, document: empty, cancellationToken: cancellationToken);
+        ChangeLogDocument empty = await this._parser.ParseAsync(TemplateFile.Build(language), cancellationToken);
+        await this._storage.SaveAsync(changeLogFileName, document: empty, cancellationToken: cancellationToken);
     }
 
     public async Task AddEntryAsync(
@@ -170,16 +173,6 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
             sectionOrder: language.SectionOrder
         );
         return document with { Unreleased = unreleased with { Sections = ordered } };
-    }
-
-    private static ChangeLogDocument BuildEmptyDocument(ChangeLogLanguage language)
-    {
-        ImmutableArray<ChangeLogSection> sections =
-        [
-            .. language.SectionOrder.Select(name => new ChangeLogSection(Name: name, LineNumber: 0, Entries: [])),
-        ];
-        ChangeLogUnreleased unreleased = new(LineNumber: 0, Sections: sections, TrailingLines: []);
-        return new ChangeLogDocument(HeaderLines: [], Unreleased: unreleased, Releases: [], TrailingLines: []);
     }
 
     private async ValueTask<ChangeLogDocument> LoadOrCreateAsync(
