@@ -216,7 +216,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, new ChangeLogParser());
 
         string tempFile = System.IO.Path.GetTempFileName();
         try
@@ -252,7 +252,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, new ChangeLogParser());
 
         string tempFile = System.IO.Path.GetTempFileName();
         try

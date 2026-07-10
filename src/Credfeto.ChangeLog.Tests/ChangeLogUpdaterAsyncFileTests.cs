@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.ChangeLog.Constants;
 using Credfeto.ChangeLog.Models;
 using Credfeto.ChangeLog.Services;
 using Credfeto.ChangeLog.Tests.TestHelpers;
@@ -104,7 +105,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : LoggingFolderCleanupTestBas
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, new ChangeLogParser());
 
         string tempFile = Path.Combine(this.TempFolder, "test.md");
         await File.WriteAllTextAsync(tempFile, string.Empty, cancellationTokenSource.Token);
@@ -149,7 +150,7 @@ public sealed class ChangeLogUpdaterAsyncFileTests : LoggingFolderCleanupTestBas
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.CompletedTask);
 
-        ChangeLogUpdater updater = new(storage);
+        ChangeLogUpdater updater = new(storage, new ChangeLogParser());
 
         string tempFile = Path.Combine(this.TempFolder, "test-release.md");
 
@@ -186,6 +187,70 @@ public sealed class ChangeLogUpdaterAsyncFileTests : LoggingFolderCleanupTestBas
             content.Contains("[Unreleased]", StringComparison.Ordinal),
             userMessage: $"Expected empty changelog to contain [Unreleased] section, got:{Environment.NewLine}{content}"
         );
+    }
+
+    [Fact]
+    public async Task CreateEmptyAsyncCreatesFileMatchingTemplate()
+    {
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        string fileName = Path.Combine(this.TempFolder, $"{Guid.NewGuid():N}.md");
+
+        IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+        await updater.CreateEmptyAsync(
+            changeLogFileName: fileName,
+            language: Language,
+            cancellationToken: cancellationTokenSource.Token
+        );
+
+        string content = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+        Assert.Equal(expected: TemplateFile.Build(Language), actual: content.Trim());
+    }
+
+    [Fact]
+    public async Task CreateEmptyAsyncParsedDocumentHasSeedRelease()
+    {
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        string fileName = Path.Combine(this.TempFolder, $"{Guid.NewGuid():N}.md");
+
+        IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+        await updater.CreateEmptyAsync(
+            changeLogFileName: fileName,
+            language: Language,
+            cancellationToken: cancellationTokenSource.Token
+        );
+
+        string content = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(content);
+
+        ChangeLogRelease release = Assert.Single(document.Releases);
+        Assert.Equal(expected: "0.0.0", actual: release.Version);
+        Assert.Equal(expected: "Project created", actual: release.Date);
+    }
+
+    [Fact]
+    public async Task CreateEmptyAsyncParsedDocumentHasTitle()
+    {
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        string fileName = Path.Combine(this.TempFolder, $"{Guid.NewGuid():N}.md");
+
+        IChangeLogUpdater updater = this._serviceProvider.GetRequiredService<IChangeLogUpdater>();
+
+        await updater.CreateEmptyAsync(
+            changeLogFileName: fileName,
+            language: Language,
+            cancellationToken: cancellationTokenSource.Token
+        );
+
+        string content = await File.ReadAllTextAsync(fileName, Encoding.UTF8, cancellationTokenSource.Token);
+        ChangeLogDocument document = await ChangeLogTestHelper.ParseAsync(content);
+
+        Assert.Contains("# Changelog", document.HeaderLines);
+        Assert.Contains(TemplateFile.PreambleLine1, document.HeaderLines);
     }
 
     [Fact]
