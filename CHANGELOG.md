@@ -19,6 +19,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Add support for all language versions of Keep a Changelog listed on keepachangelog.com (cs, da, de, es, fr, it, nl, pl, pt-BR, ru, tr, uk, zh-CN, zh-TW)
 - Tests for Credfeto.ChangeLog.Cmd
 - Increase code coverage to 100% for Credfeto.ChangeLog
+- Added a regression-guard benchmark with a committed allocation baseline for ChangeLogParser.MoveTrailingBlanks (issue #254)
 ### Fixed
 - Fixed Pull Request workflow failing when pull_request_target jobs used local composite actions without a prior workspace checkout
 - Provide properly translated section names and unreleased section labels for Czech, Danish, German, Spanish, French, Italian, Dutch, Chinese Simplified, and Chinese Traditional — these were incorrectly using English section order
@@ -55,6 +56,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - SDK - Updated DotNet SDK to 10.0.301
 - ChangeLogDetector now skips the .git directory and uses IgnoreInaccessible enumeration when scanning for changelogs in subdirectories
 - Improved performance when checking changelog modifications by limiting git diff to the changelog file only
+- Refactored MoveTrailingBlanks in ChangeLogParser to avoid repeated O(n) element shifting when moving trailing blank lines into the trailer
 ### Deprecated
 ### Removed
 - Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
