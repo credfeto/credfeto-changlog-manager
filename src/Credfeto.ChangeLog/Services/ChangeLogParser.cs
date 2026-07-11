@@ -111,6 +111,9 @@ internal sealed class ChangeLogParser : IChangeLogParser
         }
     }
 
+    // Assumes destination is empty: blanks are appended in original order, so a non-empty
+    // destination would end up with its existing content before the moved blanks, whereas the
+    // previous Insert(0, ...) implementation placed them before existing content.
     private static void MoveTrailingBlanks(List<string> source, List<string> destination)
     {
         int end = source.Count;
