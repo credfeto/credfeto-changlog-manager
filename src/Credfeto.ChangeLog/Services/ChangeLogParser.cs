@@ -113,11 +113,20 @@ internal sealed class ChangeLogParser : IChangeLogParser
 
     private static void MoveTrailingBlanks(List<string> source, List<string> destination)
     {
-        while (source.Count > 0 && string.IsNullOrWhiteSpace(source[^1]))
+        int end = source.Count;
+        int start = end;
+
+        while (start > 0 && string.IsNullOrWhiteSpace(source[start - 1]))
         {
-            destination.Insert(index: 0, item: source[^1]);
-            source.RemoveAt(source.Count - 1);
+            --start;
         }
+
+        for (int i = start; i < end; ++i)
+        {
+            destination.Add(source[i]);
+        }
+
+        source.RemoveRange(start, end - start);
     }
 
     private static void CollectTrailer(IReadOnlyList<string> lines, int from, int to, List<string> trailer)
