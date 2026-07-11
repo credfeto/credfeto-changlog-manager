@@ -55,6 +55,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - SDK - Updated DotNet SDK to 10.0.301
 - ChangeLogDetector now skips the .git directory and uses IgnoreInaccessible enumeration when scanning for changelogs in subdirectories
 - Improved performance when checking changelog modifications by limiting git diff to the changelog file only
+- Refactored MoveTrailingBlanks in ChangeLogParser to avoid repeated O(n) element shifting when moving trailing blank lines into the trailer
 ### Deprecated
 ### Removed
 - Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
