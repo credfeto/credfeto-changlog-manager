@@ -96,6 +96,32 @@ public sealed partial class ChangeLogFixerTests : TestBase
     }
 
     [Fact]
+    public void MultipleBlankLinesAfterHeading_AreAllRemoved()
+    {
+        const string changeLog = """
+            # Changelog
+
+            ## [Unreleased]
+            ### Security
+            ### Added
+
+
+            - an entry
+            ### Fixed
+            ### Changed
+            ### Removed
+            ### Deployment Changes
+
+            ## [0.0.0] - Project created
+            """;
+
+        string result = Serialise(ChangeLogFixer.Fix(Parse(changeLog), Language));
+
+        IReadOnlyList<LintError> errors = ChangeLogLinter.Lint(Parse(result), Language);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
     public void MissingRequiredSection_IsAdded()
     {
         const string changeLog = """
