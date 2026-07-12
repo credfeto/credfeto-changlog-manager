@@ -22,5 +22,3 @@ cp "$TEMPLATE/.ai-instructions" "$BASEDIR/.ai-instructions"
 rsync -a --delete "$TEMPLATE/ai/global/" "$BASEDIR/ai/global/"
 
 [ -f "$BASEDIR/ai/local/index.md" ] || cp "$TEMPLATE/ai/local/index.md" "$BASEDIR/ai/local/index.md"
-
-

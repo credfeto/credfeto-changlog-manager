@@ -22,6 +22,7 @@ dotnet tool install Credfeto.ChangeLog.Cmd
 ```
 
 To update to latest released version
+
 ```shell
 dotnet tool update Credfeto.ChangeLog.Cmd
 ```
@@ -34,6 +35,7 @@ dotnet tool install Credfeto.ChangeLog.Cmd --local
 ```
 
 To update to latest released version
+
 ```shell
 dotnet tool update Credfeto.ChangeLog.Cmd --local
 ```
@@ -45,15 +47,16 @@ Common notes
 - The parameter `-changelog CHANGELOG.md` is optional and the changelog will be searched for in the current git repo.  Its is given explicitly in the examples assuming CHANGELOG.md is in the current directory.
 - If CHANGELOG.md doesn't exist calling `-add` with and when using `-changelog CHANGELOG.md` will create a file at that location.  It will error if `-changelog CHANGELOG.md` is not used.
 
-
 ### Extracting Release Notes
 
 #### Extract the release notes for a pre-release build
+
 ```shell
 dotnet changelog --changelog CHANGELOG.md --extract RELEASE_NOTES.md --version 1.0.1.27-master
 ```
 
 #### Extract the release notes for a release build
+
 ```shell
 dotnet changelog --changelog CHANGELOG.md --extract RELEASE_NOTES.md --version 1.0.2.77
 ```
@@ -123,8 +126,8 @@ and sets the release date to pending.
 dotnet changelog -changelog CHANGELOG.md --create-release 1.2.3 --pending
 ```
 
-
 Notes:
+
 - If the specified version already exists then an error will occur.
 - If the specified version is older than the latest release then an error will occur.
 
@@ -163,6 +166,7 @@ dotnet changelog --changelog CHANGELOG.md --lint --additional-sections "Security
 ```
 
 Notes:
+
 - `--lint` exits with a non-zero exit code if any errors are found.
 - `--fix` rewrites the changelog to correct ordering and missing sections in `[Unreleased]`; it then re-lints to confirm the file is valid.
 
