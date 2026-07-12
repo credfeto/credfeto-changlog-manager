@@ -14,4 +14,4 @@ This is an index of local instructions that apply to just this project.
 
 ## Instruction Files
 <!-- Locally Maintained -->
-- [project-structure.instructions.md](project-structure.instructions.md) — folder conventions for `Credfeto.ChangeLog` (Exceptions, Extensions, Helpers, Models, Services)
+* [project-structure.instructions.md](project-structure.instructions.md) — folder conventions for `Credfeto.ChangeLog` (Exceptions, Extensions, Helpers, Models, Services)
