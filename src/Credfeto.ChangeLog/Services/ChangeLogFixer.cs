@@ -130,11 +130,20 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         };
     }
 
-    private static ChangeLogSection RemoveLeadingBlank(ChangeLogSection section) =>
-        section.Entries.Length > 0 && string.IsNullOrWhiteSpace(section.Entries[0])
-            ? section with
+    private static ChangeLogSection RemoveLeadingBlank(ChangeLogSection section)
+    {
+        int start = 0;
+
+        while (start < section.Entries.Length && string.IsNullOrWhiteSpace(section.Entries[start]))
+        {
+            start++;
+        }
+
+        return start == 0
+            ? section
+            : section with
             {
-                Entries = section.Entries[1..],
-            }
-            : section;
+                Entries = section.Entries[start..],
+            };
+    }
 }
