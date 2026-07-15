@@ -54,10 +54,10 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Replaced System.Linq LINQ .Where() with ZLinq .AsValueEnumerable().Where() to eliminate heap allocation of enumerators
 - Replaced System.Linq .Where() with ZLinq .AsValueEnumerable().Where() to eliminate per-call heap allocations in enumeration hot paths
 - Exceptions now use Credfeto.Exceptions.SourceGenerator source generator to reduce boilerplate
-- SDK - Updated DotNet SDK to 10.0.301
 - ChangeLogDetector now skips the .git directory and uses IgnoreInaccessible enumeration when scanning for changelogs in subdirectories
 - Improved performance when checking changelog modifications by limiting git diff to the changelog file only
 - Refactored MoveTrailingBlanks in ChangeLogParser to avoid repeated O(n) element shifting when moving trailing blank lines into the trailer
+- SDK - Updated DotNet SDK to 10.0.302
 ### Deprecated
 ### Removed
 - Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
