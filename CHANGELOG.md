@@ -8,6 +8,16 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ## [Unreleased]
 ### Security
 ### Added
+### Fixed
+### Changed
+### Deprecated
+### Removed
+### Deployment Changes
+<!--
+Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
+-->
+## [1.10.195] - 2026-07-19
+### Added
 - add DI registration extension AddChangeLog to configure IChangeLogLoader
 - add service interfaces IChangeLogReader, IChangeLogLinter, IChangeLogFixer, IChangeLogUpdater with file-backed implementations injectable via DI
 - Mock-based unit tests for ChangeLogReader, ChangeLogFixer, ChangeLogLinter, ChangeLogUpdater services using NSubstitute
@@ -58,13 +68,9 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Improved performance when checking changelog modifications by limiting git diff to the changelog file only
 - Refactored MoveTrailingBlanks in ChangeLogParser to avoid repeated O(n) element shifting when moving trailing blank lines into the trailer
 - SDK - Updated DotNet SDK to 10.0.302
-### Deprecated
 ### Removed
 - Removed ChangeLogSections helper class; each language now specifies its own section order inline, accessed only through the language object
-### Deployment Changes
-<!--
-Releases that have at least been deployed to staging, BUT NOT necessarily released to live.  Changes should be moved from [Unreleased] into here as they are merged into the appropriate release branch
--->
+
 ## [1.10.194] - 2026-05-05
 ### Added
 - Automatically fixes changelogs that have missing or out-of-order sections in [Unreleased], ensuring all standard sections are present and in the correct order
