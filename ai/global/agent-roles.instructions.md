@@ -95,11 +95,19 @@ If a change proposed by `/simplify` (Phase A) or a finding raised by `/code-revi
 3. If findings are reported (inline or in output): post them as a PR comment if not already inline, fix each in its own commit, push, return to step 2.
 4. After `MAX_REVIEW_ITERATIONS` rounds with unresolved findings: post a PR comment, add `Blocked` label, **STOP**.
 
-#### Phase D: Mark ready
+#### Phase D: AI Coverage (up to `MAX_REVIEW_ITERATIONS` rounds)
 
-Only when all three phases pass (or no reviewable changes):
+1. Update Workflow board to **AI Coverage** (if board data present).
+2. Run the [AI Coverage Phase Decision Procedure](coverage-ratchet.instructions.md#ai-coverage-phase-decision-procedure-mandatory) from [coverage-ratchet.instructions.md](coverage-ratchet.instructions.md): compare the branch's live per-language coverage against the most recent `## Coverage Baseline (main)` PR comment.
+3. On failure (any language's branch coverage below its baseline): the procedure posts a status comment (exact format: [decision procedure step 4](coverage-ratchet.instructions.md#ai-coverage-phase-decision-procedure-mandatory)) and moves the board back to **Development**; **STOP** here, the next cycle picks the resulting Development work back up.
+4. On success: the procedure moves the board to **Human Review** and posts a status comment; proceed to Phase E.
+5. After `MAX_REVIEW_ITERATIONS` rounds (counted from prior `... - returning to Development` coverage comments) without the branch catching up: post a PR comment listing the still-failing languages and their gap, add `Blocked` label, and **STOP**.
 
-1. Update Workflow board to **Human Review** (if board data present).
+#### Phase E: Mark ready
+
+Only when all four phases pass (or no reviewable changes):
+
+1. Update Workflow board to **Human Review** (if board data present), unless Phase D already moved it there on success.
 2. Enable auto-merge:
 
    ```bash
@@ -123,6 +131,7 @@ Workflow board (see agent-roles.instructions.md for update commands):
   WF_AI_SIMPLIFY=<option-id>
   WF_AI_REVIEW=<option-id>
   WF_AI_SECURITY_REVIEW=<option-id>
+  WF_AI_COVERAGE=<option-id>
   WF_HUMAN_REVIEW=<option-id>
   WF_COMPLETE=<option-id>
 ```
