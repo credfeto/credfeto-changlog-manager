@@ -28,6 +28,8 @@ Then, before starting any work on an issue or PR, run the hook against every tra
 
 This ensures CI results are unambiguous: pre-existing failures are resolved before any new changes are introduced.
 
+When picking up a **new issue** (branching fresh from `main`, not resuming an existing branch): once the baseline hook passes cleanly on `main`, also capture `main`'s whole-repo, per-language coverage numbers before creating the work branch, and post them once the PR exists; see [Initial Capture](coverage-ratchet.instructions.md#initial-capture-pre-work-baseline-check) in [coverage-ratchet.instructions.md](coverage-ratchet.instructions.md).
+
 ## Pre-Commit Hook Verification (MANDATORY before blocking)
 
 Never block work based on inspecting config files and deducing that a tool might be missing. Always verify by actually running the hook:
