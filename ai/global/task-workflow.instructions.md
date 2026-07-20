@@ -266,13 +266,15 @@ Every sequence below starts with the [Pre-Work Baseline Check](git.instructions.
 
 | Work type | Agent sequence |
 | --- | --- |
-| New feature / bug fix / refactor | Pre-Work Baseline Check → Code Writer → Code Tester → Code Reviewer → Changelog → Committer → PR Submitter → CI Monitor |
-| `CHANGES_REQUESTED` on existing PR, or verbal/chat request for changes on an open PR | Pre-Work Baseline Check → Code Fixer (respond to every comment) → Code Tester → Code Reviewer → Changelog → Committer → PR Submitter → CI Monitor |
-| Coverage-only task | Pre-Work Baseline Check → Code Writer (tests only) → Code Tester → Code Reviewer → Changelog → Committer → PR Submitter → CI Monitor |
-| Documentation-only | Pre-Work Baseline Check → Code Writer (docs only) → PR Submitter |
+| New feature / bug fix / refactor | Pre-Work Baseline Check → Changelog (placeholder) → Committer → PR Submitter → Code Writer → Code Tester → Code Reviewer → Changelog (correction) → Committer → PR Submitter → CI Monitor |
+| `CHANGES_REQUESTED` on existing PR, or verbal/chat request for changes on an open PR | Pre-Work Baseline Check → Code Fixer (respond to every comment) → Code Tester → Code Reviewer → Changelog (correction) → Committer → PR Submitter → CI Monitor |
+| Coverage-only task | Pre-Work Baseline Check → Changelog (placeholder) → Committer → PR Submitter → Code Writer (tests only) → Code Tester → Code Reviewer → Changelog (correction) → Committer → PR Submitter → CI Monitor |
+| Documentation-only | Pre-Work Baseline Check → Changelog (placeholder) → Committer → PR Submitter → Code Writer (docs only) → Changelog (correction) → Committer → PR Submitter |
 | Rebase requested | Pre-Work Baseline Check → Rebase Agent → PR Submitter |
 | CI failure (unknown cause) | Pre-Work Baseline Check → CI Debugger |
 | Dependabot / dependency update | Pre-Work Baseline Check → Dependency Updater |
+
+Rows starting with `Changelog (placeholder)` assume the work item takes a changelog entry at all. If it hits the skip condition in [changelog.instructions.md](changelog.instructions.md#when-to-skip) (template repo), drop the leading `Changelog (placeholder) → Committer → PR Submitter` and start the row at the first `Code Writer` step instead — the PR then opens from that first real commit, as it did before this split existed.
 
 For detailed agent role definitions, see [agent-roles.instructions.md](agent-roles.instructions.md).
 
