@@ -32,6 +32,12 @@ When selecting the next issue to work on, prefer issues with higher-priority lab
 | `On-Hold` | Needs further thought or cannot be implemented yet; do not start work |
 | `Blocked` | Needs human input before work can continue; see the Orchestrator section in [agent-roles.instructions.md](agent-roles.instructions.md) |
 
+## Workflow Project Board (MANDATORY)
+
+Every issue raised, in any repository and via any flow (deliverable issues, ad-hoc intake tracking issues, AI-initiated issues, sub-issues), must be added to the "Workflow" GitHub project linked to that repository, immediately after creation.
+
+Each repository has its own linked project titled "Workflow", and many projects share that title across the owner, so never resolve the project by title alone. Discover the repository's linked project and add the issue using the commands in [github-cli.instructions.md](github-cli.instructions.md#adding-an-issue-to-the-workflow-project).
+
 ## GitHub Issue Creation (MANDATORY)
 
 When asked to create or update a GitHub issue (i.e. the issue itself is the requested deliverable):
