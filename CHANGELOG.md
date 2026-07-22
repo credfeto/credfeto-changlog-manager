@@ -14,6 +14,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Dependencies - Updated Credfeto.Enumeration to 1.2.151.2192
 - Dependencies - Updated Credfeto.Version.Information.Generator to 1.0.135.1491
 - Dependencies - Updated Microsoft.Sbom.Targets to 4.1.5
+- Dependencies - Updated Microsoft.VisualStudio.Threading.Analyzers to 18.7.23
 ### Deprecated
 ### Removed
 ### Deployment Changes
