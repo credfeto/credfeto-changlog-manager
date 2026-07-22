@@ -21,6 +21,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Dependencies - Updated SonarAnalyzer.CSharp to 10.29.0.143774
 - Dependencies - Updated ZLinq to 1.5.6
 - Dependencies - Updated FunFair.Test.Source.Generator to 6.3.6.2484
+- Dependencies - Updated Microsoft.Extensions to 10.0.10
 ### Deprecated
 ### Removed
 ### Deployment Changes
