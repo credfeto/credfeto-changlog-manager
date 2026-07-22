@@ -64,7 +64,7 @@
     <PackageReference Include="ZLinq" Version="1.4.6" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AsyncFixer" Version="1.6.0" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="AsyncFixer" Version="2.1.0" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="codecracker.CSharp" Version="1.1.0" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Credfeto.Enumeration.Source.Generation" Version="1.2.129.1430" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Credfeto.Exceptions.SourceGenerator" Version="0.0.2.54" PrivateAssets="All" ExcludeAssets="runtime" />
