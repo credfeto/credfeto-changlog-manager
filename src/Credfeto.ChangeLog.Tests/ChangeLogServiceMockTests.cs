@@ -237,7 +237,11 @@ public sealed class ChangeLogServiceMockTests : TestBase
         await storage.Received(1).LoadAsync(tempFile, Arg.Any<CancellationToken>());
         await storage
             .Received(1)
-            .SaveAsync(tempFile, Arg.Is<ChangeLogDocument>(d => d.Unreleased is object), Arg.Any<CancellationToken>());
+            .SaveAsync(
+                tempFile,
+                Arg.Is<ChangeLogDocument>(d => d is object && d.Unreleased is object),
+                Arg.Any<CancellationToken>()
+            );
     }
 
     [Fact]
