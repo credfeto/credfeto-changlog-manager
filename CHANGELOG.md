@@ -28,6 +28,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Dependencies - Updated NSubstitute to 6.0.0
 - Dependencies - Updated FunFair.CodeAnalysis to 7.2.11.2216
 - Exposed changelog parser, serialiser, reader, linter, fixer, updater and detector services (previously internal) as public API, along with related helper types, so tests exercise them directly instead of via InternalsVisibleTo
+- Dependencies - Updated Meziantou.Analyzer to 3.0.123
 ### Deprecated
 ### Removed
 ### Deployment Changes
