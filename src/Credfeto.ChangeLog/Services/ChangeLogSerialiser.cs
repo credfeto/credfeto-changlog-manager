@@ -11,9 +11,9 @@ namespace Credfeto.ChangeLog.Services;
 public sealed class ChangeLogSerialiser : IChangeLogSerialiser
 {
     public ValueTask<string> SerialiseAsync(ChangeLogDocument document, CancellationToken cancellationToken) =>
-        ValueTask.FromResult(Serialise(document));
+        ValueTask.FromResult(SerialiseCore(document));
 
-    private static string Serialise(ChangeLogDocument document)
+    private static string SerialiseCore(ChangeLogDocument document)
     {
         List<string> lines = [];
         lines.AddRange(document.HeaderLines);
