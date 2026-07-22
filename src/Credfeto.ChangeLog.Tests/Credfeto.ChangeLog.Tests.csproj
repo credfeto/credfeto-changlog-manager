@@ -53,7 +53,7 @@
     <ProjectReference Include="..\Credfeto.ChangeLog\Credfeto.ChangeLog.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FunFair.Test.Common" Version="6.2.25.2243" />
+    <PackageReference Include="FunFair.Test.Common" Version="6.3.6.2484" />
     <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
