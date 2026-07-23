@@ -7,12 +7,7 @@ using LibGit2Sharp;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogDetector : IChangeLogDetector
+public sealed class ChangeLogDetector : IChangeLogDetector
 {
     private static readonly EnumerationOptions DirOptions = new() { IgnoreInaccessible = true };
 

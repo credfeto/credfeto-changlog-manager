@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Credfeto.ChangeLog.Cmd;
 
-internal static class Program
+public static class Program
 {
     private const int SUCCESS = 0;
     private const int ERROR = 1;
@@ -442,7 +442,12 @@ internal static class Program
         }
     }
 
-    internal static async Task<int> Main(string[] args)
+    [SuppressMessage(
+        category: "Meziantou.Analyzer",
+        checkId: "MA0109",
+        Justification = "Main(string[] args) is the mandated .NET entry point signature"
+    )]
+    public static async Task<int> Main(string[] args)
     {
         Console.WriteLine($"{VersionInformation.Product} {VersionInformation.Version}");
 

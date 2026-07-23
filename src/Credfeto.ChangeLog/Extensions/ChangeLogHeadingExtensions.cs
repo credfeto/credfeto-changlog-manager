@@ -4,7 +4,7 @@ using Credfeto.ChangeLog.Helpers;
 
 namespace Credfeto.ChangeLog.Extensions;
 
-internal static class ChangeLogHeadingExtensions
+public static class ChangeLogHeadingExtensions
 {
     private const string CHANGE_TYPE_HEADING_PREFIX = "### ";
     private const string VERSION_HEADER_PREFIX = "## [";

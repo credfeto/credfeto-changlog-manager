@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +10,7 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogLinter : IChangeLogLinter
+public sealed class ChangeLogLinter : IChangeLogLinter
 {
     private readonly IChangeLogStorage _storage;
 
@@ -36,7 +30,7 @@ internal sealed class ChangeLogLinter : IChangeLogLinter
         return Lint(document: document, language: language);
     }
 
-    internal static IReadOnlyList<LintError> Lint(ChangeLogDocument document, ChangeLogLanguage language)
+    public static IReadOnlyList<LintError> Lint(ChangeLogDocument document, ChangeLogLanguage language)
     {
         List<LintError> errors = [];
         CheckUnreleased(document: document, errors: errors, language: language);

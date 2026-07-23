@@ -10,7 +10,7 @@ public sealed class RegexTimeoutsTests : TestBase
     [Fact]
     public void RegexTimeoutsShortIsOneSecond()
     {
-        TimeSpan timeout = RegexTimeouts.Short;
+        TimeSpan timeout = RegexTimeouts.ShortTimeout;
         Assert.Equal(expected: TimeSpan.FromSeconds(1), actual: timeout);
     }
 }

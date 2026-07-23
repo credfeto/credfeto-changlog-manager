@@ -6,7 +6,7 @@ using LibGit2Sharp;
 
 namespace Credfeto.ChangeLog.Helpers;
 
-internal static class Throws
+public static class Throws
 {
     [DoesNotReturn]
     public static string EmptyChangeLogNoUnreleasedSection()

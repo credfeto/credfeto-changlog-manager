@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Extensions;
@@ -9,12 +8,7 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
+public sealed class ChangeLogSerialiser : IChangeLogSerialiser
 {
     public ValueTask<string> SerialiseAsync(ChangeLogDocument document, CancellationToken cancellationToken) =>
         ValueTask.FromResult(Serialise(document));
@@ -81,7 +75,7 @@ internal sealed class ChangeLogSerialiser : IChangeLogSerialiser
         lines.AddRange(section.Entries);
     }
 
-    internal static ImmutableArray<ChangeLogSection> OrderSections(
+    public static ImmutableArray<ChangeLogSection> OrderSections(
         in ImmutableArray<ChangeLogSection> sections,
         in ImmutableArray<string> sectionOrder
     )
