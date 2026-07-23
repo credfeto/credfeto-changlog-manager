@@ -2,7 +2,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using FunFair.Test.Common.Mocks;
 using FunFair.Test.Infrastructure.Mocks;
 using LibGit2Sharp;
 
