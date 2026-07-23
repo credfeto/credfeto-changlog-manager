@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Extensions;
@@ -10,12 +9,7 @@ using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogParser : IChangeLogParser
+public sealed class ChangeLogParser : IChangeLogParser
 {
     public ValueTask<ChangeLogDocument> ParseAsync(string content, CancellationToken cancellationToken) =>
         ValueTask.FromResult(Parse(content.SplitToLines()));

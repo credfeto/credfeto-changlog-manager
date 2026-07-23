@@ -2,7 +2,7 @@
 
 namespace Credfeto.ChangeLog.Constants;
 
-internal static class BuildNumberHelpers
+public static class BuildNumberHelpers
 {
     public static Version? DetermineVersionForChangeLog(string version)
     {

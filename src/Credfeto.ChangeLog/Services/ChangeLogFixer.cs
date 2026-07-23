@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.ChangeLog.Constants;
@@ -8,12 +7,7 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogFixer : IChangeLogFixer
+public sealed class ChangeLogFixer : IChangeLogFixer
 {
     private readonly IChangeLogStorage _storage;
 
@@ -33,14 +27,14 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
         await this._storage.SaveAsync(changeLogFileName, document: corrected, cancellationToken: cancellationToken);
     }
 
-    internal static ChangeLogDocument Fix(ChangeLogDocument document, ChangeLogLanguage language)
+    public static ChangeLogDocument Fix(ChangeLogDocument document, ChangeLogLanguage language)
     {
         ChangeLogDocument ensured = ChangeLogUpdater.EnsureUnreleasedSections(document: document, language: language);
         ChangeLogDocument withPreamble = EnsurePreamble(ensured);
         return RemoveBlankLinesAfterHeadings(withPreamble);
     }
 
-    internal static ChangeLogDocument EnsurePreamble(ChangeLogDocument document)
+    public static ChangeLogDocument EnsurePreamble(ChangeLogDocument document)
     {
         if (HasPreamble(document.HeaderLines))
         {
@@ -139,11 +133,6 @@ internal sealed class ChangeLogFixer : IChangeLogFixer
             start++;
         }
 
-        return start == 0
-            ? section
-            : section with
-            {
-                Entries = section.Entries[start..],
-            };
+        return start == 0 ? section : section with { Entries = section.Entries[start..] };
     }
 }

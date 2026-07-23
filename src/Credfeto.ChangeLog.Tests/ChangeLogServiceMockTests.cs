@@ -61,7 +61,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         using CancellationTokenSource cancellationTokenSource = new();
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
@@ -95,7 +95,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
             """;
 
         ChangeLogDocument document = Parse(changeLog);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogReader reader = new(storage);
@@ -134,7 +134,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
             """;
 
         ChangeLogDocument document = Parse(contentWithBlankLines);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
@@ -160,7 +160,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         using CancellationTokenSource cancellationTokenSource = new();
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogLinter linter = new(storage);
@@ -186,7 +186,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
             """;
 
         ChangeLogDocument document = Parse(invalidContent);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
 
         ChangeLogLinter linter = new(storage);
@@ -210,7 +210,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         using CancellationTokenSource cancellationTokenSource = new();
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())
@@ -250,7 +250,7 @@ public sealed class ChangeLogServiceMockTests : TestBase
         using CancellationTokenSource cancellationTokenSource = new();
 
         ChangeLogDocument document = Parse(SIMPLE_CHANGE_LOG);
-        IChangeLogStorage storage = Substitute.For<IChangeLogStorage>();
+        IChangeLogStorage storage = GetSubstitute<IChangeLogStorage>();
         storage.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(ValueTask.FromResult(document));
         storage
             .SaveAsync(Arg.Any<string>(), Arg.Any<ChangeLogDocument>(), Arg.Any<CancellationToken>())

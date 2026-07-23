@@ -15,12 +15,7 @@ using ZLinq;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogUpdater : IChangeLogUpdater
+public sealed class ChangeLogUpdater : IChangeLogUpdater
 {
     private readonly IChangeLogParser _parser;
     private readonly IChangeLogStorage _storage;
@@ -112,7 +107,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         await this._storage.SaveAsync(changeLogFileName, document: withPreamble, cancellationToken: cancellationToken);
     }
 
-    internal static ChangeLogDocument AddEntry(ChangeLogDocument document, string type, string message)
+    public static ChangeLogDocument AddEntry(ChangeLogDocument document, string type, string message)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
@@ -127,7 +122,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
     }
 
-    internal static ChangeLogDocument RemoveEntry(ChangeLogDocument document, string type, string message)
+    public static ChangeLogDocument RemoveEntry(ChangeLogDocument document, string type, string message)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ChangeLogSection section = RequireSection(unreleased: unreleased, type: type);
@@ -142,7 +137,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return ReplaceSection(document: document, unreleased: unreleased, updated: updated);
     }
 
-    internal static ChangeLogDocument CreateRelease(
+    public static ChangeLogDocument CreateRelease(
         ChangeLogDocument document,
         string version,
         bool pending,
@@ -165,7 +160,7 @@ internal sealed class ChangeLogUpdater : IChangeLogUpdater
         return document with { Unreleased = cleared, Releases = releases };
     }
 
-    internal static ChangeLogDocument EnsureUnreleasedSections(ChangeLogDocument document, ChangeLogLanguage language)
+    public static ChangeLogDocument EnsureUnreleasedSections(ChangeLogDocument document, ChangeLogLanguage language)
     {
         ChangeLogUnreleased unreleased = RequireUnreleased(document);
         ImmutableArray<ChangeLogSection> ordered = ChangeLogSerialiser.OrderSections(

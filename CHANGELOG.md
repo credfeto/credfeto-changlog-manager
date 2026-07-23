@@ -1,6 +1,9 @@
 ﻿# Changelog
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 <!--
 Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
@@ -23,6 +26,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Dependencies - Updated FunFair.Test.Source.Generator to 6.3.6.2484
 - Dependencies - Updated Microsoft.Extensions to 10.0.10
 - Dependencies - Updated NSubstitute to 6.0.0
+- Dependencies - Updated FunFair.CodeAnalysis to 7.2.11.2216
+- Exposed changelog parser, serialiser, reader, linter, fixer, updater and detector services (previously internal) as public API, along with related helper types, so tests exercise them directly instead of via InternalsVisibleTo
 ### Deprecated
 ### Removed
 ### Deployment Changes

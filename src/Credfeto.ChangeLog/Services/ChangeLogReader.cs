@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +8,7 @@ using Credfeto.ChangeLog.Models;
 
 namespace Credfeto.ChangeLog.Services;
 
-[SuppressMessage(
-    category: "Microsoft.Performance",
-    checkId: "CA1812: Avoid uninstantiated internal classes",
-    Justification = "Registered in DI"
-)]
-internal sealed class ChangeLogReader : IChangeLogReader
+public sealed class ChangeLogReader : IChangeLogReader
 {
     private readonly IChangeLogStorage _storage;
 
@@ -44,7 +38,7 @@ internal sealed class ChangeLogReader : IChangeLogReader
         return document.Releases.IsEmpty ? null : document.Releases[0].LineNumber;
     }
 
-    internal static string ExtractReleaseNotes(ChangeLogDocument document, string version)
+    public static string ExtractReleaseNotes(ChangeLogDocument document, string version)
     {
         return FormatSections(FindSections(document: document, version: version));
     }
