@@ -14,7 +14,7 @@ Read all of these before starting any task, regardless of language or context.
 
 | File | Covers |
 | --- | --- |
-| [git.instructions.md](git.instructions.md) | Prerequisites, build/test verification, git identity/GPG, branching, commits, GitHub issues |
+| [git.instructions.md](git.instructions.md) | Prerequisites, build/test verification, git identity/GPG, branching, commits, GitHub issues, template rule escalation |
 | [git-rebasing.instructions.md](git-rebasing.instructions.md) | When to rebase (fetch/check/rebase), version-conflict resolution when merging or rebasing |
 | [task-workflow.instructions.md](task-workflow.instructions.md) | Agent routing table, model selection, failure handling, issue/PR assignment, Workflow project board, commit cadence, resuming work, command timeouts, ad-hoc prompt intake, prompt traceability |
 | [code-quality.instructions.md](code-quality.instructions.md) | Code coverage, tests, async, immutability, parameterised tests, refactoring |
@@ -39,6 +39,7 @@ Load these only when the work involves the relevant technology or context.
 | [shell.firewall.instructions.md](shell.firewall.instructions.md) | Firewall rule management is needed | `firewall-cmd` rules, private network constants |
 | [github-workflows.instructions.md](github-workflows.instructions.md) | Any `.github/workflows/*.yml` file is present or being created | Action policy, composite actions, step ordering, permissions, version pinning |
 | [npm.instructions.md](npm.instructions.md) | Any `package.json` is present or npm packages are being added/updated | Exact version pinning, `--save-exact`, no semver ranges, explicit updates |
+| [learnings.instructions.md](learnings.instructions.md) | A memory file (`ai/global` or `ai/local`) is created or updated to record a new learning | Filing a matching human-readable issue in `credfeto/credfeto-notes` |
 | [api.instructions.md](api.instructions.md) | An HTTP API is being created or modified | `.http` test file requirements |
 | [performance.instructions.md](performance.instructions.md) | Performance-critical code is being written or optimised | Design principles, benchmarks, optimisation workflow |
 | [coverage-ratchet.instructions.md](coverage-ratchet.instructions.md) | Acting as Orchestrator running the AI Coverage board phase | Whole-repo per-language coverage ratchet gated on the committed `COVERAGE.md` (per-component + overall figures, read live from `origin/main`, no PR comment), bootstrap/dependency-only-branch skip rules, per-language extraction commands, phase decision procedure |
@@ -61,3 +62,4 @@ These contain code examples only. Load them when actively writing or modifying t
 | [sql.examples.md](sql.examples.md) | Writing SQL or database connection scripts: provides `.database` file format, `sqlcmd` invocation, and `SET STATISTICS` baseline template |
 | [dotnet.examples.md](dotnet.examples.md) | Writing .NET DI setup tests: provides `AddMockedService` and `IOptions` patterns |
 | [git.examples.md](git.examples.md) | Filing a template rule escalation issue: provides the `gh issue create` command |
+| [learnings.examples.md](learnings.examples.md) | Filing a `credfeto-notes` learning-capture issue: provides the `gh issue create` command |
