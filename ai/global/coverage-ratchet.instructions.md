@@ -1,68 +1,79 @@
 # Coverage Ratchet Instructions
 
-> Load when: acting as Orchestrator running the **AI Coverage** board phase, capturing/posting a coverage baseline as part of issue-to-PR creation, or re-baselining a coverage comment after a rebase.
+> Load when: acting as Orchestrator running the **AI Coverage** board phase.
 
 [Back to Global Instructions Index](index.md)
 
 ## Overview
 
-The AI Coverage phase is a whole-repo ratchet: each orchestrated language's overall line-coverage percentage on the PR branch must be **>=** that language's percentage on `main`, recomputed live every time (no stored/committed baseline file, no Codecov or similar external service). This is **not** a repeat of the diff-coverage check already performed by the Code Tester role ([agent-roles.instructions.md](agent-roles.instructions.md#code-tester)), which only verifies new/changed lines are covered; the ratchet also catches a deleted test or a refactor that drops coverage of code the diff never touched.
+The AI Coverage phase is a whole-repo ratchet: each orchestrated language's overall line-coverage percentage on the PR branch must be **>=** that language's percentage on `main`, compared against a baseline committed to `main` itself (no Codecov or similar external service). This is **not** a repeat of the diff-coverage check already performed by the Code Tester role ([agent-roles.instructions.md](agent-roles.instructions.md#code-tester)), which only verifies new/changed lines are covered; the ratchet also catches a deleted test or a refactor that drops coverage of code the diff never touched.
 
-Percentages are compared **per language**, never blended into one combined figure (a .NET percentage and a Python percentage are not commensurable). A language with no code or tests present in the repo is skipped. Shell is out of scope (see [Shell](#shell-excluded)).
+The **gate** compares **per language**, never blended into one combined figure (a .NET percentage and a Python percentage are not commensurable). A language with no code or tests present in the repo is skipped. Shell is out of scope (see [Shell](#shell-excluded)). Per-component/project numbers are also recorded, for visibility only — see [Committed Coverage File](#committed-coverage-file-mandatory); a single project dipping while its language's overall average holds or improves does **not** fail the gate.
 
-There is no persisted state between phase invocations beyond what is written into a GitHub PR comment: every AI Coverage phase invocation is a fresh, memoryless session. The only place the main-branch numbers survive between the baseline capture and the later comparison is the `## Coverage Baseline (main)` PR comment defined below.
+There is no separate baseline-capture step and no PR comment: the baseline is `COVERAGE.md` as it exists on `origin/main` at the moment the AI Coverage phase runs, read fresh every time. Every AI Coverage phase invocation is a fresh, memoryless session; nothing needs to be captured when branching and nothing needs refreshing after a rebase, because the phase always reads `origin/main` live (see [When to Rebase](git-rebasing.instructions.md#when-to-rebase) — no coverage-specific step is needed there beyond the ordinary rebase).
 
-## Main Coverage Baseline Capture (MANDATORY)
+## Committed Coverage File (MANDATORY)
 
-### Initial Capture (Pre-Work Baseline Check)
+`COVERAGE.md`, at the repo root, is the sole persisted record of coverage. It is generated, never hand-edited, and is updated only by the AI Coverage phase itself (see [decision procedure](#ai-coverage-phase-decision-procedure-mandatory)) as part of a PR that later merges to `main` — there is no separate post-merge job.
 
-Capture `main`'s coverage numbers **while still checked out on `main`**, as part of the existing [Pre-Work Baseline Check](git.instructions.md#pre-work-baseline-check-mandatory-before-starting-any-work), before the work branch is created:
-
-1. Complete the normal Pre-Work Baseline Check (hook run, auto-fix/failure handling) on `main`.
-2. For each orchestrated language present in the repo (.NET, Node, Python), run that language's [overall coverage extraction](#per-language-overall-coverage-extraction) procedure and record the resulting percentage plus the current `main` commit SHA (`git -C <repodir> rev-parse HEAD`).
-3. Create the work branch as normal.
-4. Once the PR exists (PR Submitter step, [agent-roles.instructions.md](agent-roles.instructions.md#pr-submitter)), post the numbers captured in step 2 as a [Coverage Baseline PR comment](#coverage-baseline-pr-comment-format-mandatory).
-
-Steps 1-4 happen within one continuous session, per the memorylessness rule above.
-
-### Re-Baseline After a Rebase (Checkout-Swap)
-
-When [When to Rebase](git-rebasing.instructions.md#when-to-rebase) determines `origin/main` has advanced and the branch is rebased, the previously posted baseline comment is stale (it no longer reflects current `main`). Refresh it immediately after the rebase completes, using a plain checkout swap, never `git worktree` (banned repo-wide, see [Avoid git worktree](git.instructions.md#avoid-git-worktree)):
-
-1. Confirm the working tree is clean (the rebase has already completed and been verified) so nothing is lost by switching branches.
-2. `git -C <repodir> checkout main`
-3. `git -C <repodir> merge --ff-only origin/main` (fast-forward the local `main` ref using the `origin/main` already fetched by the rebase that triggered this re-baseline, without a redundant network fetch).
-4. Run the [per-language extraction](#per-language-overall-coverage-extraction) procedure again.
-5. `git -C <repodir> checkout <branch>` to switch back to the work branch.
-6. Post a fresh [Coverage Baseline PR comment](#coverage-baseline-pr-comment-format-mandatory). Do not edit or delete the previous baseline comment; the AI Coverage phase always uses the **most recent** `## Coverage Baseline (main)` comment on the PR.
-
-## Coverage Baseline PR Comment Format (MANDATORY)
-
-Post exactly this structure (values illustrative):
+Format (values illustrative):
 
 ```text
-## Coverage Baseline (main)
+# Coverage
 
-| Language | Coverage |
+Generated by the AI Coverage phase. Do not edit by hand.
+
+## .NET
+
+| Project | Line Coverage |
 | --- | --- |
-| .NET | 82.1% |
-| Node | n/a (no code) |
-| Python | 74.3% |
-| Shell | excluded |
+| Credfeto.Foo | 82.1% |
+| Credfeto.Bar | 74.0% |
+| **Overall (.NET)** | **80.3%** |
 
-Captured at commit `<main-sha>` on <ISO-8601 date>.
+## Node
+
+| Package | Line Coverage |
+| --- | --- |
+| **Overall (Node)** | 91.4% |
+
+## Python
+
+| Package | Line Coverage |
+| --- | --- |
+| **Overall (Python)** | 74.3% |
+
+## Shell
+
+excluded
+
+---
+
+Captured at commit `<sha>` on <ISO-8601 date>.
 ```
 
-- Include every orchestrated language (.NET, Node, Python, Shell) as a row, even when skipped, so the table is unambiguous about what was and was not measured.
-- Use `n/a (no code)` for a language with no code/tests in the repo.
+- Include every orchestrated language (.NET, Node, Python, Shell) as a section, even when skipped, so the file is unambiguous about what was and was not measured.
+- Under a measured language, list every component/project (see [Per-Language Overall Coverage Extraction](#per-language-overall-coverage-extraction) for what counts as a component in that language) plus a bold **Overall (\<Language\>)** row — the figure the gate actually compares. A language with only one component still gets an explicit Overall row.
+- Use `n/a (no code)` for a language with no code/tests in the repo (no table).
 - Use `excluded` for Shell (always; see [Shell](#shell-excluded)).
-- `<main-sha>` is the full commit SHA captured in step 2 of the initial capture (or the re-measured SHA after a re-baseline).
+- `<sha>` is the commit the numbers were measured against (the branch tip at the time of a successful AI Coverage phase run).
+
+**Bootstrap**: `COVERAGE.md` reaches `main` for the first time via whichever branch's [Pre-Work Baseline Check](git.instructions.md#pre-work-baseline-check-mandatory-before-starting-any-work) first finds it missing: that branch commits an initial version as its own first commit, before the requested work starts. `origin/main` still won't have the file until that branch merges, so this phase's own comparison (step 2 below) finds nothing to compare against on that same branch too — not a regression, so it must not block. Overwrite `COVERAGE.md` again with the branch's live measurements (its second commit on that branch — expected, not a conflict), treat the gate as passed, and proceed as in [step 5](#ai-coverage-phase-decision-procedure-mandatory). For any later branch, once `main` has a real `COVERAGE.md`, this bootstrap path only recurs if the Pre-Work Baseline Check step was skipped or the branch predates it.
+
+**Conflict on rebase**: `COVERAGE.md` is generated content, not hand-authored — never text-merge conflicting percentages. If `git -C <repodir> rebase origin/main` produces a conflict in `COVERAGE.md`, take `main`'s copy:
+
+```bash
+git -C <repodir> checkout --ours -- COVERAGE.md
+git -C <repodir> add COVERAGE.md
+```
+
+(Git's rebase convention reverses the usual meaning: during a rebase, `--ours` is the branch being rebased *onto* — `origin/main` — and `--theirs` is your own commit being replayed, the opposite of a merge.) Continue the rebase as normal. Once it completes **and** the existing post-rebase build-and-test step ([When to Rebase](git-rebasing.instructions.md#when-to-rebase)) passes, re-run the [per-language extraction](#per-language-overall-coverage-extraction) against the rebased working tree and commit the fresh `COVERAGE.md` as part of that same rebase work — do not leave `main`'s stale copy in place, and do not measure before the build/tests are confirmed green.
 
 ## Per-Language Overall Coverage Extraction
 
 ### .NET
 
-Collect each unit test project's `.cobertura.xml` as normal ([Code Coverage](dotnet.instructions.md#code-coverage-mandatory)), then generate the combined report and read its `summary.linecoverage` field as described in [Coverage Reporting with reportgenerator](dotnet.instructions.md#coverage-reporting-with-reportgenerator).
+Components are assemblies (one row per `<AssemblyName>.Tests` project's target assembly). Collect each unit test project's `.cobertura.xml` as normal ([Code Coverage](dotnet.instructions.md#code-coverage-mandatory)), generate the **per-assembly** reports for the [Committed Coverage File](#committed-coverage-file-mandatory)'s component rows, then generate the combined report and read its `summary.linecoverage` field for the gated Overall (.NET) figure, all as described in [Coverage Reporting with reportgenerator](dotnet.instructions.md#coverage-reporting-with-reportgenerator).
 
 Skip .NET entirely if the repo has no `*.Tests` project ([Identifying Test Projects](dotnet.instructions.md#identifying-test-projects-mandatory)).
 
@@ -93,6 +104,8 @@ jq '.total.lines.pct' coverage/coverage-summary.json
 
 `coverage/coverage-summary.json` is written by the `json-summary` reporter (relative to `coverage.reportsDirectory`, which defaults to `coverage/`); `.total.lines.pct` is the overall line-coverage percentage across the whole run.
 
+Components are packages: one row per `package.json` with a configured test runner in a monorepo/workspace layout, each run and extracted the same way against its own package. A single-package repo has just the one Overall (Node) row.
+
 Skip Node entirely if the repo has no `package.json` with a configured test runner.
 
 ### Python
@@ -106,21 +119,37 @@ coverage report --format=total
 
 `coverage report --format=total` prints only the overall percentage as a single number (no other text), so no further extraction step is needed.
 
+Components are packages, analogous to Node: one row per Python package/app with its own test suite in a monorepo layout, otherwise a single Overall (Python) row.
+
 Skip Python entirely if the repo has no Python test suite.
 
 ### Shell (Excluded)
 
-Shell is excluded from the coverage ratchet entirely, per credfeto's explicit direction on [credfeto/cs-template#992](https://github.com/credfeto/cs-template/issues/992). Do not attempt to measure shell/bats coverage for this phase; always record it as `excluded` in the [baseline comment](#coverage-baseline-pr-comment-format-mandatory) and never include it in the [phase decision](#ai-coverage-phase-decision-procedure-mandatory) comparison.
+Shell is excluded from the coverage ratchet entirely, per credfeto's explicit direction on [credfeto/cs-template#992](https://github.com/credfeto/cs-template/issues/992). Do not attempt to measure shell/bats coverage for this phase; always record it as `excluded` in [COVERAGE.md](#committed-coverage-file-mandatory) and never include it in the [phase decision](#ai-coverage-phase-decision-procedure-mandatory) comparison.
+
+## Non-Code-Only Branches (Skip, Don't Measure)
+
+Only the three orchestrated languages' own source/test code (.NET, Node, Python — see [Per-Language Overall Coverage Extraction](#per-language-overall-coverage-extraction)) can move the ratchet's numbers. If every file changed on the branch (relative to its merge-base with `main`) falls into one of the categories below, no source or test file changed, so coverage cannot have moved. Skip the extraction and comparison entirely: move the board straight to **Human Review** and post a one-line status comment (`Non-code change — coverage ratchet skipped`), without reading or writing `COVERAGE.md`.
+
+- **Dependency manifests and version pins**: `.csproj`/`Directory.Packages.props`/`packages.config`/`package.json`/`package-lock.json`/`requirements.txt`/`*.lock`, a GitHub Actions `uses:` version bump, a `Dockerfile` base-image tag/digest, `global.json`/`dotnet-tools.json`/`.nvmrc`/`.python-version`.
+- **GitHub Actions workflows and composite actions** (`.github/workflows/*.yml`, `.github/actions/*/action.yml`) beyond version pins — workflow YAML has no coverage concept.
+- **SQL/T-SQL** (schema, stored procedures, views, migrations) — measured, if at all, by a database-specific process outside this ratchet, never by the per-language extraction above.
+- **Shell scripts** — see [Shell](#shell-excluded); always excluded, whether touched alone or as part of a larger branch.
+- **Dockerfiles and Docker Compose files**.
+- **Documentation-only changes** (README, CHANGELOG, and similar).
+
+This is an optimisation, not the only safety net: even without this skip, a branch confined to these categories that reaches the [decision procedure](#ai-coverage-phase-decision-procedure-mandatory) below cannot fail it (nothing it changed can move any language's coverage), and if `origin/main` has no `COVERAGE.md` yet the [bootstrap rule](#committed-coverage-file-mandatory) already prevents a block. A repo-specific orchestrator (e.g. a `dependencies`-labelled PR short-circuit) may also exempt these branches even earlier, before the Workflow board phases run at all — that is complementary, not a replacement for this rule.
 
 ## AI Coverage Phase Decision Procedure (MANDATORY)
 
 Run this only when the Workflow board is at **AI Coverage** (see [agent-roles.instructions.md](agent-roles.instructions.md#pr-workflow-ai-review-loop)):
 
-1. Find the most recent `## Coverage Baseline (main)` comment on the PR (`gh pr view <number> --repo <owner/repo> --json comments --jq '[.comments[] | select(.body | startswith("## Coverage Baseline (main)"))] | last'`). If none exists, treat this as a bug in an earlier phase: post a comment explaining no baseline was ever captured, add `Blocked`, and stop.
-2. For each language present in that comment as a real percentage (not `n/a` or `excluded`), run the same [extraction procedure](#per-language-overall-coverage-extraction) against the branch's current (already checked out) working tree.
-3. Compare branch vs. baseline per language:
-   - Any language where branch **<** baseline: the ratchet fails.
-   - All present languages branch **>=** baseline: the ratchet passes.
-4. **On failure**: post a status comment in the form `<lang> <branch-pct>% < main <baseline-pct>% - returning to Development` (one line per failing language), move the board back to **Development**, and stop.
-5. **On success**: move the board to **Human Review**, post a one-line status comment (`Coverage ratchet passed - advancing to Human Review`), and stop.
-6. **Round cap**: see [Phase D step 5](agent-roles.instructions.md#phase-d-ai-coverage-up-to-max_review_iterations-rounds) for the round-counting and `Blocked` label escalation rule.
+1. If the branch is [non-code-only](#non-code-only-branches-skip-dont-measure), skip straight to step 5 without measuring anything.
+2. `git -C <repodir> fetch origin main` (always fresh; do not rely on a fetch from earlier in the session). Read `origin/main`'s `COVERAGE.md` without checking it out: `git -C <repodir> show origin/main:COVERAGE.md`. If it does not exist, this is the [bootstrap case](#committed-coverage-file-mandatory): there is no baseline to compare against, so treat the gate as passed and go to step 5.
+3. For each language with a real Overall row in that file (not `n/a` or `excluded`), run the [extraction procedure](#per-language-overall-coverage-extraction) against the branch's current (already checked out) working tree, producing both the per-component rows and the Overall figure.
+4. Compare branch vs. baseline **Overall** per language (component rows are recorded but never gate, per [Overview](#overview)):
+   - Any language where branch Overall **<** baseline Overall: the ratchet fails. Go to step 6.
+   - All present languages branch Overall **>=** baseline Overall: the ratchet passes. Continue to step 5.
+5. **On success**: write/overwrite `COVERAGE.md` on the branch with the numbers just measured (or, in the skip/bootstrap cases, the branch's current measurement per [Committed Coverage File](#committed-coverage-file-mandatory)), commit and push it, move the board to **Human Review**, post a one-line status comment (`Coverage ratchet passed - advancing to Human Review`), and stop. This is why the board must not re-enter AI Coverage on the resulting CI run: the phase has already advanced past it.
+6. **On failure**: post a status comment in the form `<lang> <branch-pct>% < main <baseline-pct>% - returning to Development` (one line per failing language), move the board back to **Development**, and stop. Do not write `COVERAGE.md` in this case — the branch has nothing new worth recording yet.
+7. **Round cap**: see [Phase D step 5](agent-roles.instructions.md#phase-d-ai-coverage-up-to-max_review_iterations-rounds) for the round-counting and `Blocked` label escalation rule.
