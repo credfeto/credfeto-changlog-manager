@@ -8,6 +8,7 @@ using Credfeto.ChangeLog.Services;
 using Credfeto.ChangeLog.Tests.TestHelpers;
 using FunFair.Test.Common;
 using FunFair.Test.Common.Mocks;
+using FunFair.Test.Infrastructure.Mocks;
 using LibGit2Sharp;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

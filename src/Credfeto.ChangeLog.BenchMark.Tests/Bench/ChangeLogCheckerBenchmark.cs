@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Credfeto.ChangeLog;
 using FunFair.Test.Common.Mocks;
+using FunFair.Test.Infrastructure.Mocks;
 using LibGit2Sharp;
 using Microsoft.Extensions.DependencyInjection;
 
