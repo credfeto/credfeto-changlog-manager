@@ -28,7 +28,10 @@ Then, before starting any work on an issue or PR, run the hook against every tra
 
 This ensures CI results are unambiguous: pre-existing failures are resolved before any new changes are introduced.
 
-When picking up a **new issue** (branching fresh from `main`, not resuming an existing branch): once the baseline hook passes cleanly on `main`, also capture `main`'s whole-repo, per-language coverage numbers before creating the work branch, and post them once the PR exists; see [Initial Capture](coverage-ratchet.instructions.md#initial-capture-pre-work-baseline-check) in [coverage-ratchet.instructions.md](coverage-ratchet.instructions.md).
+When picking up a **new issue** (branching fresh from `main`, not resuming an existing branch): once the baseline hook passes cleanly, check whether `COVERAGE.md` exists at the repo root.
+
+- If it exists, nothing further is needed here: the AI Coverage phase reads it live from `origin/main` every time it runs (see [coverage-ratchet.instructions.md](coverage-ratchet.instructions.md)), so there is no per-branch capture step and nothing to refresh after a rebase.
+- If it does **not** exist, collect it now while still on `main` (run the [per-language extraction](coverage-ratchet.instructions.md#per-language-overall-coverage-extraction) procedure for each orchestrated language present), then create the work branch as normal and commit the resulting `COVERAGE.md` as its **first commit**, before starting the requested work. No separate branch or issue is needed for this, unlike the auto-fix case above: only one branch/PR is allowed open per repo at a time, so there is no concurrent-bootstrap race to isolate against. The AI Coverage phase overwrites the file again with the branch's live numbers when it runs later in this same PR (see its [bootstrap rule](coverage-ratchet.instructions.md#committed-coverage-file-mandatory)), so `COVERAGE.md` ends up with two commits over the branch's lifetime — expected, not a conflict.
 
 ## Pre-Commit Hook Verification (MANDATORY before blocking)
 
